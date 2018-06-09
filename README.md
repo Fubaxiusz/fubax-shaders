@@ -2,7 +2,7 @@ Fubax ReShade FX shaders
 ========================
 
 This repository collects post-processing shaders written in the ReShade FX shader language, that I contribute to.
-You can downlad [ReShade here]https://reshade.me/
+You can downlad [ReShade here](https://reshade.me/)
 
 Installation
 ------------

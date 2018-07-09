@@ -1,11 +1,28 @@
 /*
-Display LUT PS v1.0.0 (c) 2018 Jacob Maximilian Fober
+Display LUT PS v1.1.1 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
 To view a copy of this license, visit 
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
+
+  ////////////////////
+ /////// MENU ///////
+////////////////////
+
+#ifndef ShaderAnalyzer
+uniform int LutRes <
+	ui_label = "LUT box resolution";
+	ui_tooltip = "Horizontal resolution equals value squared. Default 32 is 1024";
+	ui_type = "drag";
+	ui_min = 8; ui_max = 128; ui_step = 1;
+> = 32;
+#endif
+
+  //////////////////////
+ /////// SHADER ///////
+//////////////////////
 
 #include "ReShade.fxh"
 
@@ -17,13 +34,14 @@ float3 DisplayLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD) : SV_
 	// Get image resolution
 	float2 ScreenResolution = ReShade::ScreenSize;
 	// Generate pattern UV
-	float2 Gradient = TexCoord * ScreenResolution * 0.03125;
+	float2 Gradient = TexCoord * ScreenResolution / LutRes;
 	// Convert pattern to RGB LUT
 	float3 LUT;
-	LUT.rg = frac(Gradient);
-	LUT.b = floor(Gradient.r) / 31;
+	LUT.rg = frac(Gradient) - 0.5 / LutRes;
+	LUT.rg /= 1.0 - 1.0 / LutRes;
+	LUT.b = floor(Gradient.r) / (LutRes - 1);
 	// Display 1024x32 LUT
-	return TexCoord < PixelSize * int2(1024, 32) ? LUT : tex2D(ReShade::BackBuffer, TexCoord).rgb;
+	return TexCoord < PixelSize * int2(LutRes * LutRes, LutRes) ? LUT : tex2D(ReShade::BackBuffer, TexCoord).rgb;
 }
 
 technique DisplayLUT

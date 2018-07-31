@@ -1,5 +1,5 @@
 /*
-Display LUT PS v1.1.2 (c) 2018 Jacob Maximilian Fober
+Display LUT PS v1.1.3 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -38,7 +38,7 @@ float3 DisplayLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD) : SV_
 	float2 LUTSize = PixelSize * int2(LutRes * LutRes, LutRes);
 	LUTSize = floor(TexCoord / LUTSize);
 	// Create background mask
-	bool LUTMask = bool(LUTSize.x) || bool(LUTSize.y);
+	bool LUTMask = max(LUTSize.x, LUTSize.y);
 
 	if (LUTMask)
 	{

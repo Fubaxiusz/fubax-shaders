@@ -1,5 +1,5 @@
 /*
-Display LUT PS v1.1.1 (c) 2018 Jacob Maximilian Fober
+Display LUT PS v1.1.2 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -32,16 +32,30 @@ float3 DisplayLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD) : SV_
 	// Get UV pixel size
 	float2 PixelSize = ReShade::PixelSize;
 	// Get image resolution
-	float2 ScreenResolution = ReShade::ScreenSize;
-	// Generate pattern UV
-	float2 Gradient = TexCoord * ScreenResolution / LutRes;
-	// Convert pattern to RGB LUT
-	float3 LUT;
-	LUT.rg = frac(Gradient) - 0.5 / LutRes;
-	LUT.rg /= 1.0 - 1.0 / LutRes;
-	LUT.b = floor(Gradient.r) / (LutRes - 1);
-	// Display 1024x32 LUT
-	return TexCoord < PixelSize * int2(LutRes * LutRes, LutRes) ? LUT : tex2D(ReShade::BackBuffer, TexCoord).rgb;
+	int2 ScreenResolution = ReShade::ScreenSize;
+
+	// Calculate LUT texture bounds
+	float2 LUTSize = PixelSize * int2(LutRes * LutRes, LutRes);
+	LUTSize = floor(TexCoord / LUTSize);
+	// Create background mask
+	bool LUTMask = bool(LUTSize.x) || bool(LUTSize.y);
+
+	if (LUTMask)
+	{
+		return tex2D(ReShade::BackBuffer, TexCoord).rgb;
+	}
+	else
+	{
+		// Generate pattern UV
+		float2 Gradient = TexCoord * ScreenResolution / LutRes;
+		// Convert pattern to RGB LUT
+		float3 LUT;
+		LUT.rg = frac(Gradient) - 0.5 / LutRes;
+		LUT.rg /= 1.0 - 1.0 / LutRes;
+		LUT.b = floor(Gradient.r) / (LutRes - 1);
+		// Display LUT texture
+		return LUT;
+	}
 }
 
 technique DisplayLUT

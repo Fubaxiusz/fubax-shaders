@@ -1,6 +1,6 @@
 /*
-Display LUT PS v1.1.3 (c) 2018 Jacob Maximilian Fober;
-Apply LUT PS v1.0.0 (c) 2018 Jacob Maximilian Fober,
+Display LUT PS v1.1.4 (c) 2018 Jacob Maximilian Fober;
+Apply LUT PS v1.0.1 (c) 2018 Jacob Maximilian Fober,
 (remix of LUT shader 1.0 (c) 2016 Marty McFly)
 
 This work is licensed under the Creative Commons 
@@ -30,9 +30,9 @@ uniform int LutRes <
 	ui_category = "Display LUT settings";
 	ui_min = 8; ui_max = 128; ui_step = 1;
 > = 32;
-uniform float2 LutLumaChroma <
-	ui_label = "LUT luma/chroma blend";
-	ui_tooltip = "How much LUT affects luminance/chrominance";
+uniform float2 LutChromaLuma <
+	ui_label = "LUT chroma/luma blend";
+	ui_tooltip = "How much LUT affects chrominance/luminance";
 	ui_type = "drag";
 	ui_category = "Apply LUT settings";
 	ui_min = 0.0; ui_max = 1.0; ui_step = 0.005;
@@ -61,12 +61,9 @@ float3 DisplayLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD) : SV_
 	int2 ScreenResolution = ReShade::ScreenSize;
 
 	// Calculate LUT texture bounds
-	float2 LUTSize = PixelSize * int2(LutRes * LutRes, LutRes);
-	LUTSize = floor(TexCoord / LUTSize);
-	// Create background mask
-	bool LUTMask = max(LUTSize.x, LUTSize.y);
+	float2 LutBounds = float2(LutRes * LutRes, LutRes) / ScreenResolution;
 
-	if (LUTMask)
+	if (any(TexCoord > LutBounds))
 	{
 		return tex2D(ReShade::BackBuffer, TexCoord).rgb;
 	}
@@ -109,7 +106,7 @@ void ApplyLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out float
 	);
 
 	// Blend LUT image with original
-	if (1 == min(LutLumaChroma.x, LutLumaChroma.y))
+	if (1 == min(LutChromaLuma.x, LutChromaLuma.y))
 	{
 		Image = LutImage;
 	}
@@ -118,11 +115,11 @@ void ApplyLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out float
 		Image = lerp(
 			normalize(Image),
 			normalize(LutImage),
-			LutLumaChroma.x
+			LutChromaLuma.x
 		) * lerp(
 			length(Image),
 			length(LutImage),
-			LutLumaChroma.y
+			LutChromaLuma.y
 		);
 	}
 }

@@ -1,5 +1,5 @@
 /*
-Display LUT PS v1.1.4 (c) 2018 Jacob Maximilian Fober;
+Display LUT PS v1.1.5 (c) 2018 Jacob Maximilian Fober;
 Apply LUT PS v1.0.1 (c) 2018 Jacob Maximilian Fober,
 (remix of LUT shader 1.0 (c) 2016 Marty McFly)
 
@@ -25,7 +25,12 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 #ifndef ShaderAnalyzer
 uniform int LutRes <
 	ui_label = "LUT box resolution";
-	ui_tooltip = "Horizontal resolution equals value squared. Default 32 is 1024. To set texture size and name for ApplyLUT, define 'LutSize [number]' and 'LutName [name]'";
+	ui_tooltip = "Horizontal resolution equals value squared. \n"
+		"Default 32 is 1024. \n"
+		"To set texture size and name for ApplyLUT, define \n"
+		" LutSize [number] \n"
+		"and \n"
+		" LutName [name]";
 	ui_type = "drag";
 	ui_category = "Display LUT settings";
 	ui_min = 8; ui_max = 128; ui_step = 1;

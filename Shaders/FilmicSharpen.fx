@@ -1,5 +1,5 @@
 /*
-Filmic Sharpen PS v1.0.6 (c) 2018 Jacob Maximilian Fober
+Filmic Sharpen PS v1.0.7 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -30,11 +30,11 @@ uniform float Clamp <
 	ui_min = 0.5; ui_max = 1.0; ui_step = 0.001;
 > = 1.0;
 
-uniform int Offset <
+uniform float Offset <
 	ui_label = "High-pass offset";
 	ui_tooltip = "High-pass cross offset in pixels";
 	ui_type = "drag";
-	ui_min = 0; ui_max = 2;
+	ui_min = 0.5; ui_max = 2; ui_step = 0.01;
 > = 1;
 
 uniform bool Preview <
@@ -48,6 +48,11 @@ uniform bool Preview <
 
 #include "ReShade.fxh"
 
+// RGB to YUV709
+static const float3 ToYUV709 = float3(0.2126, 0.7152, 0.0722);
+// RGB to YUV601
+static const float3 ToYUV601 = float3(0.299, 0.587, 0.114);
+
 // Overlay blending mode
 float Overlay(float LayerA, float LayerB)
 {
@@ -58,17 +63,10 @@ float Overlay(float LayerA, float LayerB)
 	return 2 * (MinA * MinB + MaxA + MaxB - MaxA * MaxB) - 1.5;
 }
 
-// Convert RGB to YUV.luma
-float Luma(float3 Source, float3 Coefficients)
-{
-	float3 Result = Source * Coefficients;
-	return Result.r + Result.g + Result.b;
-}
-
 // Sharpen pass
 float3 FilmicSharpenPS(float4 vois : SV_Position, float2 UvCoord : TexCoord) : SV_Target
 {
-	float2 Pixel = ReShade::PixelSize * float(Offset);
+	float2 Pixel = ReShade::PixelSize * Offset;
 	// Sample display image
 	float3 Source = tex2D(ReShade::BackBuffer, UvCoord).rgb;
 
@@ -80,24 +78,23 @@ float3 FilmicSharpenPS(float4 vois : SV_Position, float2 UvCoord : TexCoord) : S
 	};
 
 	// Choose luma coefficient, if True BT.709 Luma, else BT.601 Luma
-	static const float3 LumaCoefficient = (Coefficient == 0) ?
-	float3( 0.2126,  0.7152,  0.0722) : float3( 0.299,  0.587,  0.114);
+	float3 LumaCoefficient = bool(Coefficient) ? ToYUV709 : ToYUV601;
 
 	// Luma high-pass
 	float HighPass;
 
 	for (int s = 0; s < 4; s++)
 	{
-		HighPass += Luma(tex2D(ReShade::BackBuffer, NorSouWesEst[s]).rgb, LumaCoefficient);
+		HighPass += dot(tex2D(ReShade::BackBuffer, NorSouWesEst[s]).rgb, LumaCoefficient);
 	}
 
-	HighPass = 0.5 - 0.5 * (HighPass * 0.25 - Luma(Source, LumaCoefficient));
+	HighPass = 0.5 - 0.5 * (HighPass * 0.25 - dot(Source, LumaCoefficient));
 
 	// Sharpen strength
 	HighPass = lerp(0.5, HighPass, Strength);
 
 	// Clamping sharpen
-	HighPass = max(min(HighPass, Clamp), 1 - Clamp);
+	HighPass = (Clamp != 1) ? max(min(HighPass, Clamp), 1 - Clamp) : HighPass;
 
 	float3 Sharpen = float3(
 		Overlay(Source.r, HighPass),

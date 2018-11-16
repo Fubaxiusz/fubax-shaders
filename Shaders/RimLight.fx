@@ -8,7 +8,7 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-// Rim Light PS v0.1.0 a
+// Rim Light PS v0.1.1 a
 
 #include "Reshade.fxh"
 
@@ -38,7 +38,7 @@ uniform float FarPlane <
 	ui_type = "drag";
 	ui_min = 0; ui_max = 1000; ui_step = 1;
 	ui_category = "Debug Tools";
-> = 1000;
+> = 1000.0;
 
 // Overlay blending mode
 float Overlay(float Layer)

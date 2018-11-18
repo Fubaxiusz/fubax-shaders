@@ -8,7 +8,7 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-// Rim Light PS v0.1.1 a
+// Rim Light PS v0.1.2 a
 
 #include "Reshade.fxh"
 
@@ -54,7 +54,20 @@ float GetDepth(float2 TexCoord)
 	float depth;
 	if(Debug || CustomFarPlane)
 	{
+		#if RESHADE_DEPTH_INPUT_IS_UPSIDE_DOWN
+		TexCoord.y = 1.0 - TexCoord.y;
+		#endif
+
 		depth = tex2Dlod(ReShade::DepthBuffer, float4(TexCoord, 0, 0)).x;
+
+		#if RESHADE_DEPTH_INPUT_IS_LOGARITHMIC
+		const float C = 0.01;
+		depth = (exp(depth * log(C + 1.0)) - 1.0) / C;
+		#endif
+		#if RESHADE_DEPTH_INPUT_IS_REVERSED
+		depth = 1.0 - depth;
+		#endif
+
 		depth /= FarPlane - depth * (FarPlane - 1.0);
 	}
 	else 

@@ -1,5 +1,5 @@
 /*
-Real Grain PS v0.1 (c) 2018 Jacob Maximilian Fober
+Real Grain PS v0.2.0 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -14,6 +14,8 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 #ifndef ShaderAnalyzer
 uniform float2 Intensity <
 	ui_label = "Noise intensity";
+	ui_tooltip = "First Value - Macro Noise\n"
+		"Second Value - Micro Noise";
 	ui_type = "drag";
 	ui_min = 0.0; ui_max = 1.0; ui_step = 0.002;
 > = float2(0.316, 0.08);
@@ -27,7 +29,10 @@ uniform int Coefficient <
 
 uniform int2 Framerate <
 	ui_label = "Noise framerate";
-	ui_tooltip = "Zero will match in-game framerate";
+	ui_tooltip = "Zero will match in-game framerate\n"
+		"\n"
+		"First Value - Macro Noise\n"
+		"Second Value - Micro Noise";
 	ui_type = "drag";
 	ui_min = 0; ui_max = 120; ui_step = 1;
 > = int2(6, 12);
@@ -61,7 +66,11 @@ float SimpleNoise(float p)
 static const float GoldenAB = sqrt(5) * 0.5 + 0.5;
 static const float GoldenABh = sqrt(5) * 0.25 + 0.25;
 
-texture FilmGrainTex { Width = BUFFER_WIDTH * 0.7; Height = BUFFER_HEIGHT * 0.7; Format = R8; };
+#if !defined(ResolutionX) || !defined(ResolutionY)
+	texture FilmGrainTex { Width = BUFFER_WIDTH * 0.7; Height = BUFFER_HEIGHT * 0.7; Format = R8; };
+#else
+	texture FilmGrainTex { Width = ResolutionX * 0.7; Height = ResolutionY * 0.7; Format = R8; };
+#endif
 sampler FilmGrain { Texture = FilmGrainTex; };
 
 float Seed(float2 Coordinates, float Frames)

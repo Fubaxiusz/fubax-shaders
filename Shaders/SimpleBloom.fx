@@ -25,14 +25,23 @@ uniform bool Debug <
 
 #endif
 
-
-texture SimpleBloomTarget
-{
-	// resolution 25%
-	Width = BUFFER_WIDTH * 0.25;
-	Height = BUFFER_HEIGHT * 0.25;
-	Format = RGBA8;
-};
+#if !defined(ResolutionX) || !defined(ResolutionY)
+	texture SimpleBloomTarget
+	{
+		// resolution 25%
+		Width = BUFFER_WIDTH * 0.25;
+		Height = BUFFER_HEIGHT * 0.25;
+		Format = RGBA8;
+	};
+#else
+	texture SimpleBloomTarget
+	{
+		// resolution 25%
+		Width = ResolutionX * 0.25;
+		Height = ResolutionY * 0.25;
+		Format = RGBA8;
+	};
+#endif
 sampler SimpleBloomSampler { Texture = SimpleBloomTarget; };
 
 

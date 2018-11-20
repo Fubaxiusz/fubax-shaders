@@ -13,7 +13,11 @@ uniform int FrameCount < source = "framecount"; >;
 #endif
 
 // Previous frame render target buffer
-texture InterlacedTargetBuffer { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; };
+#if !defined(ResolutionX) || !defined(ResolutionY)
+	texture InterlacedTargetBuffer { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; };
+#else
+	texture InterlacedTargetBuffer { Width = ResolutionX; Height = ResolutionY; };
+#endif
 
 sampler InterlacedBufferSampler { Texture = InterlacedTargetBuffer;
 	MagFilter = POINT;

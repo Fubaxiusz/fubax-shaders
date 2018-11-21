@@ -78,10 +78,10 @@ float GetDepth(float2 TexCoord)
 }
 
 // Normal pass from depth function
-float3 NormalVector(float2 texcoord)
+float3 NormalVector(float2 TexCoord)
 {
 	float3 offset = float3(ReShade::PixelSize.xy, 0.0);
-	float2 posCenter = texcoord.xy;
+	float2 posCenter = TexCoord.xy;
 	float2 posNorth = posCenter - offset.zy;
 	float2 posEast = posCenter + offset.xz;
 

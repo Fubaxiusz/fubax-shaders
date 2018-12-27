@@ -1,5 +1,5 @@
 /*
-Filmic Sharpen PS v1.0.7 (c) 2018 Jacob Maximilian Fober
+Filmic Sharpen PS v1.0.8 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -35,7 +35,7 @@ uniform float Offset <
 	ui_tooltip = "High-pass cross offset in pixels";
 	ui_type = "drag";
 	ui_min = 0.5; ui_max = 2; ui_step = 0.01;
-> = 1;
+> = 1.0;
 
 uniform bool Preview <
 	ui_label = "Preview sharpen layer";

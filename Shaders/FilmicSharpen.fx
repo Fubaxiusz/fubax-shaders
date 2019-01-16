@@ -1,5 +1,5 @@
 /*
-Filmic Sharpen PS v1.0.8 (c) 2018 Jacob Maximilian Fober
+Filmic Sharpen PS v1.0.9 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -14,8 +14,8 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 uniform float Strength <
 	ui_label = "Sharpen strength";
 	ui_type = "drag";
-	ui_min = 0.0; ui_max = 3.0; ui_step = 0.005;
-> = 1.0;
+	ui_min = 0.0; ui_max = 100.0; ui_step = 0.01;
+> = 60.0;
 
 uniform int Coefficient <
 	ui_label = "Luma coefficient";
@@ -28,14 +28,14 @@ uniform float Clamp <
 	ui_label = "Sharpen clamping";
 	ui_type = "drag";
 	ui_min = 0.5; ui_max = 1.0; ui_step = 0.001;
-> = 1.0;
+> = 0.65;
 
 uniform float Offset <
 	ui_label = "High-pass offset";
 	ui_tooltip = "High-pass cross offset in pixels";
 	ui_type = "drag";
-	ui_min = 0.5; ui_max = 2; ui_step = 0.01;
-> = 1.0;
+	ui_min = 0.01; ui_max = 2; ui_step = 0.01;
+> = 0.1;
 
 uniform bool Preview <
 	ui_label = "Preview sharpen layer";

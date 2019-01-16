@@ -1,5 +1,5 @@
 /*
-Filmic Sharpen PS v1.0.9 (c) 2018 Jacob Maximilian Fober
+Filmic Sharpen PS v1.0.10 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -11,6 +11,7 @@ http://creativecommons.org/licenses/by-sa/4.0/.
  /////// MENU ///////
 ////////////////////
 
+#ifndef ShaderAnalyzer
 uniform float Strength <
 	ui_label = "Sharpen strength";
 	ui_type = "drag";
@@ -41,6 +42,7 @@ uniform bool Preview <
 	ui_label = "Preview sharpen layer";
 	ui_category = "Debug View";
 > = false;
+#endif
 
   //////////////////////
  /////// SHADER ///////
@@ -81,13 +83,8 @@ float3 FilmicSharpenPS(float4 vois : SV_Position, float2 UvCoord : TexCoord) : S
 	float3 LumaCoefficient = bool(Coefficient) ? ToYUV709 : ToYUV601;
 
 	// Luma high-pass
-	float HighPass;
-
-	for (int s = 0; s < 4; s++)
-	{
-		HighPass += dot(tex2D(ReShade::BackBuffer, NorSouWesEst[s]).rgb, LumaCoefficient);
-	}
-
+	float HighPass = 0;
+	for(int i=0; i<4; i++) HighPass += dot(tex2D(ReShade::BackBuffer, NorSouWesEst[i]).rgb, LumaCoefficient);
 	HighPass = 0.5 - 0.5 * (HighPass * 0.25 - dot(Source, LumaCoefficient));
 
 	// Sharpen strength

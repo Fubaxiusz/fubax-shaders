@@ -96,7 +96,7 @@ float3 FlipbookPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Ta
 
 	// Sample display image
 	float3 Display = tex2D(ReShade::BackBuffer, texcoord).rgb;
-	// Sample cursor texture
+	// Sample flipbook texture
 	float4 AnimationTexture = tex2D(FlipbookSampler, AnimationCoord);
 
 	return lerp(Display, AnimationTexture.rgb, AnimationTexture.a * BorderMask);

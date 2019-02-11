@@ -26,7 +26,7 @@ uniform int3 Size <
 	ui_tooltip = "Adjust flipbook texture dimensions and framerate\nTo change texture resolution and name,\nadd following preprocessor definition:\n  flipbook 'name.png'\n  flipbookX [ResolutionX]\n  flipbookY [ResolutionY]";
 	ui_type = "drag";
 	ui_min = 1; ui_max = 30; ui_step = 0.2;
-> = int3(10, 9, 25);
+> = int3(10, 9, 30);
 
 uniform float3 Position <
 	ui_label = "X position, Y position, Scale";
@@ -44,12 +44,7 @@ uniform float timer < source = "timer"; >;
 //////////////////////
 
 texture FlipbookTex < source = flipbook; > {Width = flipbookX; Height = flipbookY;};
-sampler FlipbookSampler
-{
-	Texture = FlipbookTex;
-	AddressU = BORDER;
-	AddressV = BORDER;
-};
+sampler FlipbookSampler { Texture = FlipbookTex; };
 
 #include "ReShade.fxh"
 

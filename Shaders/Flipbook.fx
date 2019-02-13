@@ -33,7 +33,7 @@ uniform float3 Position <
 	ui_tooltip = "Adjust flipbook texture size and position";
 	ui_type = "drag";
 	ui_min = float3(0.0, 0.0, 0.1); ui_max = float3(1.0, 1.0, 1.0); ui_step = 0.002;
-> = float3(1.0, 1.0, 1.0);
+> = float3(1.0, 0.0, 1.0);
 
 // Get time in milliseconds from start
 uniform float timer < source = "timer"; >;
@@ -79,7 +79,7 @@ float3 FlipbookPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Ta
 	}
 
 	// Offset coordinates
-	ScaledCoord += (1.0-Scale)*Position.xy;
+	ScaledCoord += (1.0-Scale)*float2(Position.x, 1.0-Position.y);
 
 	float BorderMask = Mask(ScaledCoord);
 	// Frame time in milliseconds

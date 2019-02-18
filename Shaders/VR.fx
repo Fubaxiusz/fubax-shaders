@@ -53,6 +53,55 @@ Version 0.2.0 alpha
 
 #ifndef ShaderAnalyzer
 
+//Depth Buffer Adjust//
+uniform int Depth_Map <
+	ui_type = "combo";
+	ui_items = "Z-Buffer Normal\0Z-Buffer Reversed\0";
+	ui_label = "·Z-Buffer Selection·";
+	ui_tooltip = "Select Depth Buffer Linearization.";
+	ui_category = "Depth Buffer Adjust";
+> = 0;
+
+uniform float Depth_Map_Adjust <
+	ui_type = "drag";
+	ui_min = 1.0; ui_max = 250.0; ui_step = 0.125;
+	ui_label = " Z-Buffer Adjustment";
+	ui_tooltip = "This allows for you to adjust Depth Buffer Precision.\n"
+				 "Try to adjust this to keep it as low as possible.\n"
+				 "Don't go too high with this adjustment.\n"
+				 "Default is 7.5";
+	ui_category = "Depth Buffer Adjust";
+> = 7.5;
+
+uniform float zOffset <
+	ui_type = "drag";
+	ui_min = 0; ui_max = 1.0;
+	ui_label = " Z-Buffer Offset";
+	ui_tooltip = "Depth Buffer Offset is for non conforming Z-Buffer.\n"
+				 "It's rare if you need to use this in any game.\n"
+				 "This makes adjustments to Normal and Reversed.\n"
+				 "Default is Zero & Zero is Off.";
+	ui_category = "Depth Buffer Adjust";
+> = 0.0;
+
+uniform float Convergence <
+	ui_type = "drag";
+	ui_min = 0.0; ui_max = 0.125;
+	ui_label = " Convergence";
+	ui_tooltip = "Convergence controls the focus distance for the screen Pop-out effect also known as ZPD.\n"
+				 "For FPS Games keeps this low Since you don't want your gun to pop out of screen.\n"
+				 "If you want to push this higher you need to adjust your Weapon Hand below.\n"
+				 "It helps to keep this around 0.03 when adjusting the DM or Weapon Hand.\n"
+				 "Default is 0.010, Zero is off.";
+	ui_category = "Depth Buffer Adjust";
+> = 0.010;
+
+uniform bool Depth_Map_Flip <
+	ui_label = " Flip Depth";
+	ui_tooltip = "Flip the Depth Buffer if it is upside down.";
+	ui_category = "Depth Buffer Adjust";
+> = false;
+
 uniform bool TestGrid <
 	ui_label = "Display calibration grid";
 	ui_tooltip = "Toggle test grid for lens calibration";
@@ -267,7 +316,36 @@ uniform bool Sharpen <
 
 #endif
 
+sampler DepthBuffer
+{
+	Texture = ReShade::DepthBufferTex;
+};
 
+float Depth(in float2 texcoord : TEXCOORD0) //This is done because adjusting the DepthBuffer is anoying in reshade.
+{	
+	if (Depth_Map_Flip)
+		texcoord.y =  1 - texcoord.y;
+	//Had to use tex2Dlod so it don't error out in DX9	
+	float zBuffer = tex2Dlod(DepthBuffer,float4(texcoord,0,0)).x, DMA = Depth_Map_Adjust * 2.0f; //Depth Buffer adjusted for this shader.
+
+	//Conversions to linear space.....
+	//Near & Far Adjustment
+	float Far = 1.0, Near = 0.125/DMA; //Division Depth Map Adjust - Near
+	//zOffset to adjust for no conforming depth buffers like in the Game Fez.
+	float2 Offsets = float2(1 + zOffset,1 - zOffset), Z = float2( zBuffer, 1-zBuffer );
+	
+	if (Offset > 0)
+	Z = min( 1, float2( Z.x*Offsets.x , Z.y /  Offsets.y  ));
+		
+	if (Depth_Map == 0)//DM0. Normal
+		zBuffer = Far * Near / (Far + Z.x * (Near - Far));		
+	else if (Depth_Map == 1)//DM1. Reverse
+		zBuffer = Far * Near / (Far + Z.y * (Near - Far));
+		
+	//Convergence Code aka ZPD
+	//Keep in mind Perspective needs to me adjusted along with Convergence for VR. You can adapt your ZPD code to push contents back in to the screen.
+	return 1 - Convergence / zBuffer; 
+}
 
 	/////////////////
 	/// FUNCTIONS ///
@@ -388,7 +466,7 @@ float2 Parallax(float2 Coordinates, float Offset, float Center, int GapOffset, i
 	float2 ParallaxCoord = Coordinates;
 	// Offset image horizontally so that parallax is in the depth appointed center
 	ParallaxCoord.x += Offset * Center;
-	float CurrentDepthMapValue = ReShade::GetLinearizedDepth(ParallaxCoord).x; // Replace function
+	float CurrentDepthMapValue = Depth(ParallaxCoord).x; // Replace function
 
 	// Steep parallax mapping
 	float CurrentLayerDepth = 0.0;
@@ -397,7 +475,7 @@ float2 Parallax(float2 Coordinates, float Offset, float Center, int GapOffset, i
 		// Shift coordinates horizontally in linear fasion
 		ParallaxCoord.x -= deltaCoordinates;
 		// Get depth value at current coordinates
-		CurrentDepthMapValue = ReShade::GetLinearizedDepth(ParallaxCoord).x; // Replace function
+		CurrentDepthMapValue = Depth(ParallaxCoord).x; // Replace function
 		// Get depth of next layer
 		CurrentLayerDepth += LayerDepth;
 	}
@@ -406,7 +484,7 @@ float2 Parallax(float2 Coordinates, float Offset, float Center, int GapOffset, i
 	float2 PrevParallaxCoord = ParallaxCoord;
 	PrevParallaxCoord.x += deltaCoordinates;
 	float afterDepthValue = CurrentDepthMapValue - CurrentLayerDepth;
-	float beforeDepthValue = ReShade::GetLinearizedDepth(PrevParallaxCoord).x; // Replace function
+	float beforeDepthValue = Depth(PrevParallaxCoord).x; // Replace function
 	// Store depth read difference for masking
 	float DepthDifference = beforeDepthValue - CurrentDepthMapValue;
 

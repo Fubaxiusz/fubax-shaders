@@ -63,8 +63,13 @@ float SimpleNoise(float p)
 
 #include "ReShade.fxh"
 
-static const float GoldenAB = sqrt(5) * 0.5 + 0.5;
-static const float GoldenABh = sqrt(5) * 0.25 + 0.25;
+#if !defined(__RESHADE__) || __RESHADE__ < 40000
+	static const float GoldenAB = sqrt(5) * 0.5 + 0.5;
+	static const float GoldenABh = sqrt(5) * 0.25 + 0.25;
+#else
+	static const float GoldenAB = 1.6180339887498948482045868343656;
+	static const float GoldenABh = 0.80901699437494742410229341718282;
+#endif
 
 #if !defined(ResolutionX) || !defined(ResolutionY)
 	texture FilmGrainTex { Width = BUFFER_WIDTH * 0.7; Height = BUFFER_HEIGHT * 0.7; Format = R8; };

@@ -22,7 +22,7 @@ beside Brown-Conrady distortion correction model and
 Parallax Steep and Occlusion mapping which
 I changed and adopted from various sources.
 
-Version 0.1.4 alpha
+Version 0.2.0 alpha
 */
 
 #include "ReShade.fxh"
@@ -46,9 +46,6 @@ Version 0.1.4 alpha
 #ifndef thicknessB
 	#define thicknessB 0.125 // Yellow cross thickness
 #endif
-#ifndef brightness
-	#define brightness float(235/255.0) // Grid brightness level
-#endif
 #ifndef crossColor
 	#define crossColor float3(1.0, 1.0, 0.0) // Center cross color (yellow)
 #endif
@@ -59,6 +56,18 @@ Version 0.1.4 alpha
 uniform bool TestGrid <
 	ui_label = "Display calibration grid";
 	ui_tooltip = "Toggle test grid for lens calibration";
+	ui_category = "Calibration grid";
+> = true;
+
+uniform bool Horizontal <
+	ui_label = "Horizontal grid lines visible";
+	ui_tooltip = "Only visible in grid mode";
+	ui_category = "Calibration grid";
+> = true;
+
+uniform bool Vertical <
+	ui_label = "Vertical grid lines visible";
+	ui_tooltip = "Only visible in grid mode";
 	ui_category = "Calibration grid";
 > = true;
 
@@ -124,7 +133,7 @@ uniform int FOV <
 	ui_label = "Lens distortion power";
 	ui_tooltip = "Adjust lens distortion main profile (vertical FOV)";
 	ui_type = "drag";
-	ui_min = 0; ui_max = 170; ui_step = 0.2;
+	ui_min = 0; ui_max = 170; ui_step = 0.1;
 	ui_category = "Perspective distortion";
 > = 96;
 
@@ -146,7 +155,7 @@ uniform float4 K <
 
 uniform float3 P <
 	ui_label = "Tangental correction";
-	ui_tooltip = "Adjust lens tangental distortion P\n(Brown-Conrady model)\n[P1,P2,P3,P4]";
+	ui_tooltip = "Adjust lens tangental distortion P\n(Brown-Conrady model)\n[P1,P2,P3]";
 	ui_type = "drag";
 	ui_step = 0.001;
 	ui_category = "Perspective distortion";
@@ -158,34 +167,102 @@ uniform bool PerspectiveSwitch <
 	ui_category = "Perspective distortion";
 > = true;
 
+uniform float2 ChGreenOffsetL <
+	ui_label = "Left green center offset";
+	ui_tooltip = "Adjust lens center for chromatic aberration";
+	ui_type = "drag";
+	ui_min = -0.2; ui_max = 0.2; ui_step = 0.001;
+	ui_category = "Chromatic left-eye center";
+> = float2(0.0, 0.0);
+
+uniform float2 ChBlueOffsetL <
+	ui_label = "Left blue center offset";
+	ui_tooltip = "Adjust lens center for chromatic aberration";
+	ui_type = "drag";
+	ui_min = -0.2; ui_max = 0.2; ui_step = 0.001;
+	ui_category = "Chromatic left-eye center";
+> = float2(0.0, 0.0);
+
+uniform float2 ChGreenOffsetR <
+	ui_label = "Right green center offset";
+	ui_tooltip = "Adjust lens center for chromatic aberration";
+	ui_type = "drag";
+	ui_min = -0.2; ui_max = 0.2; ui_step = 0.001;
+	ui_category = "Chromatic right-eye center";
+> = float2(0.0, 0.0);
+
+uniform float2 ChBlueOffsetR <
+	ui_label = "Right blue center offset";
+	ui_tooltip = "Adjust lens center for chromatic aberration";
+	ui_type = "drag";
+	ui_min = -0.2; ui_max = 0.2; ui_step = 0.001;
+	ui_category = "Chromatic right-eye center";
+> = float2(0.0, 0.0);
+
 uniform float4 ChGreenK <
 	ui_label = "Chromatic green correction";
 	ui_tooltip = "Adjust lens color fringing K\nfor green channel\n(Brown-Conrady model)\n[Zoom,K1,K2,K3]";
 	ui_type = "drag";
 	ui_step = 0.001;
-	ui_category = "Chromatic aberration";
+	ui_category = "Chromatic radial correction";
 > = float4(0.0, 0.0, 0.0, 0.0);
+
+uniform bool SoloGreen <
+	ui_label = "Green channel adjustment solo";
+	ui_tooltip = "Visible only on calibration grid preview";
+	ui_category = "Chromatic radial correction";
+> = false;
 
 uniform float4 ChBlueK <
 	ui_label = "Chromatic blue correction";
 	ui_tooltip = "Adjust lens color fringing K\nfor blue channel\n(Brown-Conrady model)\n[Zoom,K1,K2,K3]";
 	ui_type = "drag";
 	ui_step = 0.001;
-	ui_category = "Chromatic aberration";
+	ui_category = "Chromatic radial correction";
 > = float4(0.0, 0.0, 0.0, 0.0);
 
-uniform float2 ChOffset <
-	ui_label = "Chromatic center offset";
-	ui_tooltip = "Adjust lens center for chromatic aberration";
-	ui_type = "drag";
-	ui_min = -0.2; ui_max = 0.2; ui_step = 0.001;
-	ui_category = "Chromatic aberration";
-> = float2(0.0, 0.0);
+uniform bool SoloBlue <
+	ui_label = "Blue channel adjustment solo";
+	ui_tooltip = "Visible only on calibration grid preview";
+	ui_category = "Chromatic radial correction";
+> = false;
 
 uniform bool ChromaticAbrSwitch <
 	ui_label = "Chromatic correction enabled";
 	ui_tooltip = "Toggle color fringing correction";
-	ui_category = "Chromatic aberration";
+	ui_category = "Chromatic radial correction";
+> = true;
+
+uniform float Strength <
+	ui_label = "Sharpen strength";
+	ui_type = "drag";
+	ui_min = 0.0; ui_max = 100.0; ui_step = 0.01;
+	ui_category = "Sharpen image";
+> = 25.0;
+
+uniform float Clamp <
+	ui_label = "Sharpen clamping";
+	ui_type = "drag";
+	ui_min = 0.5; ui_max = 1.0; ui_step = 0.001;
+	ui_category = "Sharpen image";
+> = 0.65;
+
+uniform float Offset <
+	ui_label = "High-pass offset";
+	ui_tooltip = "High-pass cross offset in pixels";
+	ui_type = "drag";
+	ui_min = 0.01; ui_max = 2; ui_step = 0.002;
+	ui_category = "Sharpen image";
+> = 0.1;
+
+uniform bool Preview <
+	ui_label = "Preview sharpen layer";
+	ui_category = "Sharpen image";
+> = false;
+
+uniform bool Sharpen <
+	ui_label = "Enable sharpening";
+	ui_category = "Sharpen image";
 > = true;
 
 #endif
@@ -195,6 +272,10 @@ uniform bool ChromaticAbrSwitch <
 	/////////////////
 	/// FUNCTIONS ///
 	/////////////////
+
+// Adjust to limited RGB
+float3 tv(float3 Input)
+{ return Input*((235-16)/255.0)+16/255.0; }
 
 // Generate test grid
 float3 Grid(float2 Coordinates, float AspectRatio)
@@ -208,9 +289,6 @@ float3 Grid(float2 Coordinates, float AspectRatio)
 	#endif
 	#ifndef thicknessB
 		#define thicknessB 0.125 // Yellow cross thickness
-	#endif
-	#ifndef brightness
-		#define brightness float(235/255.0) // Grid brightness level
 	#endif
 	#ifndef crossColor
 		#define crossColor float3(1.0, 1.0, 0.0) // Center cross color (yellow)
@@ -233,7 +311,8 @@ float3 Grid(float2 Coordinates, float AspectRatio)
 	GridCoord = smoothstep(1.0-PixelSize, 1.0+PixelSize, GridCoord);
 
 	// Combine vertical and horizontal lines
-	gridColor = max(GridCoord.x, GridCoord.y);
+	
+	gridColor = max(Vertical ? GridCoord.x : 0.0, Horizontal ? GridCoord.y : 0.0);
 
 	// Generate center cross
 	CrossUV = 1.0-abs(CrossUV*2.0-1.0);
@@ -245,10 +324,14 @@ float3 Grid(float2 Coordinates, float AspectRatio)
 	float CrossMask = max(CrossUV.y, CrossUV.x);
 
 	// Blend grid and center cross
-	gridColor = lerp(gridColor, crossColor, CrossMask);
+	gridColor = lerp(gridColor, (RadialPattern ? 1.0 : crossColor), CrossMask);
+
+	// Solo colors
+	if(SoloGreen) gridColor.b = 0.0;
+	if(SoloBlue) gridColor.g = 0.0;
 
 	// Reduce grid brightness
-	return gridColor*brightness;
+	return tv(gridColor);
 };
 
 
@@ -360,6 +443,22 @@ float2 pTangental(float2 Coord, float R2, float P1, float P2, float P3, float P4
 	);
 };
 
+// RGB to YUV709.luma
+float Luma(float3 Input)
+{
+	static const float3 Luma709 = float3(0.2126, 0.7152, 0.0722);
+	return dot(Input, Luma709);
+}
+
+// Overlay blending mode
+float Overlay(float LayerA, float LayerB)
+{
+	float MinA = min(LayerA, 0.5);
+	float MinB = min(LayerB, 0.5);
+	float MaxA = max(LayerA, 0.5);
+	float MaxB = max(LayerB, 0.5);
+	return 2 * (MinA * MinB + MaxA + MaxB - MaxA * MaxB) - 1.5;
+}
 
 
 	//////////////
@@ -473,7 +572,7 @@ float3 Chromatic_ps(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_
 	float rAspect = ReShade::AspectRatio;
 
 	// Generate negative-positive stereo mask
-	float StereoMask = step(0.5, texcoord.x)*2.0-1.0;
+	float SideScreenSwitch = step(0.5, texcoord.x)*2.0-1.0;
 
 	// Divide screen in two if stereo vision mode enabled
 	float2 CenterCoord = StereoSwitch? StereoVision(texcoord, IPD) : texcoord;
@@ -485,18 +584,31 @@ float3 Chromatic_ps(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_
 	Diagonal = length(float2(Diagonal, 1.0));
 
 	CenterCoord /= Diagonal; // Normalize diagonally
-	CenterCoord += ChOffset*0.01; // Offset center
 
-//	float Radius = dot(CenterCoord, CenterCoord); // Radius squared
-	float Radius = length(CenterCoord); // Radius
+	// Left/right eye mask
+	float L = step(0.5, 1.0-texcoord.x), R = step(0.5, texcoord.x);
+
+	// Offset center green
+	float2 CoordGreen = ChGreenOffsetL * L + ChGreenOffsetR * R;
+	CoordGreen.x *= -1.0;
+	CoordGreen = 0.01 * CoordGreen + CenterCoord;
+	// Offset center blue
+	float2 CoordBlue = ChBlueOffsetL * L + ChBlueOffsetR * R;
+	CoordBlue.x *= -1.0;
+	CoordBlue = 0.01 * CoordBlue + CenterCoord;
+
+//	float RadiusGreen = dot(CoordGreen, CoordGreen); // Radius squared (techically accurate)
+//	float RadiusBlue = dot(CoordBlue, CoordBlue); // Radius squared (techically accurate)
+	float RadiusGreen = length(CoordGreen); // Radius
+	float RadiusBlue = length(CoordBlue); // Radius
 
 	// Calculate radial distortion K
-	float correctionBlueK = (1.0+ChBlueK.x)*kRadial(Radius, ChBlueK.y, ChBlueK.z, ChBlueK.w, 0.0);
-	float correctionGreenK = (1.0+ChGreenK.x)*kRadial(Radius, ChGreenK.y, ChGreenK.z, ChGreenK.w, 0.0);
+	float correctionGreenK = (1.0+ChGreenK.x)*kRadial(RadiusGreen, ChGreenK.y, ChGreenK.z, ChGreenK.w, 0.0);
+	float correctionBlueK = (1.0+ChBlueK.x)*kRadial(RadiusBlue, ChBlueK.y, ChBlueK.z, ChBlueK.w, 0.0);
 
 	// Apply chromatic aberration correction
-	float2 CoordBlue = CenterCoord * correctionBlueK;
-	float2 CoordGreen = CenterCoord * correctionGreenK;
+	CoordGreen = CoordGreen * correctionGreenK;
+	CoordBlue = CoordBlue * correctionBlueK;
 
 	CoordGreen *= Diagonal; CoordBlue *= Diagonal; // Back to vertical normalization
 	CoordGreen.x /= rAspect; CoordBlue.x /= rAspect; // Back to square
@@ -507,9 +619,6 @@ float3 Chromatic_ps(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_
 	// Generate border mask for green and blue channel
 	float MaskBlue, MaskGreen; if(StereoSwitch)
 	{
-		// Generate negative-positive stereo mask
-		float SideScreenSwitch = step(0.5, texcoord.x)*2.0-1.0;
-
 		// Mask compensation for center cut
 		float CenterCut = 0.5+(0.5-IPD)*SideScreenSwitch;
 
@@ -556,10 +665,54 @@ float3 Chromatic_ps(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_
 };
 
 
+// Sharpen pass
+float3 FilmicSharpenPS(float4 vois : SV_Position, float2 UvCoord : TexCoord) : SV_Target
+{
+	// Bypass sharpening
+	if(!Sharpen) return tex2D(ReShade::BackBuffer, UvCoord).rgb;
+	
+	float2 Pixel = ReShade::PixelSize * Offset;
+	// Sample display image
+	float3 Source = tex2D(ReShade::BackBuffer, UvCoord).rgb;
+
+	float2 NorSouWesEst[4] = {
+		float2(UvCoord.x, UvCoord.y + Pixel.y),
+		float2(UvCoord.x, UvCoord.y - Pixel.y),
+		float2(UvCoord.x + Pixel.x, UvCoord.y),
+		float2(UvCoord.x - Pixel.x, UvCoord.y)
+	};
+
+	// Luma high-pass
+	float HighPass = 0;
+	for(int i=0; i<4; i++) HighPass += Luma(tex2D(ReShade::BackBuffer, NorSouWesEst[i]).rgb);
+	HighPass = 0.5 - 0.5 * (HighPass * 0.25 - Luma(Source));
+
+	// Sharpen strength
+	HighPass = lerp(0.5, HighPass, Strength);
+
+	// Clamping sharpen
+	HighPass = (Clamp != 1) ? max(min(HighPass, Clamp), 1 - Clamp) : HighPass;
+
+	float3 Sharpen = float3(
+		Overlay(Source.r, HighPass),
+		Overlay(Source.g, HighPass),
+		Overlay(Source.b, HighPass)
+	);
+
+	return (Preview) ? HighPass : Sharpen;
+}
+
+
 technique VR{
-	pass{
+	pass
+	{
 		VertexShader = PostProcessVS;
 		PixelShader = VR_ps;
+	}
+	pass
+	{
+		VertexShader = PostProcessVS;
+		PixelShader = FilmicSharpenPS;
 	}
 	pass{
 		VertexShader = PostProcessVS;

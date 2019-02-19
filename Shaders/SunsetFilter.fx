@@ -26,22 +26,36 @@ uniform bool Flip <
 
 uniform int Axis <
 	ui_label = "Angle";
-	ui_type = "drag";
-	ui_min = -180; ui_max = 180; ui_step = 1;
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+		ui_step = 1;
+	#else
+		ui_type = "slider";
+	#endif
+	ui_min = -180; ui_max = 180;
 	ui_category = "Controls";
 > = -7;
 
 uniform float Scale <
 	ui_label = "Gradient sharpness";
-	ui_type = "drag";
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+	#else
+		ui_type = "slider";
+	#endif
 	ui_min = 0.5; ui_max = 1.0; ui_step = 0.005;
 	ui_category = "Controls";
 > = 1.0;
 
 uniform float Offset <
 	ui_label = "Position";
-	ui_type = "drag";
-	ui_min = 0.0; ui_max = 0.5; ui_step = 0.002;
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+		ui_step = 0.002;
+	#else
+		ui_type = "slider";
+	#endif
+	ui_min = 0.0; ui_max = 0.5;
 	ui_category = "Controls";
 > = 0.0;
 

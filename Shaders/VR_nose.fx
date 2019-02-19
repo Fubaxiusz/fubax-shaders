@@ -25,8 +25,13 @@ uniform float Brightness <
 > = 1.0;
 
 uniform float2 Scale <
-	ui_type = "drag";
-	ui_min = 0.1; ui_max = 1.0; ui_step = 0.001;
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+		ui_step = 0.001;
+	#else
+		ui_type = "slider";
+	#endif
+	ui_min = 0.1; ui_max = 1.0;
 	ui_category = "Virtual nose adjustment";
 > = float2(0.382, 0.618);
 

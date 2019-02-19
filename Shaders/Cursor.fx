@@ -7,6 +7,8 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
+// version 1.0.1
+
   ////////////////////
  /////// MENU ///////
 ////////////////////
@@ -16,7 +18,11 @@ uniform float3 Color <
 > = float3(0.871, 0.871, 0.871);
 
 uniform float Scale <
-	ui_type = "drag";
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+	#else
+		ui_type = "slider";
+	#endif
 	ui_min = 0.1; ui_max = 1.0; ui_step = 0.001;
 > = 0.2;
 

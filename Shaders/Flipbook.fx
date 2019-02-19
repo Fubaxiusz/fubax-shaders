@@ -7,6 +7,8 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/
 */
 
+// version 1.0.1
+
   ////////////////////
  /////// MENU ///////
 ////////////////////
@@ -24,15 +26,25 @@ http://creativecommons.org/licenses/by-sa/4.0/
 uniform int3 Size <
 	ui_label = "X frames, Y frames, FPS";
 	ui_tooltip = "Adjust flipbook texture dimensions and framerate\nTo change texture resolution and name,\nadd following preprocessor definition:\n  flipbook 'name.png'\n  flipbookX [ResolutionX]\n  flipbookY [ResolutionY]";
-	ui_type = "drag";
-	ui_min = 1; ui_max = 30; ui_step = 0.2;
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+		ui_step = 0.2;
+	#else
+		ui_type = "slider";
+	#endif
+	ui_min = 1; ui_max = 30;
 > = int3(10, 9, 30);
 
 uniform float3 Position <
 	ui_label = "X position, Y position, Scale";
 	ui_tooltip = "Adjust flipbook texture size and position";
-	ui_type = "drag";
-	ui_min = float3(0.0, 0.0, 0.1); ui_max = float3(1.0, 1.0, 1.0); ui_step = 0.002;
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+		ui_step = 0.002;
+	#else
+		ui_type = "slider";
+	#endif
+	ui_min = float3(0.0, 0.0, 0.1); ui_max = float3(1.0, 1.0, 1.0);
 > = float3(1.0, 0.0, 1.0);
 
 // Get time in milliseconds from start

@@ -22,7 +22,7 @@ beside Brown-Conrady distortion correction model and
 Parallax Steep and Occlusion mapping which
 I changed and adopted from various sources.
 
-Version 0.2.0 alpha
+Version 0.2.1 alpha
 */
 
 #include "ReShade.fxh"
@@ -94,16 +94,26 @@ uniform bool StereoSwitch <
 uniform float ParallaxOffset <
 	ui_label = "Parallax horizontal offset (disparity)";
 	ui_tooltip = "Adjust 3D effect power\n(disparity in screen percent)";
-	ui_type = "drag";
-	ui_min = 0.0; ui_max = 1.0; ui_step = 0.001;
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+		ui_step = 0.001;
+	#else
+		ui_type = "slider";
+	#endif
+	ui_min = 0.0; ui_max = 1.0;
 	ui_category = "Parallax 3D effect";
 > = 0.355;
 
 uniform float ParallaxCenter <
 	ui_label = "Parallax rotation center (ZPD)";
 	ui_tooltip = "Adjust 3D effect middle point\n(zero parallax distance)";
-	ui_type = "drag";
-	ui_min = 0.0; ui_max = 1.0; ui_step = 0.001;
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+		ui_step = 0.001;
+	#else
+		ui_type = "slider";
+	#endif
+	ui_min = 0.0; ui_max = 1.0;
 	ui_category = "Parallax 3D effect";
 > = 1.0;
 
@@ -118,7 +128,11 @@ uniform int ParallaxSteps <
 uniform int ParallaxMaskScalar <
 	ui_label = "Parallax gaps compensation";
 	ui_tooltip = "Adjust gaps from parallax offset\n(some glithes may occur due to lack of\nanti-aliasing in the depth pass)";
-	ui_type = "drag";
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+	#else
+		ui_type = "slider";
+	#endif
 	ui_min = 0; ui_max = 32; ui_step = 0.2;
 	ui_category = "Parallax 3D effect";
 > = 10;
@@ -132,8 +146,13 @@ uniform bool ParallaxSwitch <
 uniform int FOV <
 	ui_label = "Lens distortion power";
 	ui_tooltip = "Adjust lens distortion main profile (vertical FOV)";
-	ui_type = "drag";
-	ui_min = 0; ui_max = 170; ui_step = 0.1;
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+		ui_step = 0.1;
+	#else
+		ui_type = "slider";
+	#endif
+	ui_min = 0; ui_max = 170;
 	ui_category = "Perspective distortion";
 > = 96;
 

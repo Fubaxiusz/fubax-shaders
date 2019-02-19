@@ -1,5 +1,5 @@
 /* 
-Before-After PS v1.0.0 (c) 2018 Jacob Maximilian Fober, 
+Before-After PS v1.0.1 (c) 2018 Jacob Maximilian Fober, 
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -12,13 +12,21 @@ uniform bool Line <
 > = true;
 
 uniform float Offset <
-	ui_type = "drag";
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+	#else
+		ui_type = "slider";
+	#endif
 	ui_min = -1.0; ui_max = 1.0; ui_step = 0.001;
 > = 0.5;
 
 uniform float Blur <
 	ui_label = "Edge Blur";
-	ui_type = "drag";
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+	#else
+		ui_type = "slider";
+	#endif
 	ui_min = 0.0; ui_max = 1.0; ui_step = 0.001;
 > = 0.0;
 

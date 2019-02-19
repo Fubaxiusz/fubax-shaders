@@ -1,5 +1,5 @@
 /*
-CrossHair PS v1.2.1 (c) 2018 Jacob Maximilian Fober
+CrossHair PS v1.3.1 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -11,21 +11,63 @@ http://creativecommons.org/licenses/by-sa/4.0/.
  /////// MENU ///////
 ////////////////////
 
+#ifndef ZOOMKEY
+	#define ZOOMKEY 0x5A
+#endif
+
 uniform float Opacity <
-	ui_type = "drag";
+	ui_label = "Crosshair opacity";
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+	#else
+		ui_type = "slider";
+	#endif
 	ui_min = 0.0; ui_max = 1.0;
+	ui_category = "Crosshair";
 > = 1.0;
 
 uniform int Coefficients <
 	ui_label = "Crosshair contrast mode";
-	ui_tooltip = "YUV coefficients. For digital connection (HDMI/DVI/DisplayPort) use 709. For analog (VGA) use 601";
+	ui_tooltip = "YUV coefficients\nFor digital connection (HDMI/DVI/DisplayPort) use BT.709\nFor analog connection (VGA) use BT.601";
 	ui_type = "combo";
 	ui_items = "BT.709\0BT.601\0";
+	ui_category = "Crosshair";
 > = 0;
 
 uniform bool Stroke <
 	ui_label = "Enable black stroke";
+	ui_category = "Crosshair";
 > = true;
+
+uniform bool PreviewZoom <
+	ui_label = "Zoom preview";
+	ui_tooltip = "Preview zooming function (Press Z to toggle)\nYou can change default button by declaring preprocessor definition\n(URL encoded hex value)  ZOOMKEY 0x5A";
+	ui_category = "Zooming";
+> = false;
+
+uniform float Zoom <
+	ui_label = "Zoom amout";
+	ui_tooltip = "Adjust zoom factor, to disable effect, set to 1.0";
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+	#else
+		ui_type = "slider";
+	#endif
+	ui_min = 1.0; ui_max = 4.0;
+	ui_category = "Zooming";
+> = 2.0;
+
+uniform float Radius <
+	ui_label = "Zoom radius";
+	ui_tooltip = "Adjust size for zoom view";
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+	#else
+		ui_type = "slider";
+	#endif
+	ui_min = 0.1; ui_max = 1.0;
+	ui_category = "Zooming";
+> = 0.4;
 
 uniform bool Fixed <
 	ui_label = "Fixed position";
@@ -40,6 +82,13 @@ uniform int2 OffsetXY <
 	ui_min = -16; ui_max = 16;
 	ui_category = "Position";
 > = int2(0, 0);
+
+
+uniform bool ZoomKeyDown <
+	source = "key";
+	keycode = ZOOMKEY;
+	mode = "";
+>;
 
   //////////////////////
  /////// SHADER ///////
@@ -96,19 +145,33 @@ float Overlay(float LayerA, float LayerB)
 // Draw CrossHair
 void CrossHairPS(float4 vois : SV_Position, float2 texcoord : TexCoord, out float3 Display : SV_Target)
 {
-	// Sample display image
-	Display = tex2D(ReShade::BackBuffer, texcoord).rgb;
+	float2 Pixel = ReShade::PixelSize;
+	float2 Screen = ReShade::ScreenSize;
+	float Aspect = ReShade::AspectRatio;
+	float2 Offset = Pixel * float2(-OffsetXY.x, OffsetXY.y);
+	float2 Position = Fixed ? float2(0.5, 0.5) : MousePoint / ReShade::ScreenSize;
+
+	if(Zoom!=1.0 && (ZoomKeyDown || PreviewZoom))
+	{
+		float2 ZoomCoord = texcoord-Position+Offset; // Center coordinates
+		// Correct aspect ratio and generate radial mask
+		float RadialMask = length( float2(ZoomCoord.x*Aspect, ZoomCoord.y)*2 );
+		float RadialPixel = fwidth(RadialMask); // Get pixel size for Anti-aliasing
+		RadialMask = smoothstep(Radius+RadialPixel, Radius-RadialPixel, RadialMask); // Generate AA mask
+		ZoomCoord = ZoomCoord / Zoom + Position-Offset; // Apply zoom and move center back to origin
+		// Sample display image
+		Display = lerp(
+			tex2D(ReShade::BackBuffer, texcoord).rgb, // Background image
+			tex2D(ReShade::BackBuffer, ZoomCoord).rgb, // Zoom image
+			RadialMask
+		);
+	}
+	else Display = tex2D(ReShade::BackBuffer, texcoord).rgb; // Background image
 
 	// CrossHair texture size
 	int2 Size = tex2Dsize(CrossHairSampler, 0);
 
-	bool YUV709 = (Coefficients == 0);
-
 	float3 StrokeColor;
-	float2 Pixel = ReShade::PixelSize;
-	float2 Screen = ReShade::ScreenSize;
-	float2 Offset = Pixel * float2(-OffsetXY.x, OffsetXY.y);
-	float2 Position = Fixed ? float2(0.5, 0.5) : MousePoint / ReShade::ScreenSize;
 
 	// Calculate CrossHair image coordinates relative to the center of the screen
 	float2 CrossHairHalfSize = Size / Screen * 0.5;
@@ -123,7 +186,7 @@ void CrossHairPS(float4 vois : SV_Position, float2 texcoord : TexCoord, out floa
 		float3 Color = tex2D(ReShade::BackBuffer, Position + Offset).rgb;
 
 		// Convert to YUV
-		Color = mul(YUV709 ? ToYUV709 : ToYUV601, Color);
+		Color = bool(Coefficients) ? mul(ToYUV709, Color) : mul(ToYUV601, Color);
 
 		// Invert Luma with high-contrast gray
 		Color.r = (Color.r > 0.75 || Color.r < 0.25) ? 1.0 - Color.r : Color.r > 0.5 ? 0.25 : 0.75;
@@ -133,7 +196,7 @@ void CrossHairPS(float4 vois : SV_Position, float2 texcoord : TexCoord, out floa
 		float StrokeValue = 1 - Color.r;
 
 		// Convert YUV to RGB
-		Color = mul(YUV709 ? ToRGB709: ToRGB601, Color);
+		Color = bool(Coefficients) ? mul(ToRGB709, Color) : mul(ToRGB601, Color);
 
 		// Overlay blend stroke with background
 		StrokeColor = float3(

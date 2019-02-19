@@ -1,5 +1,5 @@
 /* 
-Tilt-Shift PS v1.1.0 (c) 2018 Jacob Maximilian Fober, 
+Tilt-Shift PS v1.1.1 (c) 2018 Jacob Maximilian Fober, 
 (based on TiltShift effect (c) 2016 kingeric1992)
 
 This work is licensed under the Creative Commons 
@@ -14,24 +14,41 @@ uniform bool Line <
 
 uniform int Axis <
 	ui_label = "Angle";
-	ui_type = "drag";
-	ui_min = -89; ui_max = 90; ui_step = 1;
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+		ui_step = 1;
+	#else
+		ui_type = "slider";
+	#endif
+	ui_min = -89; ui_max = 90;
 > = 0;
 
 uniform float Offset <
-	ui_type = "drag";
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+	#else
+		ui_type = "slider";
+	#endif
 	ui_min = -1.41; ui_max = 1.41; ui_step = 0.01;
 > = 0.05;
 
 uniform float BlurCurve <
 	ui_label = "Blur Curve";
-	ui_type = "drag";
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+	#else
+		ui_type = "slider";
+	#endif
 	ui_min = 1.0; ui_max = 5.0; ui_step = 0.01;
 	ui_label = "Blur Curve";
 > = 1.0;
 uniform float BlurMultiplier <
 	ui_label = "Blur Multiplier";
-	ui_type = "drag";
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+	#else
+		ui_type = "slider";
+	#endif
 	ui_min = 0.0; ui_max = 100.0; ui_step = 0.2;
 > = 6.0;
 

@@ -1,5 +1,5 @@
 /*
-Simple Grain PS v1.0.3 (c) 2018 Jacob Maximilian Fober
+Simple Grain PS v1.0.4 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -14,7 +14,11 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 #ifndef ShaderAnalyzer
 uniform float Intensity <
 	ui_label = "Noise intensity";
-	ui_type = "drag";
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+	#else
+		ui_type = "slider";
+	#endif
 	ui_min = 0.0; ui_max = 1.0; ui_step = 0.002;
 > = 0.4;
 
@@ -28,8 +32,13 @@ uniform int Coefficient <
 uniform int Framerate <
 	ui_label = "Noise framerate";
 	ui_tooltip = "Zero will match in-game framerate";
-	ui_type = "drag";
-	ui_min = 0; ui_max = 120; ui_step = 1;
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+		ui_step = 1;
+	#else
+		ui_type = "slider";
+	#endif
+	ui_min = 0; ui_max = 120;
 > = 12;
 
   //////////////////////

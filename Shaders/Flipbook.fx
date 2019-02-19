@@ -17,10 +17,10 @@ http://creativecommons.org/licenses/by-sa/4.0/
 	#define flipbook "waow.png" // Texture file name
 #endif
 #ifndef flipbookX
-	#define flipbookX 2570 // Texture horizontal resolution
+	#define flipbookX 2560 // Texture horizontal resolution
 #endif
 #ifndef flipbookY
-	#define flipbookY 1728 // Texture vertical resolution
+	#define flipbookY 1710 // Texture vertical resolution
 #endif
 
 uniform int3 Size <

@@ -1,5 +1,5 @@
 /*
-Filmic Sharpen PS v1.0.11 (c) 2018 Jacob Maximilian Fober
+Filmic Sharpen PS v1.0.12 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -26,7 +26,7 @@ uniform int Coefficient <
 	ui_label = "Luma coefficient";
 	ui_tooltip = "Change if objects with relatively same brightness but different color get sharpened";
 	ui_type = "combo";
-	ui_items = "BT.709\0BT.601\0";
+	ui_items = "BT.709 (digital connection)\0BT.601 (analog connection)\0";
 > = 0;
 
 uniform float Clamp <
@@ -47,7 +47,7 @@ uniform float Offset <
 	#else
 		ui_type = "slider";
 	#endif
-	ui_min = 0.01; ui_max = 2; ui_step = 0.002;
+	ui_min = 0.01; ui_max = 2.0; ui_step = 0.002;
 > = 0.1;
 
 uniform bool Preview <
@@ -62,10 +62,10 @@ uniform bool Preview <
 
 #include "ReShade.fxh"
 
-// RGB to YUV709
-static const float3 ToYUV709 = float3(0.2126, 0.7152, 0.0722);
-// RGB to YUV601
-static const float3 ToYUV601 = float3(0.299, 0.587, 0.114);
+// RGB to YUV709 luma
+static const float3 Luma709 = float3(0.2126, 0.7152, 0.0722);
+// RGB to YUV601 luma
+static const float3 Luma601 = float3(0.299, 0.587, 0.114);
 
 // Overlay blending mode
 float Overlay(float LayerA, float LayerB)
@@ -74,7 +74,7 @@ float Overlay(float LayerA, float LayerB)
 	float MinB = min(LayerB, 0.5);
 	float MaxA = max(LayerA, 0.5);
 	float MaxB = max(LayerB, 0.5);
-	return 2 * (MinA * MinB + MaxA + MaxB - MaxA * MaxB) - 1.5;
+	return 2.0 * (MinA * MinB + MaxA + MaxB - MaxA * MaxB) - 1.5;
 }
 
 // Sharpen pass
@@ -91,11 +91,12 @@ float3 FilmicSharpenPS(float4 vois : SV_Position, float2 UvCoord : TexCoord) : S
 		float2(UvCoord.x - Pixel.x, UvCoord.y)
 	};
 
-	// Choose luma coefficient, if True BT.709 Luma, else BT.601 Luma
-	float3 LumaCoefficient = bool(Coefficient) ? ToYUV709 : ToYUV601;
+	// Choose luma coefficient, if False BT.709 luma, else BT.601 luma
+	float3 LumaCoefficient = bool(Coefficient) ? Luma601 : Luma709;
 
 	// Luma high-pass
-	float HighPass = 0;
+	float HighPass = 0.0;
+	[unroll]
 	for(int i=0; i<4; i++) HighPass += dot(tex2D(ReShade::BackBuffer, NorSouWesEst[i]).rgb, LumaCoefficient);
 	HighPass = 0.5 - 0.5 * (HighPass * 0.25 - dot(Source, LumaCoefficient));
 
@@ -103,7 +104,7 @@ float3 FilmicSharpenPS(float4 vois : SV_Position, float2 UvCoord : TexCoord) : S
 	HighPass = lerp(0.5, HighPass, Strength);
 
 	// Clamping sharpen
-	HighPass = (Clamp != 1) ? max(min(HighPass, Clamp), 1 - Clamp) : HighPass;
+	HighPass = (Clamp != 1.0) ? max(min(HighPass, Clamp), 1.0 - Clamp) : HighPass;
 
 	float3 Sharpen = float3(
 		Overlay(Source.r, HighPass),
@@ -111,7 +112,7 @@ float3 FilmicSharpenPS(float4 vois : SV_Position, float2 UvCoord : TexCoord) : S
 		Overlay(Source.b, HighPass)
 	);
 
-	return (Preview) ? HighPass : Sharpen;
+	return Preview ? HighPass : Sharpen;
 }
 
 technique FilmicSharpen

@@ -22,13 +22,12 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 	#define LutName "lut.png"
 #endif
 
-#ifndef ShaderAnalyzer
 uniform int LutRes <
 	ui_label = "LUT box resolution";
-	ui_tooltip = "Horizontal resolution equals value squared. \n"
-		"Default 32 is 1024. \n"
-		"To set texture size and name for ApplyLUT, define \n"
-		" LutSize [number] \n"
+	ui_tooltip = "Horizontal resolution equals value squared.\n"
+		"Default 32 is 1024.\n"
+		"To set texture size and name for ApplyLUT, define\n"
+		" LutSize [number]\n"
 		"and \n"
 		" LutName [name]";
 	ui_type = "drag";
@@ -46,16 +45,13 @@ uniform float2 LutChromaLuma <
 	ui_category = "Apply LUT settings";
 	ui_min = 0.0; ui_max = 1.0; ui_step = 0.005;
 > = float2(1.0, 1.0);
-#endif
 
   //////////////////////
  /////// SHADER ///////
 //////////////////////
 
 // LUT texture for Apply Lut PS
-#ifndef ShaderAnalyzer
 texture LUTTex < source = LutName; > {Width = LutSize * LutSize; Height = LutSize; Format = RGBA8;};
-#endif
 sampler LUTSampler {Texture = LUTTex; Format = RGBA8;};
 
 
@@ -72,10 +68,7 @@ float3 DisplayLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD) : SV_
 	// Calculate LUT texture bounds
 	float2 LutBounds = float2(LutRes * LutRes, LutRes) / ScreenResolution;
 
-	if (any(TexCoord > LutBounds))
-	{
-		return tex2D(ReShade::BackBuffer, TexCoord).rgb;
-	}
+	if( any(TexCoord > LutBounds) ) return tex2D(ReShade::BackBuffer, TexCoord).rgb;
 	else
 	{
 		// Generate pattern UV
@@ -84,7 +77,7 @@ float3 DisplayLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD) : SV_
 		float3 LUT;
 		LUT.rg = frac(Gradient) - 0.5 / LutRes;
 		LUT.rg /= 1.0 - 1.0 / LutRes;
-		LUT.b = floor(Gradient.r) / (LutRes - 1);
+		LUT.b = floor(Gradient.r) / (LutRes - 1.0);
 		// Display LUT texture
 		return LUT;
 	}
@@ -115,10 +108,7 @@ void ApplyLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out float
 	);
 
 	// Blend LUT image with original
-	if (1 == min(LutChromaLuma.x, LutChromaLuma.y))
-	{
-		Image = LutImage;
-	}
+	if(1.0 == min(LutChromaLuma.x, LutChromaLuma.y)) Image = LutImage;
 	else
 	{
 		Image = lerp(

@@ -1,5 +1,5 @@
 /*
-Simple Grain PS v1.0.4 (c) 2018 Jacob Maximilian Fober
+Simple Grain PS v1.0.5 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -11,7 +11,6 @@ http://creativecommons.org/licenses/by-sa/4.0/.
  /////// MENU ///////
 ////////////////////
 
-#ifndef ShaderAnalyzer
 uniform float Intensity <
 	ui_label = "Noise intensity";
 	#if __RESHADE__ < 40000
@@ -24,9 +23,10 @@ uniform float Intensity <
 
 uniform int Coefficient <
 	ui_label = "Luma coefficient";
-	ui_tooltip = "For digital connection use BT.709, for analog (like VGA) use BT.601";
+	ui_tooltip = "For digital connection use BT.709,\n"
+		"for analog (like VGA) use BT.601";
 	ui_type = "combo";
-	ui_items = "BT.709\0BT.601\0";
+	ui_items = "BT.709 (digital connection)\0BT.601 (analog connection)\0";
 > = 0;
 
 uniform int Framerate <
@@ -47,7 +47,11 @@ uniform int Framerate <
 
 uniform float Timer < source = "timer"; >;
 uniform int FrameCount < source = "framecount"; >;
-#endif
+
+// RGB to YUV709 luma
+static const float3 Luma709 = float3(0.2126, 0.7152, 0.0722);
+// RGB to YUV601 luma
+static const float3 Luma601 = float3(0.299, 0.587, 0.114);
 
 // Overlay blending mode
 float Overlay(float LayerA, float LayerB)
@@ -61,30 +65,27 @@ float Overlay(float LayerA, float LayerB)
 
 // Noise generator
 float SimpleNoise(float p)
-{
-	return frac(sin(dot(p, float2(12.9898, 78.233))) * 43758.5453);
-}
+{ return frac(sin(dot(p, float2(12.9898, 78.233))) * 43758.5453); }
 
 #include "ReShade.fxh"
 
 // Shader pass
 void SimpleGrainPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out float3 Image : SV_Target)
 {
-	// Choose luma coefficient, if True BT.709 Luma, else BT.601 Luma
-	const float3 LumaCoefficient = (Coefficient == 0) ?
-		float3( 0.2126,  0.7152,  0.0722) : float3( 0.299,  0.587,  0.114)
-	;
+	// Choose luma coefficient, if False BT.709 luma, else BT.601 luma
+	float3 LumaCoefficient = bool(Coefficient) ? Luma601 : Luma709;
+
 	// Sample image
 	Image = tex2D(ReShade::BackBuffer, TexCoord).rgb;
 	// Mask out bright pixels  gamma: (sqrt(5)+1)/2
-	const float GoldenAB = sqrt(5) * 0.5 + 0.5;
-	float Mask = pow(1 - dot(Image.rgb, LumaCoefficient), GoldenAB);
+	const float GoldenAB = sqrt(5.0) * 0.5 + 0.5;
+	float Mask = pow(1.0 - dot(Image.rgb, LumaCoefficient), GoldenAB);
 	// Calculate seed change
 	float Seed = Framerate == 0 ? FrameCount : floor(Timer * 0.001 * Framerate);
 	// Protect from enormous numbers
 	Seed = frac(Seed * 0.0001) * 10000;
 	// Generate noise *  (sqrt(5) + 1) / 4  (to remain brightness)
-	const float GoldenABh = sqrt(5) * 0.25 + 0.25;
+	const float GoldenABh = sqrt(5.0) * 0.25 + 0.25;
 	float Noise = saturate(SimpleNoise(Seed * TexCoord.x * TexCoord.y) * GoldenABh);
 	Noise = lerp(0.5, Noise, Intensity * 0.1 * Mask);
 	// Blend noise with image

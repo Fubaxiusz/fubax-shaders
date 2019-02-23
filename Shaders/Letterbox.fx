@@ -1,7 +1,7 @@
 // Shader by Jacob Maximilian Fober
 // https://creativecommons.org/publicdomain/mark/1.0/
 // This work is free of known copyright restrictions.
-// Letterbox PS v1.1
+// Letterbox PS v1.1.1
 
   ////////////////////
  /////// MENU ///////
@@ -9,7 +9,7 @@
 
 uniform float4 Color <
 	ui_label = "Bars Color";
-	ui_type = "Color";
+	ui_type = "color";
 > = float4(0.027, 0.027, 0.027, 1.0);
 
 uniform int2 Dimensions <
@@ -39,14 +39,11 @@ float3 LetterboxPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_T
 	// Sample display image
 	float3 Display = tex2D(ReShade::BackBuffer, texcoord).rgb;
 
-	float UserAspect = (Dimensions.x == 0 || Dimensions.y == 0) ?
+	float UserAspect = any(Dimensions == 0) ?
 		DesiredAspect : float(Dimensions.x) / float(Dimensions.y)
 	;
 
-	if (RealAspect == UserAspect)
-	{
-		return Display;
-	}
+	if (RealAspect == UserAspect) return Display;
 	else if (UserAspect > RealAspect)
 	{
 		// Get Letterbox Bars width

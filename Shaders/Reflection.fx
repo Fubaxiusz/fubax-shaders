@@ -1,5 +1,5 @@
 /*
-MatCap PS (c) 2019 Jacob Maximilian Fober
+Reflection PS (c) 2019 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-NonCommercial-NoDerivatives 4.0 International License. 
@@ -27,14 +27,17 @@ Depth Map sampler is from ReShade.fxh by Crosire.
 Normal Map generator is from DisplayDepth.fx by CeeJay.
 */
 
-// version 0.1.2
+// version 0.1.3
 
   ////////////////////
  /////// MENU ///////
 ////////////////////
 
-#ifndef MATCAP
-	#define MATCAP 768
+#ifndef REFLECTION
+	#define REFLECTION 768
+#endif
+#ifndef ReflectionImage
+	#define ReflectionImage "reflection.png"
 #endif
 
 uniform float FarPlane <
@@ -65,10 +68,10 @@ uniform int FOV <
 
 #include "ReShade.fxh"
 
-texture MatcapTex < source = "matcap.png"; > {Width = MATCAP; Height = MATCAP;};
-sampler MatcapSampler
+texture ReflectionTex < source = ReflectionImage; > {Width = REFLECTION; Height = REFLECTION;};
+sampler ReflectionSampler
 {
-	Texture = MatcapTex;
+	Texture = ReflectionTex;
 	AddressU = BORDER;
 	AddressV = BORDER;
 	Format = RGBA8;
@@ -112,7 +115,7 @@ float3 NormalVector(float2 texcoord)
 }
 
 // Sample Matcap texture
-float4 GetMatcap(float2 TexCoord)
+float4 GetReflection(float2 TexCoord)
 {
 	// Get aspect ratio
 	float Aspect = ReShade::AspectRatio;
@@ -144,21 +147,21 @@ float4 GetMatcap(float2 TexCoord)
 	EquisolidCoord.x = 1.0 - EquisolidCoord.x;
 
 	// Sample matcap texture
-	float4 MatcapTexture = tex2D(MatcapSampler, EquisolidCoord);
+	float4 ReflectionTexture = tex2D(ReflectionSampler, EquisolidCoord);
 
-	return MatcapTexture;
+	return ReflectionTexture;
 }
 
-float3 MatcapPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Target
+float3 ReflectionPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Target
 {
-	return GetMatcap(texcoord).rgb;
+	return GetReflection(texcoord).rgb;
 }
 
-technique MatCap
+technique Reflection
 {
 	pass
 	{
 		VertexShader = PostProcessVS;
-		PixelShader = MatcapPS;
+		PixelShader = ReflectionPS;
 	}
 }

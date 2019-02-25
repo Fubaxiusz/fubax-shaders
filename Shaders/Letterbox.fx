@@ -39,7 +39,7 @@ float3 LetterboxPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_T
 	// Sample display image
 	float3 Display = tex2D(ReShade::BackBuffer, texcoord).rgb;
 
-	float UserAspect = any(Dimensions == 0) ?
+	float UserAspect = (!bool(Dimensions.x) || !bool(Dimensions.y)) ?
 		DesiredAspect : float(Dimensions.x) / float(Dimensions.y)
 	;
 

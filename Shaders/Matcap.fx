@@ -89,9 +89,6 @@ float3 NormalVector(float2 texcoord)
 // Sample Matcap texture
 float4 GetMatcap(float2 TexCoord)
 {
-	// Get aspect ratio
-	float Aspect = ReShade::AspectRatio;
-
 	// Sample display image (for use with DisplayDepth.fx)
 	float3 Normal = NormalVector(TexCoord);
 	Normal.xy = Normal.xy * 2.0 - 1.0;

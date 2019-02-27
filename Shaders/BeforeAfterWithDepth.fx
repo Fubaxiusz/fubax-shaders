@@ -1,5 +1,5 @@
 /* 
-Before-After PS v1.1.2 (c) 2018 Jacob Maximilian Fober, 
+Before-After PS v1.2.0 (c) 2018 Jacob Maximilian Fober, 
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -7,30 +7,56 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-#ifndef ShaderAnalyzer
 uniform bool DepthBased <
 	ui_label = "Use Depth";
+	ui_category = "Separation settings";
 > = false;
 
 uniform bool Line <
+	ui_category = "Separation settings";
 > = true;
 
 uniform float Offset <
 	ui_type = "drag";
 	ui_min = -1.0; ui_max = 1.0; ui_step = 0.001;
+	ui_category = "Separation settings";
 > = 0.5;
 
 uniform float Blur <
 	ui_label = "Edge Blur";
 	ui_type = "drag";
 	ui_min = 0.0; ui_max = 1.0; ui_step = 0.001;
+	ui_category = "Separation settings";
 > = 0.0;
 
 uniform float3 Color <
 	ui_label = "Line color";
 	ui_type = "color";
+	ui_category = "Separation settings";
 > = float3(0.337, 0, 0.118);
-#endif
+
+uniform bool RadialX <
+	ui_label = "Horizontally radial";
+	ui_category = "Radial depth adjustment";
+> = false;
+uniform bool RadialY <
+	ui_label = "Vertically radial";
+	ui_category = "Radial depth adjustment";
+> = false;
+
+uniform int FOV <
+	ui_label = "FOV (horizontal)";
+	ui_tooltip = "Field of view in degrees";
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+		ui_step = 1;
+	#else
+		ui_type = "slider";
+	#endif
+	ui_min = 0; ui_max = 170;
+	ui_category = "Radial depth adjustment";
+> = 90;
+
 
 // First pass render target
 texture BeforeTarget { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; };
@@ -41,7 +67,7 @@ float Overlay(float LayerAB)
 {
 	float MinAB = min(LayerAB, 0.5);
 	float MaxAB = max(LayerAB, 0.5);
-	return 2 * (MinAB * MinAB + MaxAB + MaxAB - MaxAB * MaxAB) - 1.5;
+	return 2.0 * (MinAB * MinAB + MaxAB + MaxAB - MaxAB * MaxAB) - 1.5;
 }
 
 #include "ReShade.fxh"
@@ -54,30 +80,36 @@ void BeforePS(float4 vpos : SV_Position, float2 UvCoord : TEXCOORD, out float3 I
 
 void AfterPS(float4 vpos : SV_Position, float2 UvCoord : TEXCOORD, out float3 Image : SV_Target)
 {
-	bool Inverted = Offset < 0;
+	bool Inverted = Offset < 0.0;
 
 	// Separete Before/After
 	float Coordinates = DepthBased ?
-	ReShade::GetLinearizedDepth(UvCoord)
-	: Inverted ? 1 - UvCoord.x : UvCoord.x;
+	ReShade::GetLinearizedDepth(UvCoord) : Inverted ? 1.0 - UvCoord.x : UvCoord.x;
+
+	// Convert to radial depth
+	if( DepthBased && (RadialX || RadialY) )
+	{
+		float2 Size;
+		Size.x = tan(radians(FOV*0.5));
+		Size.y = Size.x / ReShade::AspectRatio;
+		if(RadialX) Coordinates *= length(float2((UvCoord.x-0.5)*Size.x, 1.0));
+		if(RadialY) Coordinates *= length(float2((UvCoord.y-0.5)*Size.y, 1.0));
+	}
 
 	float AbsOffset = abs(Offset);
 
-	if (Blur == 0)
+	if(Blur == 0)
 	{
 		bool WhichOne = Coordinates > AbsOffset;
 		WhichOne = DepthBased && Inverted ? !WhichOne : WhichOne;
 		Image = WhichOne ? tex2D(ReShade::BackBuffer, UvCoord).rgb : tex2D(BeforeSampler, UvCoord).rgb;
-		if (Line)
-		{
-			Image = Coordinates < AbsOffset - 0.002 || Coordinates > AbsOffset + 0.002 ? Image : Color;
-		}
+		if(Line) Image = Coordinates < AbsOffset - 0.002 || Coordinates > AbsOffset + 0.002 ? Image : Color;
 	}
 	else
 	{
 		// Mask
-		float Mask = clamp((Coordinates - AbsOffset + 0.5 * Blur) / Blur, 0, 1);
-		Mask = DepthBased && Inverted ? 1 - Mask : Mask;
+		float Mask = clamp((Coordinates - AbsOffset + 0.5 * Blur) / Blur, 0.0, 1.0);
+		Mask = DepthBased && Inverted ? 1.0 - Mask : Mask;
 		Image = lerp(tex2D(BeforeSampler, UvCoord).rgb, tex2D(ReShade::BackBuffer, UvCoord).rgb, Overlay(Mask));
 	}
 }

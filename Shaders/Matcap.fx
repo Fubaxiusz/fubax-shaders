@@ -12,25 +12,24 @@ Depth Map sampler is from ReShade.fxh by Crosire.
 Normal Map generator is from DisplayDepth.fx by CeeJay.
 */
 
-// version 0.2.1
+// version 0.3.1
 
   ////////////////////
  /////// MENU ///////
 ////////////////////
 
-#ifndef MATCAP
-	#define MATCAP 512
+#ifndef MatcapSize
+	#define MatcapSize 512
+#endif
+#ifndef Matcap
+	#define Matcap "matcap.png"
 #endif
 
 uniform float FarPlane <
 	ui_label = "Far Plane adjustment";
 	ui_tooltip = "Adjust Normal Map strength";
-	#if __RESHADE__ < 40000
-		ui_type = "drag";
-	#else
-		ui_type = "slider";
-	#endif
-	ui_min = 0.0; ui_max = 1000.0; ui_step = 1.0;
+	ui_type = "drag";
+	ui_min = 0.0; ui_max = 1000.0; ui_step = 0.2;
 > = 1000.0;
 
 
@@ -40,7 +39,7 @@ uniform float FarPlane <
 
 #include "ReShade.fxh"
 
-texture MatcapTex < source = "matcap.png"; > {Width = MATCAP; Height = MATCAP;};
+texture MatcapTex < source = Matcap; > {Width = MatcapSize; Height = MatcapSize;};
 sampler MatcapSampler
 {
 	Texture = MatcapTex;

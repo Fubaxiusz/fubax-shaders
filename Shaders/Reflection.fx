@@ -27,7 +27,7 @@ Depth Map sampler is from ReShade.fxh by Crosire.
 Normal Map generator is from DisplayDepth.fx by CeeJay.
 */
 
-// version 0.1.4
+// version 0.1.5
 
   ////////////////////
  /////// MENU ///////
@@ -40,20 +40,8 @@ Normal Map generator is from DisplayDepth.fx by CeeJay.
 	#define ReflectionImage "reflection.png"
 #endif
 
-uniform float FarPlane <
-	ui_label = "Far Plane adjustment";
-	ui_tooltip = "Adjust Normal Map strength";
-	#if __RESHADE__ < 40000
-		ui_type = "drag";
-	#else
-		ui_type = "slider";
-	#endif
-	ui_min = 0.0; ui_max = 1000.0; ui_step = 1.0;
-> = 1000.0;
-
 uniform int FOV <
-	ui_label = "Field of View";
-	ui_tooltip = "Horizontal";
+	ui_label = "Field of View (horizontal)";
 	#if __RESHADE__ < 40000
 		ui_type = "drag";
 	#else
@@ -61,6 +49,14 @@ uniform int FOV <
 	#endif
 	ui_min = 1; ui_max = 170;
 > = 60;
+
+uniform float FarPlane <
+	ui_label = "Far Plane adjustment";
+	ui_tooltip = "Adjust Normal Map strength";
+	ui_type = "drag";
+	ui_min = 0.0; ui_max = 1000.0; ui_step = 0.2;
+> = 1000.0;
+
 
   //////////////////////
  /////// SHADER ///////

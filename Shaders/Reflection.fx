@@ -16,7 +16,8 @@ from a camera onto reflection texture in equisolid
 
 If you want to create reflection texture from
 equirectangular 360 panorama, visit following:
-https://github.com/Fubaxiusz
+https://github.com/Fubaxiusz/shadron-shaders/blob/master/Shaders/Equirect2Equisolid.shadron
+
 It's a shader script for Shadron image-editing software,
 avaiable here:
 https://www.arteryengine.com/shadron/
@@ -25,19 +26,20 @@ https://www.arteryengine.com/shadron/
 /*
 Depth Map sampler is from ReShade.fxh by Crosire.
 Normal Map generator is from DisplayDepth.fx by CeeJay.
+Soft light blending mode is from pegtop.net
 */
 
-// version 0.2.0
+// version 1.0.0
 
   ////////////////////
  /////// MENU ///////
 ////////////////////
 
-#ifndef REFLECTION
-	#define REFLECTION 768
+#ifndef ReflectionRes
+	#define ReflectionRes 768
 #endif
-#ifndef ReflectionImage
-	#define ReflectionImage "matcap.png"
+#ifndef ReflectionFile
+	#define ReflectionFile "matcap.png"
 #endif
 
 uniform int FOV <
@@ -48,6 +50,7 @@ uniform int FOV <
 		ui_type = "slider";
 	#endif
 	ui_min = 1; ui_max = 170;
+	ui_category = "Depth settings";
 > = 90;
 
 uniform float FarPlane <
@@ -55,20 +58,31 @@ uniform float FarPlane <
 	ui_tooltip = "Adjust Normal Map strength";
 	ui_type = "drag";
 	ui_min = 0.0; ui_max = 1000.0; ui_step = 0.2;
+	ui_category = "Depth settings";
 > = 1000.0;
 
-uniform bool SkipBackground <
-	ui_label = "Skip background";
-	ui_tooltip = "Mask reflection for depth=1";
+uniform bool Skip4Background <
+	ui_label = "Show background";
+	ui_tooltip = "Mask reflection for:\nDEPTH = 1.0";
+	ui_category = "Depth settings";
 > = true;
 
-  //////////////////////
- /////// SHADER ///////
-//////////////////////
+uniform int BlendingMode <
+	ui_label = "Blending mode";
+	ui_type = "combo";
+	ui_items = "Show only texture (normal)\0Multiply\0Screen\0Overlay\0Soft Light\0";
+	ui_category = "Texture settings";
+> = 0;
+
+uniform bool AlphaBlending <
+	ui_label = "Use alpha transparency";
+	ui_tooltip = "Use texture transparency channel (Alpha)";
+	ui_category = "Texture settings";
+> = false;
 
 #include "ReShade.fxh"
 
-texture ReflectionTex < source = ReflectionImage; > {Width = REFLECTION; Height = REFLECTION;};
+texture ReflectionTex < source = ReflectionFile; > {Width = ReflectionRes; Height = ReflectionRes;};
 sampler ReflectionSampler
 {
 	Texture = ReflectionTex;
@@ -76,6 +90,31 @@ sampler ReflectionSampler
 	AddressV = BORDER;
 	Format = RGBA8;
 };
+
+  //////////////////////////////
+ /////// BLENDING MODES ///////
+//////////////////////////////
+
+float3 Multiply(float3 A, float3 B){ return A*B; }
+
+float3 Screen(float3 A, float3 B){ return A+B-A*B; } // By JMF
+
+float3 Overlay(float3 A, float3 B)
+{
+	// Algorithm by JMF
+	float3 HL[4] = { max(A, 0.5), max(B, 0.5), min(A, 0.5), min(B, 0.5) };
+	return ( HL[0] + HL[1] - HL[0]*HL[1] + HL[2]*HL[3] )*2.0 - 1.5;
+}
+
+float3 SoftLight(float3 A, float3 B)
+{
+	float3 A2 = pow(A, 2.0);
+	return 2.0*A*B+A2-2.0*A2*B;
+}
+
+  //////////////////////
+ /////// SHADER ///////
+//////////////////////
 
 // Get depth function from ReShade.fxh with custom Far Plane
 float GetDepth(float2 TexCoord)
@@ -154,8 +193,22 @@ float4 GetReflection(float2 TexCoord)
 
 float3 ReflectionPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Target
 {
-	if(SkipBackground) if( GetDepth(texcoord)==1.0 ) return tex2D(ReShade::BackBuffer, texcoord).rgb;
-	return GetReflection(texcoord).rgb;
+	if(Skip4Background) if( GetDepth(texcoord)==1.0 ) return tex2D(ReShade::BackBuffer, texcoord).rgb;
+	if( !bool(BlendingMode) && !AlphaBlending ) return GetReflection(texcoord).rgb;
+
+	float3 Display = tex2D(ReShade::BackBuffer, texcoord).rgb;
+	float4 Reflection = GetReflection(texcoord);
+
+	switch(BlendingMode)
+	{
+		case 1:{ Reflection.rgb = Multiply(Reflection.rgb, Display); break; } // Multiply
+		case 2:{ Reflection.rgb = Screen(Reflection.rgb, Display); break; } // Screen
+		case 3:{ Reflection.rgb = Overlay(Reflection.rgb, Display); break; } // Overlay
+		case 4:{ Reflection.rgb = SoftLight(Reflection.rgb, Display); break; } // Soft Light
+	}
+
+	if( !AlphaBlending ) return Reflection.rgb;
+	return lerp(Display, Reflection.rgb, Reflection.a);
 }
 
 technique Reflection

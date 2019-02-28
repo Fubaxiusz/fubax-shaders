@@ -27,7 +27,7 @@ Depth Map sampler is from ReShade.fxh by Crosire.
 Normal Map generator is from DisplayDepth.fx by CeeJay.
 */
 
-// version 0.1.5
+// version 0.2.0
 
   ////////////////////
  /////// MENU ///////
@@ -37,7 +37,7 @@ Normal Map generator is from DisplayDepth.fx by CeeJay.
 	#define REFLECTION 768
 #endif
 #ifndef ReflectionImage
-	#define ReflectionImage "reflection.png"
+	#define ReflectionImage "matcap.png"
 #endif
 
 uniform int FOV <
@@ -48,7 +48,7 @@ uniform int FOV <
 		ui_type = "slider";
 	#endif
 	ui_min = 1; ui_max = 170;
-> = 60;
+> = 90;
 
 uniform float FarPlane <
 	ui_label = "Far Plane adjustment";
@@ -57,6 +57,10 @@ uniform float FarPlane <
 	ui_min = 0.0; ui_max = 1000.0; ui_step = 0.2;
 > = 1000.0;
 
+uniform bool SkipBackground <
+	ui_label = "Skip background";
+	ui_tooltip = "Mask reflection for depth=1";
+> = true;
 
   //////////////////////
  /////// SHADER ///////
@@ -150,6 +154,7 @@ float4 GetReflection(float2 TexCoord)
 
 float3 ReflectionPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Target
 {
+	if(SkipBackground) if( GetDepth(texcoord)==1.0 ) return tex2D(ReShade::BackBuffer, texcoord).rgb;
 	return GetReflection(texcoord).rgb;
 }
 

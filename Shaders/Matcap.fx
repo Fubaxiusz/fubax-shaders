@@ -12,7 +12,7 @@ Depth Map sampler is from ReShade.fxh by Crosire.
 Normal Map generator is from DisplayDepth.fx by CeeJay.
 */
 
-// version 0.3.1
+// version 0.4.0
 
   ////////////////////
  /////// MENU ///////
@@ -32,6 +32,10 @@ uniform float FarPlane <
 	ui_min = 0.0; ui_max = 1000.0; ui_step = 0.2;
 > = 1000.0;
 
+uniform bool SkipBackground <
+	ui_label = "Skip background";
+	ui_tooltip = "Mask reflection for depth=1";
+> = true;
 
   //////////////////////
  /////// SHADER ///////
@@ -108,6 +112,7 @@ float3 MatcapPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Targ
 	float3 Display = tex2D(ReShade::BackBuffer, texcoord).rgb;
 	float4 MatCapSampled = GetMatcap(texcoord);
 
+	if(SkipBackground) if( GetDepth(texcoord)==1.0 ) return Display;
 	return lerp(Display, MatCapSampled.rgb, MatCapSampled.a);
 }
 

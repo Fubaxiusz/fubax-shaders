@@ -29,7 +29,7 @@ Normal Map generator is from DisplayDepth.fx by CeeJay.
 Soft light blending mode is from pegtop.net
 */
 
-// version 1.0.0
+// version 1.1.0
 
   ////////////////////
  /////// MENU ///////
@@ -68,11 +68,23 @@ uniform bool Skip4Background <
 > = true;
 
 uniform int BlendingMode <
-	ui_label = "Blending mode";
+	ui_label = "Mix mode";
 	ui_type = "combo";
-	ui_items = "Show only texture (normal)\0Multiply\0Screen\0Overlay\0Soft Light\0";
+	ui_items = "Normal mode\0Multiply\0Screen\0Overlay\0Soft Light\0";
 	ui_category = "Texture settings";
 > = 0;
+
+uniform float BlendingAmount <
+	ui_label = "Blending";
+	ui_tooltip = "Blend with background";
+	#if __RESHADE__ < 40000
+		ui_type = "drag";
+	#else
+		ui_type = "slider";
+	#endif
+	ui_min = 0.0; ui_max = 1.0;
+	ui_category = "Texture settings";
+> = 1.0;
 
 uniform bool AlphaBlending <
 	ui_label = "Use alpha transparency";
@@ -194,7 +206,7 @@ float4 GetReflection(float2 TexCoord)
 float3 ReflectionPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Target
 {
 	if(Skip4Background) if( GetDepth(texcoord)==1.0 ) return tex2D(ReShade::BackBuffer, texcoord).rgb;
-	if( !bool(BlendingMode) && !AlphaBlending ) return GetReflection(texcoord).rgb;
+	if( !bool(BlendingMode) && !AlphaBlending && BlendingAmount == 1.0) return GetReflection(texcoord).rgb;
 
 	float3 Display = tex2D(ReShade::BackBuffer, texcoord).rgb;
 	float4 Reflection = GetReflection(texcoord);
@@ -207,8 +219,8 @@ float3 ReflectionPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_
 		case 4:{ Reflection.rgb = SoftLight(Reflection.rgb, Display); break; } // Soft Light
 	}
 
-	if( !AlphaBlending ) return Reflection.rgb;
-	return lerp(Display, Reflection.rgb, Reflection.a);
+	if( !AlphaBlending && BlendingAmount == 1.0) return Reflection.rgb;
+	return lerp(Display, Reflection.rgb, Reflection.a * BlendingAmount);
 }
 
 technique Reflection

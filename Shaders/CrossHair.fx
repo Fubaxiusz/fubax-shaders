@@ -1,5 +1,5 @@
 /*
-CrossHair PS v1.3.3 (c) 2018 Jacob Maximilian Fober
+CrossHair PS v1.3.4 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -19,18 +19,20 @@ uniform float Opacity <
 	ui_label = "Crosshair opacity";
 	#if __RESHADE__ < 40000
 		ui_type = "drag";
+		ui_min = 0.0; ui_max = 1.0;
 	#else
-		ui_type = "slider";
+		ui_type = "color";
 	#endif
-	ui_min = 0.0; ui_max = 1.0;
 	ui_category = "Crosshair";
 > = 1.0;
 
 uniform int Coefficients <
 	ui_label = "Crosshair contrast mode";
-	ui_tooltip = "YUV coefficients\nFor digital connection (HDMI/DVI/DisplayPort) use BT.709\nFor analog connection (VGA) use BT.601";
+	ui_tooltip = "YUV coefficients:\n"
+	" For digital connection (HDMI/DVI/DisplayPort) use BT.709\n"
+	" For analog connection (VGA) use BT.601";
 	ui_type = "combo";
-	ui_items = "BT.709\0BT.601\0";
+	ui_items = "BT.709 (digital signal)\0BT.601 (analog signal)\0";
 	ui_category = "Crosshair";
 > = 0;
 
@@ -41,7 +43,10 @@ uniform bool Stroke <
 
 uniform bool PreviewZoom <
 	ui_label = "Zoom preview";
-	ui_tooltip = "Preview zooming function (Press Z to toggle)\nYou can change default button by declaring preprocessor definition\n(URL encoded hex value)  ZOOMKEY 0x5A";
+	ui_tooltip = "Preview zooming function (Press Z to toggle)\n"
+	"You can change default button by declaring preprocessor definition\n"
+	"(URL encoded hex value):\n"
+	" ZOOMKEY 0x5A";
 	ui_category = "Zooming";
 > = false;
 

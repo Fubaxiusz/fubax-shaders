@@ -1,7 +1,7 @@
 // Shader by Jacob Maximilian Fober
 // https://creativecommons.org/publicdomain/mark/1.0/
 // This work is free of known copyright restrictions.
-// Letterbox PS v1.1.1
+// Letterbox PS v1.1.2
 
   ////////////////////
  /////// MENU ///////
@@ -12,6 +12,13 @@ uniform float4 Color <
 	ui_type = "color";
 > = float4(0.027, 0.027, 0.027, 1.0);
 
+uniform float DesiredAspect <
+	ui_label = "Aspect Ratio";
+	ui_tooltip = "Desired Aspect Ratio float";
+	ui_type = "drag";
+	ui_min = 1.0; ui_max = 3.0;
+> = 2.4;
+
 uniform int2 Dimensions <
 	ui_label = "XY Dimensions";
 	ui_tooltip = "Aspect Ratio below is used if set to zero";
@@ -19,12 +26,6 @@ uniform int2 Dimensions <
 	ui_min = 0; ui_max = 16;
 > = int2(0, 0);
 
-uniform float DesiredAspect <
-	ui_label = "Aspect Ratio";
-	ui_tooltip = "Desired Aspect Ratio float";
-	ui_type = "drag";
-	ui_min = 1.0; ui_max = 3.0;
-> = 2.4;
 
   //////////////////////
  /////// SHADER ///////

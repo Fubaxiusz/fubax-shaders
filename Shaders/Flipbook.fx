@@ -7,7 +7,7 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/
 */
 
-// version 1.0.1
+// version 1.0.2
 
   ////////////////////
  /////// MENU ///////
@@ -17,7 +17,7 @@ http://creativecommons.org/licenses/by-sa/4.0/
 	#define flipbook "waow.png" // Texture file name
 #endif
 #ifndef flipbookX
-	#define flipbookX 2560 // Texture horizontal resolution
+	#define flipbookX 2550 // Texture horizontal resolution
 #endif
 #ifndef flipbookY
 	#define flipbookY 1710 // Texture vertical resolution

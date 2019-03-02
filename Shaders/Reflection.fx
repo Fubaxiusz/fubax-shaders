@@ -29,7 +29,7 @@ Normal Map generator is from DisplayDepth.fx by CeeJay.
 Soft light blending mode is from pegtop.net
 */
 
-// version 1.1.0
+// version 1.1.1
 
   ////////////////////
  /////// MENU ///////
@@ -38,8 +38,8 @@ Soft light blending mode is from pegtop.net
 #ifndef ReflectionRes
 	#define ReflectionRes 768
 #endif
-#ifndef ReflectionFile
-	#define ReflectionFile "matcap.png"
+#ifndef ReflectionImage
+	#define ReflectionImage "matcap.png"
 #endif
 
 uniform int FOV <
@@ -94,7 +94,7 @@ uniform bool AlphaBlending <
 
 #include "ReShade.fxh"
 
-texture ReflectionTex < source = ReflectionFile; > {Width = ReflectionRes; Height = ReflectionRes;};
+texture ReflectionTex < source = ReflectionImage; > {Width = ReflectionRes; Height = ReflectionRes;};
 sampler ReflectionSampler
 {
 	Texture = ReflectionTex;
@@ -150,7 +150,7 @@ float GetDepth(float2 TexCoord)
 	return Depth;
 }
 
-// Normal map generator from DisplayDepth.fx
+// Normal map (OpenGL oriented) generator from DisplayDepth.fx
 float3 NormalVector(float2 texcoord)
 {
 	float3 offset = float3(ReShade::PixelSize.xy, 0.0);
@@ -174,7 +174,6 @@ float4 GetReflection(float2 TexCoord)
 	// Sample display image (for use with DisplayDepth.fx)
 	float3 Normal = NormalVector(TexCoord);
 	Normal.xy = Normal.xy * 2.0 - 1.0;
-//	Normal = normalize(Normal);
 
 	// Get ray vector from camera to the visible geometry
 	float3 CameraRay;
@@ -193,9 +192,6 @@ float4 GetReflection(float2 TexCoord)
 	EquisolidCoord.x = EquisolidPolar.x * cos(EquisolidPolar.y);
 	EquisolidCoord.y = EquisolidPolar.x * sin(EquisolidPolar.y);
 	EquisolidCoord = EquisolidCoord * 0.5 + 0.5;
-
-	// Mirror texture
-	EquisolidCoord.x = 1.0 - EquisolidCoord.x;
 
 	// Sample matcap texture
 	float4 ReflectionTexture = tex2D(ReflectionSampler, EquisolidCoord);

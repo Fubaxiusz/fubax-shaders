@@ -1,5 +1,5 @@
 /*
-CrossHair PS v1.3.2 (c) 2018 Jacob Maximilian Fober
+CrossHair PS v1.3.3 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -130,7 +130,7 @@ uniform float2 MousePoint < source = "mousepoint"; >;
 
 // Define CrossHair texture
 texture CrossHairTex < source = "crosshair.png"; > {Width = 17; Height = 17; Format = RG8;};
-sampler CrossHairSampler { Texture = CrossHairTex; };
+sampler CrossHairSampler { Texture = CrossHairTex; MagFilter = POINT; MinFilter = POINT; MipFilter = POINT;};
 
 // Overlay blending mode
 float Overlay(float LayerA, float LayerB)

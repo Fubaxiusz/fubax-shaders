@@ -7,6 +7,8 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
+// version 1.0.1
+
   ////////////////////
  /////// MENU ///////
 ////////////////////
@@ -40,7 +42,7 @@ sampler ImageSampler { Texture = ImageTex; };
 // Anti-aliased border
 float Border(float2 Coordinates)
 {
-	Coordinates = abs(Coordinates*2-1); // Radial Coordinates
+	Coordinates = abs(Coordinates*2.0-1.0); // Centered coordinates
 	float2 Pixel = fwidth(Coordinates);
 	Coordinates = smoothstep(1.0+Pixel, 1.0-Pixel, Coordinates);
 	return min(Coordinates.x, Coordinates.y);
@@ -92,7 +94,7 @@ float3 ImagePS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Targe
 }
 
 
-technique ImageTest
+technique ImageTest < ui_label = "Image TEST"; >
 {
 	pass
 	{

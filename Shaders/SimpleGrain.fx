@@ -1,5 +1,5 @@
 /*
-Simple Grain PS v1.0.5 (c) 2018 Jacob Maximilian Fober
+Simple Grain PS v1.0.6 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -96,7 +96,7 @@ void SimpleGrainPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out fl
 	);
 }
 
-technique SimpleGrain
+technique SimpleGrain < ui_label = "Simple Grain"; >
 {
 	pass
 	{

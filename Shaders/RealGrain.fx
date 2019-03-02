@@ -1,5 +1,5 @@
 /*
-Real Grain PS v0.2.1 (c) 2018 Jacob Maximilian Fober
+Real Grain PS v0.2.2 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -130,7 +130,7 @@ void RealGrainPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out floa
 	);
 }
 
-technique RealGrain
+technique RealGrain < ui_label = "Real Grain"; >
 {
 	pass
 	{

@@ -1,5 +1,5 @@
 /*
-Filmic Sharpen PS v1.0.12 (c) 2018 Jacob Maximilian Fober
+Filmic Sharpen PS v1.0.13 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -115,7 +115,7 @@ float3 FilmicSharpenPS(float4 vois : SV_Position, float2 UvCoord : TexCoord) : S
 	return Preview ? HighPass : Sharpen;
 }
 
-technique FilmicSharpen
+technique FilmicSharpen < ui_label = "Filmic Sharpen"; >
 {
 	pass
 	{

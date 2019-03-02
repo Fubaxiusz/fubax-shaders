@@ -1,6 +1,6 @@
 /*
-Display LUT PS v1.1.6 (c) 2018 Jacob Maximilian Fober;
-Apply LUT PS v1.0.1 (c) 2018 Jacob Maximilian Fober,
+Display LUT PS v1.1.7 (c) 2018 Jacob Maximilian Fober;
+Apply LUT PS v1.0.2 (c) 2018 Jacob Maximilian Fober,
 (remix of LUT shader 1.0 (c) 2016 Marty McFly)
 
 This work is licensed under the Creative Commons 
@@ -124,7 +124,7 @@ void ApplyLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out float
 }
 
 
-technique DisplayLUT
+technique DisplayLUT < ui_label = "Display LUT"; >
 {
 	pass
 	{
@@ -133,7 +133,7 @@ technique DisplayLUT
 	}
 }
 
-technique ApplyLUT
+technique ApplyLUT < ui_label = "Apply LUT"; >
 {
 	pass
 	{

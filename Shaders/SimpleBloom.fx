@@ -1,5 +1,5 @@
 /* 
-Simple Bloom PS v0.2.1 (c) 2018 Jacob Maximilian Fober, 
+Simple Bloom PS v0.2.2 (c) 2018 Jacob Maximilian Fober, 
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -139,7 +139,7 @@ out float3 Image : SV_Target)
 	Image = Debug ? Target : Image;
 }
 
-technique SimpleBloom
+technique SimpleBloom < ui_label = "Simple Bloom"; >
 {
 	pass
 	{

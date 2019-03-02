@@ -1,5 +1,5 @@
 /*
-FilmicGrade v1.0.1 (c) 2018 Jacob Maximilian Fober,
+FilmicGrade v1.0.2 (c) 2018 Jacob Maximilian Fober,
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -105,7 +105,7 @@ void FilmicGradePS(float4 vois : SV_Position, float2 texcoord : TexCoord, out fl
 	Display = bool(Coefficients) ? mul(ToRGB709, Display) : mul(ToRGB601, Display);
 }
 
-technique FilmicGrade
+technique FilmicGrade < ui_label = "Filmic Grade"; >
 {
 	pass
 	{

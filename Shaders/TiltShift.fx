@@ -1,5 +1,5 @@
 /* 
-Tilt-Shift PS v1.1.2 (c) 2018 Jacob Maximilian Fober, 
+Tilt-Shift PS v1.1.3 (c) 2018 Jacob Maximilian Fober, 
 (based on TiltShift effect (c) 2016 kingeric1992)
 
 This work is licensed under the Creative Commons 
@@ -149,7 +149,7 @@ void TiltShiftPass2PS(float4 vpos : SV_Position, float2 UvCoord : TEXCOORD, out 
 	Image.rgb = (Line && Image.a < 0.01) ? float3(1.0, 0.0, 0.0) : Image.rgb;
 }
 
-technique TiltShift
+technique TiltShift < ui_label = "Tilt Shift"; >
 {
 	pass AlphaAndHorizontalGaussianBlur
 	{

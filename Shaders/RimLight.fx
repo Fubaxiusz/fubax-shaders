@@ -8,7 +8,7 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-// Rim Light PS v0.1.3 a
+// Rim Light PS v0.1.4 a
 
 #include "Reshade.fxh"
 
@@ -85,9 +85,9 @@ float3 NormalVector(float2 TexCoord)
 	float2 posNorth = posCenter - offset.zy;
 	float2 posEast = posCenter + offset.xz;
 
-	float3 vertCenter = float3(posCenter, 1) * GetDepth(posCenter);
-	float3 vertNorth = float3(posNorth, 1) * GetDepth(posNorth);
-	float3 vertEast = float3(posEast, 1) * GetDepth(posEast);
+	float3 vertCenter = float3(posCenter - 0.5, 1) * GetDepth(posCenter);
+	float3 vertNorth = float3(posNorth - 0.5, 1) * GetDepth(posNorth);
+	float3 vertEast = float3(posEast - 0.5, 1) * GetDepth(posEast);
 
 	return normalize(cross(vertCenter - vertNorth, vertCenter - vertEast)) * 0.5 + 0.5;
 }
@@ -107,7 +107,7 @@ void RimLightPS(in float4 position : SV_Position, in float2 TexCoord : TEXCOORD0
 	}
 }
 
-technique RimLight
+technique RimLight < ui_label = "Rim Light"; >
 {
 	pass
 	{

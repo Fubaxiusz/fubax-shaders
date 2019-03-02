@@ -85,7 +85,7 @@ float3 NosePS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Target
 	return lerp(Display, NoseTexture.rgb, NoseTexture.a);
 }
 
-technique VR_nose
+technique VR_nose < ui_label = "VR nose"; >
 {
 	pass
 	{

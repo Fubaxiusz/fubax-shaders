@@ -1,5 +1,5 @@
 /*
-CrossHair PS v1.3.1 (c) 2018 Jacob Maximilian Fober
+CrossHair PS v1.3.2 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -217,7 +217,7 @@ void CrossHairPS(float4 vois : SV_Position, float2 texcoord : TexCoord, out floa
 }
 
 
-technique CrossHair
+technique CrossHair < ui_label = "Crosshair"; >
 {
 	pass
 	{

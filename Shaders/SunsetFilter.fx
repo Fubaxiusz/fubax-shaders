@@ -1,5 +1,5 @@
 /* 
-SunsetFilter PS v1.0.0 (c) 2018 Jacob Maximilian Fober, 
+SunsetFilter PS v1.0.1 (c) 2018 Jacob Maximilian Fober, 
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -97,7 +97,7 @@ void SunsetFilterPS(float4 vpos : SV_Position, float2 UvCoord : TEXCOORD, out fl
 	Image = Screen(Image.rgb, lerp(ColorA.rgb, ColorB.rgb, Flip ? 1 - BlendMask : BlendMask));
 }
 
-technique SunsetFilter
+technique SunsetFilter < ui_label = "Sunset Filter"; >
 {
 	pass
 	{

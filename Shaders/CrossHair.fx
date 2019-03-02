@@ -130,7 +130,7 @@ uniform float2 MousePoint < source = "mousepoint"; >;
 
 // Define CrossHair texture
 texture CrossHairTex < source = "crosshair.png"; > {Width = 17; Height = 17; Format = RG8;};
-sampler CrossHairSampler { Texture = CrossHairTex; MagFilter = POINT; MinFilter = POINT; MipFilter = POINT;};
+sampler CrossHairSampler { Texture = CrossHairTex; MagFilter = POINT; MinFilter = POINT;};
 
 // Overlay blending mode
 float Overlay(float LayerA, float LayerB)

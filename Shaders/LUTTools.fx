@@ -1,6 +1,6 @@
 /*
-Display LUT PS v1.1.7 (c) 2018 Jacob Maximilian Fober;
-Apply LUT PS v1.0.2 (c) 2018 Jacob Maximilian Fober,
+Display LUT PS v1.2.0 (c) 2018 Jacob Maximilian Fober;
+Apply LUT PS v1.1.0 (c) 2018 Jacob Maximilian Fober,
 (remix of LUT shader 1.0 (c) 2016 Marty McFly)
 
 This work is licensed under the Creative Commons 
@@ -9,9 +9,10 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-  ////////////////////
- /////// MENU ///////
-////////////////////
+
+ 	 ////////////
+	 /// MENU ///
+	////////////
 
 // Define LUT texture size
 #ifndef LutSize
@@ -46,9 +47,10 @@ uniform float2 LutChromaLuma <
 	ui_min = 0.0; ui_max = 1.0; ui_step = 0.005;
 > = float2(1.0, 1.0);
 
-  //////////////////////
- /////// SHADER ///////
-//////////////////////
+
+ 	 //////////////
+	 /// SHADER ///
+	//////////////
 
 // LUT texture for Apply Lut PS
 texture LUTTex < source = LutName; > {Width = LutSize * LutSize; Height = LutSize; Format = RGBA8;};
@@ -124,7 +126,14 @@ void ApplyLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out float
 }
 
 
-technique DisplayLUT < ui_label = "Display LUT"; >
+technique DisplayLUT < ui_label = "Display LUT"; ui_tooltip = "Display generated - neutral LUT texture in left to corner of the screen\n\n"
+"How to use:\n"
+"* adjust lut size\n"
+"* (optionally) adjust color effecs to bake shaders into LUT\n"
+"* take a screenshot\n"
+"* adjust and crop screenshot to texture using external image editor\n"
+"* load LUT texture in 'Apply LUT .fx'\n"
+; >
 {
 	pass
 	{
@@ -133,7 +142,11 @@ technique DisplayLUT < ui_label = "Display LUT"; >
 	}
 }
 
-technique ApplyLUT < ui_label = "Apply LUT"; >
+technique ApplyLUT < ui_label = "Apply LUT"; ui_tooltip = "Apply LUT texture color adjustment\n"
+"To change texture name, add following to global preprocessor definitions:\n\n"
+"   LutName 'YourLUT.png'\n\n"
+"To change LUT texture resolution, define:\n\n"
+"   LutSize 17"; >
 {
 	pass
 	{

@@ -7,11 +7,12 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-// version 1.0.1
+// version 1.1.0
 
-  ////////////////////
- /////// MENU ///////
-////////////////////
+
+	  ////////////
+	 /// MENU ///
+	////////////
 
 uniform float3 Color <
 	ui_type = "color";
@@ -26,9 +27,10 @@ uniform float Scale <
 	ui_min = 0.1; ui_max = 1.0; ui_step = 0.001;
 > = 0.2;
 
-  //////////////////////
- /////// SHADER ///////
-//////////////////////
+
+	  //////////////
+	 /// SHADER ///
+	//////////////
 
 // Get mouse position
 uniform float2 MousePoint < source = "mousepoint"; >;
@@ -61,7 +63,10 @@ float3 CursorPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Targ
 	return lerp(Display, Color, CursorTexture);
 }
 
-technique Cursor
+technique Cursor < ui_tooltip = "Display on-screen mouse cursor.\n"
+"Can be placed before screen deformation techniques,\n
+"like Perfect Perspective,\n"
+"that mouse would point at the right spot."; >
 {
 	pass
 	{

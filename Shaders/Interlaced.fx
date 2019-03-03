@@ -20,6 +20,7 @@ sampler InterlacedBufferSampler { Texture = InterlacedTargetBuffer;
 
 #include "ReShade.fxh"
 
+// Preserve previous frame
 void InterlacedTargetPass(float4 vpos : SV_Position, float2 UvCoord : TEXCOORD,
 out float4 Target : SV_Target)
 {
@@ -41,6 +42,7 @@ out float4 Target : SV_Target)
 	// Outputs raw BackBuffer to InterlacedTargetBuffer for the next frame
 }
 
+// Combine previous and current frame
 void InterlacedPS(float4 vpos : SV_Position, float2 UvCoord : TEXCOORD,
 out float3 Image : SV_Target)
 {
@@ -54,10 +56,8 @@ out float3 Image : SV_Target)
 	// Sample odd and even rows
 	Image = OddPixel ? tex2D(ReShade::BackBuffer, UvCoord).rgb
 	: tex2D(InterlacedBufferSampler, Coordinates).rgb;
-
-	// Preview RenderTarget
-//	Image = tex2D(InterlacedBufferSampler, UvCoord).rgb;
 }
+
 
 technique Interlaced
 {

@@ -1,11 +1,11 @@
 // Shader by Jacob Maximilian Fober
 // https://creativecommons.org/publicdomain/mark/1.0/
 // This work is free of known copyright restrictions.
-// Letterbox PS v1.1.2
+// Letterbox PS v1.2.0
 
-  ////////////////////
- /////// MENU ///////
-////////////////////
+ 	 ////////////
+	 /// MENU ///
+	////////////
 
 uniform float4 Color <
 	ui_label = "Bars Color";
@@ -27,9 +27,9 @@ uniform int2 Dimensions <
 > = int2(0, 0);
 
 
-  //////////////////////
- /////// SHADER ///////
-//////////////////////
+	  //////////////
+	 /// SHADER ///
+	//////////////
 
 #include "ReShade.fxh"
 
@@ -64,7 +64,8 @@ float3 LetterboxPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_T
 }
 
 
-technique Letterbox
+technique Letterbox < ui_tooltip = "Letterbox / Pillarbox\n"
+"Generate black-bars"; >
 {
 	pass
 	{

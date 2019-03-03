@@ -7,9 +7,9 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-  ////////////////////
- /////// MENU ///////
-////////////////////
+	  ////////////
+	 /// MENU ///
+	////////////
 
 uniform float Intensity <
 	ui_label = "Noise intensity";
@@ -20,14 +20,6 @@ uniform float Intensity <
 	#endif
 	ui_min = 0.0; ui_max = 1.0; ui_step = 0.002;
 > = 0.4;
-
-uniform int Coefficient <
-	ui_label = "Luma coefficient";
-	ui_tooltip = "For digital connection use BT.709,\n"
-		"for analog (like VGA) use BT.601";
-	ui_type = "combo";
-	ui_items = "BT.709 (digital connection)\0BT.601 (analog connection)\0";
-> = 0;
 
 uniform int Framerate <
 	ui_label = "Noise framerate";
@@ -41,9 +33,23 @@ uniform int Framerate <
 	ui_min = 0; ui_max = 120;
 > = 12;
 
-  //////////////////////
- /////// SHADER ///////
-//////////////////////
+uniform int Coefficient <
+	ui_tooltip = "For digital video signal (HDMI, DVI, Display Port) use BT.709,\n"
+	"for analog (like VGA, S-Video) use BT.601";
+	#if __RESHADE__ < 40000
+		ui_label = "YUV coefficients";
+		ui_type = "combo";
+		ui_items = "BT.709 (digital signal)\0BT.601 (analog signal))\0";
+	#else
+		ui_type = "radio";
+		ui_items = "BT.709 - digital\0BT.601 - analog\0";
+	#endif
+> = 0;
+
+
+ 	 //////////////
+	 /// SHADER ///
+	//////////////
 
 uniform float Timer < source = "timer"; >;
 uniform int FrameCount < source = "framecount"; >;

@@ -1,5 +1,5 @@
 /*
-Chromakey PS v1.2.0 (c) 2018 Jacob Maximilian Fober
+Chromakey PS v1.3.0 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -7,9 +7,10 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-  ////////////////////
- /////// MENU ///////
-////////////////////
+
+	  ////////////
+	 /// MENU ///
+	////////////
 
 uniform float Threshold <
 	#if __RESHADE__ < 40000
@@ -64,9 +65,9 @@ uniform float3 CustomColor <
 	ui_category = "Color settings";
 > = float3(1.0, 0.0, 0.0);
 
-  //////////////////////
- /////// SHADER ///////
-//////////////////////
+	  //////////////
+	 /// SHADER ///
+	//////////////
 
 #include "ReShade.fxh"
 
@@ -99,7 +100,7 @@ float3 ChromakeyPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_T
 	tex2D(ReShade::BackBuffer, texcoord).rgb;
 }
 
-technique Chromakey
+technique Chromakey < ui_tooltip = "Generate green-screen wall based of depth"; >
 {
 	pass
 	{

@@ -7,11 +7,10 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-// version 1.0.1
 
-  ////////////////////
- /////// MENU ///////
-////////////////////
+	  ////////////
+	 /// MENU ///
+	////////////
 
 #ifndef Image
 	#define Image "image.png" // Image file name
@@ -29,9 +28,9 @@ uniform bool AspectCorrect <
 > = true;
 
 
-  //////////////////////
- /////// SHADER ///////
-//////////////////////
+	  //////////////
+	 /// SHADER ///
+	//////////////
 
 #include "ReShade.fxh"
 
@@ -42,7 +41,7 @@ sampler ImageSampler { Texture = ImageTex; };
 // Anti-aliased border
 float Border(float2 Coordinates)
 {
-	Coordinates = abs(Coordinates*2.0-1.0); // Centered coordinates
+	Coordinates = abs(Coordinates*2-1); // Radial Coordinates
 	float2 Pixel = fwidth(Coordinates);
 	Coordinates = smoothstep(1.0+Pixel, 1.0-Pixel, Coordinates);
 	return min(Coordinates.x, Coordinates.y);
@@ -94,7 +93,7 @@ float3 ImagePS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Targe
 }
 
 
-technique ImageTest < ui_label = "Image TEST"; >
+technique ImageTest
 {
 	pass
 	{

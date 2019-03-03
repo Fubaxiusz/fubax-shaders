@@ -10,9 +10,9 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
 
-  ////////////////////
- /////// MENU ///////
-////////////////////
+	  ////////////
+	 /// MENU ///
+	////////////
 
 #ifndef nose
 	#define nose 128 // Nose texture resolution
@@ -36,9 +36,9 @@ uniform float2 Scale <
 > = float2(0.382, 0.618);
 
 
-  //////////////////////
- /////// SHADER ///////
-//////////////////////
+	  //////////////
+	 /// SHADER ///
+	//////////////
 
 texture NoseTex < source = "nose.png"; > {Width = nose; Height = nose;};
 sampler NoseSampler { Texture = NoseTex; AddressU = CLAMP; AddressV = BORDER; };
@@ -85,7 +85,9 @@ float3 NosePS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Target
 	return lerp(Display, NoseTexture.rgb, NoseTexture.a);
 }
 
-technique VR_nose < ui_label = "VR nose"; >
+technique VR_nose < ui_label = "Virtual nose 4 VR"; ui_tooltip = "Virtual Reality:\n"
+"* can reduce nausea\n"
+"* highly recommended"; >
 {
 	pass
 	{

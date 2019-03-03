@@ -22,11 +22,10 @@ beside Brown-Conrady distortion correction model and
 Parallax Steep and Occlusion mapping which
 I changed and adopted from various sources.
 
-Version 0.2.1 alpha
+Version 0.3.0 alpha
 */
 
 #include "ReShade.fxh"
-
 
 
 	////////////
@@ -34,7 +33,7 @@ Version 0.2.1 alpha
 	////////////
 
 #ifndef MaximumParallaxSteps
-	#define MaximumParallaxSteps 128 // Defefine max steps to make loop finite
+	#define MaximumParallaxSteps 1024 // Defefine max steps to make loop finite
 #endif
 // Grid settings
 #ifndef BoxAmount
@@ -51,31 +50,23 @@ Version 0.2.1 alpha
 #endif
 
 
-#ifndef ShaderAnalyzer
+uniform int SoloLines <
+	#if __RESHADE__ < 40000
+		ui_label = "Solo lines";
+		ui_type = "combo";
+	#else
+		ui_type = "radio";
+	#endif
+	ui_items = "All lines visible\0Solo horizontal lines\0Solo vertical lines\0Switch to radial pattern\0";
+	ui_tooltip = "for chromatic aberration switch radial pattern";
+	ui_category = "Calibration grid";
+> = 0;
 
 uniform bool TestGrid <
 	ui_label = "Display calibration grid";
 	ui_tooltip = "Toggle test grid for lens calibration";
 	ui_category = "Calibration grid";
 > = true;
-
-uniform bool Horizontal <
-	ui_label = "Horizontal grid lines visible";
-	ui_tooltip = "Only visible in grid mode";
-	ui_category = "Calibration grid";
-> = true;
-
-uniform bool Vertical <
-	ui_label = "Vertical grid lines visible";
-	ui_tooltip = "Only visible in grid mode";
-	ui_category = "Calibration grid";
-> = true;
-
-uniform bool RadialPattern <
-	ui_label = "Switch to radial pattern";
-	ui_tooltip = "Toggle test pattern for chromatic aberration";
-		ui_category = "Calibration grid";
-> = false;
 
 uniform float IPD <
 	ui_label = "IPD (interpupillary distance)";
@@ -284,9 +275,6 @@ uniform bool Sharpen <
 	ui_category = "Sharpen image";
 > = true;
 
-#endif
-
-
 
 	/////////////////
 	/// FUNCTIONS ///
@@ -294,7 +282,7 @@ uniform bool Sharpen <
 
 // Adjust to limited RGB
 float3 tv(float3 Input)
-{ return Input*((235-16)/255.0)+16/255.0; }
+{ return Input*((235.0-16.0)/255.0)+16.0/255.0; }
 
 // Generate test grid
 float3 Grid(float2 Coordinates, float AspectRatio)
@@ -313,6 +301,8 @@ float3 Grid(float2 Coordinates, float AspectRatio)
 		#define crossColor float3(1.0, 1.0, 0.0) // Center cross color (yellow)
 	#endif
 
+	bool RadialPattern = SoloLines==3;
+
 	float2 GridCoord = Coordinates;
 	// Correct aspect ratio
 	GridCoord.y -= 0.5; // Center coordinates vertically
@@ -329,9 +319,16 @@ float3 Grid(float2 Coordinates, float AspectRatio)
 	PixelSize = fwidth(GridCoord);
 	GridCoord = smoothstep(1.0-PixelSize, 1.0+PixelSize, GridCoord);
 
-	// Combine vertical and horizontal lines
-	
-	gridColor = max(Vertical ? GridCoord.x : 0.0, Horizontal ? GridCoord.y : 0.0);
+	// Combine/solo vertical and horizontal lines
+	switch(SoloLines)
+	{
+		case 1:
+			{ gridColor = GridCoord.y; break; }
+		case 2:
+			{ gridColor = GridCoord.x; break; }
+		default:
+			{ gridColor = max(GridCoord.x, GridCoord.y); break; }
+	};
 
 	// Generate center cross
 	CrossUV = 1.0-abs(CrossUV*2.0-1.0);
@@ -389,6 +386,10 @@ float BorderMaskAA(float2 Coordinates)
 	return max(Borders.x, Borders.y);
 };
 
+float GetDepth(float2 texcoord)
+{
+	return ReShade::GetLinearizedDepth(texcoord);
+}
 
 // Horizontal parallax offset effect
 float2 Parallax(float2 Coordinates, float Offset, float Center, int GapOffset, int Steps)
@@ -407,25 +408,27 @@ float2 Parallax(float2 Coordinates, float Offset, float Center, int GapOffset, i
 	float2 ParallaxCoord = Coordinates;
 	// Offset image horizontally so that parallax is in the depth appointed center
 	ParallaxCoord.x += Offset * Center;
-	float CurrentDepthMapValue = ReShade::GetLinearizedDepth(ParallaxCoord).x; // Replace function
+	float CurrentDepthMapValue = GetDepth(ParallaxCoord); // Replace function
 
 	// Steep parallax mapping
 	float CurrentLayerDepth = 0.0;
+	[loop]
 	while(CurrentLayerDepth < CurrentDepthMapValue)
 	{
 		// Shift coordinates horizontally in linear fasion
 		ParallaxCoord.x -= deltaCoordinates;
 		// Get depth value at current coordinates
-		CurrentDepthMapValue = ReShade::GetLinearizedDepth(ParallaxCoord).x; // Replace function
+		CurrentDepthMapValue = GetDepth(ParallaxCoord); // Replace function
 		// Get depth of next layer
 		CurrentLayerDepth += LayerDepth;
+		continue;
 	}
 
 	// Parallax Occlusion Mapping
 	float2 PrevParallaxCoord = ParallaxCoord;
 	PrevParallaxCoord.x += deltaCoordinates;
 	float afterDepthValue = CurrentDepthMapValue - CurrentLayerDepth;
-	float beforeDepthValue = ReShade::GetLinearizedDepth(PrevParallaxCoord).x; // Replace function
+	float beforeDepthValue = GetDepth(PrevParallaxCoord); // Replace function
 	// Store depth read difference for masking
 	float DepthDifference = beforeDepthValue - CurrentDepthMapValue;
 
@@ -722,7 +725,11 @@ float3 FilmicSharpenPS(float4 vois : SV_Position, float2 UvCoord : TexCoord) : S
 }
 
 
-technique VR{
+technique VR < ui_label = "Virtual Reality"; ui_tooltip = "Virtual Reality:\n"
+"* apply lens distortion correction\n"
+"* correct chromatic aberration\n"
+"* generate stereo-3D effect"; >
+{
 	pass
 	{
 		VertexShader = PostProcessVS;

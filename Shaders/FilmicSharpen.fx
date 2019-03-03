@@ -1,5 +1,5 @@
 /*
-Filmic Sharpen PS v1.0.13 (c) 2018 Jacob Maximilian Fober
+Filmic Sharpen PS v1.1.0 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -7,9 +7,10 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-  ////////////////////
- /////// MENU ///////
-////////////////////
+
+	  ////////////
+	 /// MENU ///
+	////////////
 
 #ifndef ShaderAnalyzer
 uniform float Strength <
@@ -21,13 +22,6 @@ uniform float Strength <
 	#endif
 	ui_min = 0.0; ui_max = 100.0; ui_step = 0.01;
 > = 60.0;
-
-uniform int Coefficient <
-	ui_label = "Luma coefficient";
-	ui_tooltip = "Change if objects with relatively same brightness but different color get sharpened";
-	ui_type = "combo";
-	ui_items = "BT.709 (digital connection)\0BT.601 (analog connection)\0";
-> = 0;
 
 uniform float Clamp <
 	ui_label = "Sharpen clamping";
@@ -50,15 +44,28 @@ uniform float Offset <
 	ui_min = 0.01; ui_max = 2.0; ui_step = 0.002;
 > = 0.1;
 
+uniform int Coefficient <
+	ui_tooltip = "Change if objects with relatively same brightness but different color get sharpened";
+	#if __RESHADE__ < 40000
+		ui_label = "Luma coefficient";
+		ui_type = "combo";
+		ui_items = "BT.709 (digital signal)\0BT.601 (analog signal))\0";
+	#else
+		ui_type = "radio";
+		ui_items = "BT.709 - digital\0BT.601 - analog\0";
+	#endif
+> = 0;
+
 uniform bool Preview <
 	ui_label = "Preview sharpen layer";
 	ui_category = "Debug View";
 > = false;
 #endif
 
-  //////////////////////
- /////// SHADER ///////
-//////////////////////
+
+  //////////////
+ /// SHADER ///
+//////////////
 
 #include "ReShade.fxh"
 

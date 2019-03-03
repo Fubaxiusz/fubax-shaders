@@ -9,9 +9,10 @@ http://creativecommons.org/licenses/by-sa/4.0/
 
 // version 1.0.2
 
-  ////////////////////
- /////// MENU ///////
-////////////////////
+
+ 	 ////////////
+	 /// MENU ///
+	////////////
 
 #ifndef flipbook
 	#define flipbook "waow.png" // Texture file name
@@ -51,9 +52,9 @@ uniform float3 Position <
 uniform float timer < source = "timer"; >;
 
 
-  //////////////////////
- /////// SHADER ///////
-//////////////////////
+ 	 //////////////
+	 /// SHADER ///
+	//////////////
 
 texture FlipbookTex < source = flipbook; > {Width = flipbookX; Height = flipbookY;};
 sampler FlipbookSampler { Texture = FlipbookTex; AddressU = REPEAT; AddressV = REPEAT;};

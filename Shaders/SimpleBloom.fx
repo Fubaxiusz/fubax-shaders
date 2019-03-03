@@ -1,5 +1,5 @@
 /* 
-Simple Bloom PS v0.2.2 (c) 2018 Jacob Maximilian Fober, 
+Simple Bloom PS v0.2.3 (c) 2018 Jacob Maximilian Fober, 
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -29,6 +29,7 @@ uniform float2 Blend <
 > = float2(0.0, 0.8);
 
 uniform bool Debug <
+	ui_label = "Debug view";
 > = false;
 
 #endif

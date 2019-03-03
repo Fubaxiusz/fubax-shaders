@@ -1,5 +1,5 @@
 /* 
-Before-After PS v1.0.2 (c) 2018 Jacob Maximilian Fober, 
+Before-After PS v1.1.0 (c) 2018 Jacob Maximilian Fober, 
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -65,7 +65,7 @@ void AfterPS(float4 vpos : SV_Position, float2 UvCoord : TEXCOORD, out float3 Im
 	}
 }
 
-technique Before
+technique Before < ui_tooltip = "Place this technique before effects you want compare.\nThen move technique 'After'"; >
 {
 	pass
 	{
@@ -74,7 +74,7 @@ technique Before
 		RenderTarget = BeforeTarget;
 	}
 }
-technique After
+technique After < ui_tooltip = "Place this technique after effects you want compare.\nThen move technique 'Before'"; >
 {
 	pass
 	{

@@ -29,14 +29,15 @@ Normal Map generator is from DisplayDepth.fx by CeeJay.
 Soft light blending mode is from pegtop.net
 */
 
-// version 1.1.1
+// version 1.2.0
 
-  ////////////////////
- /////// MENU ///////
-////////////////////
+
+	  ////////////
+	 /// MENU ///
+	////////////
 
 #ifndef ReflectionRes
-	#define ReflectionRes 768
+	#define ReflectionRes 512
 #endif
 #ifndef ReflectionImage
 	#define ReflectionImage "matcap.png"
@@ -103,9 +104,10 @@ sampler ReflectionSampler
 	Format = RGBA8;
 };
 
-  //////////////////////////////
- /////// BLENDING MODES ///////
-//////////////////////////////
+
+	  //////////////////////
+	 /// BLENDING MODES ///
+	//////////////////////
 
 float3 Multiply(float3 A, float3 B){ return A*B; }
 
@@ -124,9 +126,10 @@ float3 SoftLight(float3 A, float3 B)
 	return 2.0*A*B+A2-2.0*A2*B;
 }
 
-  //////////////////////
- /////// SHADER ///////
-//////////////////////
+
+	  //////////////
+	 /// SHADER ///
+	//////////////
 
 // Get depth function from ReShade.fxh with custom Far Plane
 float GetDepth(float2 TexCoord)
@@ -219,7 +222,11 @@ float3 ReflectionPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_
 	return lerp(Display, Reflection.rgb, Reflection.a * BlendingAmount);
 }
 
-technique Reflection
+technique Reflection < ui_tooltip = "Apply reflection texture to a geometry...\n"
+"To change used texture, define in global preprocessor definitions:\n\n"
+"   ReflectionImage 'YourImage.png'\n\n"
+"To change texture resolution, define\n\n"
+"   ReflectionRes 32"; >
 {
 	pass
 	{

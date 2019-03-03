@@ -1,5 +1,5 @@
 /*
-Real Grain PS v0.2.2 (c) 2018 Jacob Maximilian Fober
+Real Grain PS v0.3.0 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -7,9 +7,9 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-  ////////////////////
- /////// MENU ///////
-////////////////////
+ 	 ////////////
+	 /// MENU ///
+	////////////
 
 #ifndef ShaderAnalyzer
 uniform float2 Intensity <
@@ -24,13 +24,6 @@ uniform float2 Intensity <
 	ui_min = 0.0; ui_max = 1.0; ui_step = 0.002;
 > = float2(0.316, 0.08);
 
-uniform int Coefficient <
-	ui_label = "Luma coefficient";
-	ui_tooltip = "For digital connection use BT.709, for analog (like VGA) use BT.601";
-	ui_type = "combo";
-	ui_items = "BT.709\0BT.601\0";
-> = 0;
-
 uniform int2 Framerate <
 	ui_label = "Noise framerate";
 	ui_tooltip = "Zero will match in-game framerate\n"
@@ -41,9 +34,22 @@ uniform int2 Framerate <
 	ui_min = 0; ui_max = 120; ui_step = 1;
 > = int2(6, 12);
 
-  //////////////////////
- /////// SHADER ///////
-//////////////////////
+uniform int Coefficient <
+	ui_tooltip = "For digital video signal (HDMI, DVI, Display Port) use BT.709,\n"
+	"for analog (like VGA, S-Video) use BT.601";
+	#if __RESHADE__ < 40000
+		ui_label = "YUV coefficients";
+		ui_type = "combo";
+		ui_items = "BT.709 (digital signal)\0BT.601 (analog signal))\0";
+	#else
+		ui_type = "radio";
+		ui_items = "BT.709 - digital\0BT.601 - analog\0";
+	#endif
+> = 0;
+
+	  //////////////
+	 /// SHADER ///
+	//////////////
 
 uniform float Timer < source = "timer"; >;
 uniform int FrameCount < source = "framecount"; >;

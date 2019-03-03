@@ -1,5 +1,5 @@
 /*
-CrossHair PS v1.3.4 (c) 2018 Jacob Maximilian Fober
+CrossHair PS v1.4.0 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -7,9 +7,10 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-  ////////////////////
- /////// MENU ///////
-////////////////////
+
+	  ////////////
+	 /// MENU ///
+	////////////
 
 #ifndef ZOOMKEY
 	#define ZOOMKEY 0x5A
@@ -23,36 +24,31 @@ uniform float Opacity <
 	#else
 		ui_type = "color";
 	#endif
-	ui_category = "Crosshair";
+	ui_category = "Crosshair appearance";
 > = 1.0;
 
-uniform int Coefficients <
-	ui_label = "Crosshair contrast mode";
-	ui_tooltip = "YUV coefficients:\n"
-	" For digital connection (HDMI/DVI/DisplayPort) use BT.709\n"
-	" For analog connection (VGA) use BT.601";
-	ui_type = "combo";
-	ui_items = "BT.709 (digital signal)\0BT.601 (analog signal)\0";
-	ui_category = "Crosshair";
-> = 0;
-
 uniform bool Stroke <
-	ui_label = "Enable black stroke";
-	ui_category = "Crosshair";
+	ui_label = "Enable sharp mode";
+	ui_category = "Crosshair appearance";
 > = true;
 
-uniform bool PreviewZoom <
-	ui_label = "Zoom preview";
-	ui_tooltip = "Preview zooming function (Press Z to toggle)\n"
-	"You can change default button by declaring preprocessor definition\n"
-	"(URL encoded hex value):\n"
-	" ZOOMKEY 0x5A";
-	ui_category = "Zooming";
-> = false;
+uniform int Coefficients <
+	ui_tooltip = "For digital video signal (HDMI, DVI, Display Port) use BT.709,\n"
+	"for analog (like VGA, S-Video) use BT.601";
+	#if __RESHADE__ < 40000
+		ui_label = "YUV coefficients";
+		ui_type = "combo";
+		ui_items = "BT.709 (digital signal)\0BT.601 (analog signal))\0";
+	#else
+		ui_type = "radio";
+		ui_items = "BT.709 - digital\0BT.601 - analog\0";
+	#endif
+	ui_category = "Crosshair appearance";
+> = 0;
 
 uniform float Zoom <
-	ui_label = "Zoom amout";
-	ui_tooltip = "Adjust zoom factor, to disable effect, set to 1.0";
+	ui_label = "Zoom amount";
+	ui_tooltip = "Adjust zoom factor,\nto disable effect, set to 1.0";
 	#if __RESHADE__ < 40000
 		ui_type = "drag";
 	#else
@@ -60,7 +56,7 @@ uniform float Zoom <
 	#endif
 	ui_min = 1.0; ui_max = 4.0;
 	ui_category = "Zooming";
-> = 2.0;
+> = 1.0;
 
 uniform float Radius <
 	ui_label = "Zoom radius";
@@ -74,10 +70,19 @@ uniform float Radius <
 	ui_category = "Zooming";
 > = 0.4;
 
+uniform bool PreviewZoom <
+	ui_label = "Zoom preview";
+	ui_tooltip = "Preview zooming function (Press Z to toggle)\n"
+	"You can change default button by declaring preprocessor definition\n"
+	"(URL encoded hex value):\n"
+	" ZOOMKEY 0x5A";
+	ui_category = "Zooming";
+> = true;
+
 uniform bool Fixed <
 	ui_label = "Fixed position";
 	ui_tooltip = "Crosshair will move with the mouse on OFF";
-	ui_category = "Position";
+	ui_category = "Position on screen";
 > = true;
 
 uniform int2 OffsetXY <
@@ -85,19 +90,15 @@ uniform int2 OffsetXY <
 	ui_tooltip = "Offset Crosshair position in pixels";
 	ui_type = "drag";
 	ui_min = -16; ui_max = 16;
-	ui_category = "Position";
+	ui_category = "Position on screen";
 > = int2(0, 0);
 
+uniform bool ZoomKeyDown < source = "key"; keycode = ZOOMKEY; > ;
 
-uniform bool ZoomKeyDown <
-	source = "key";
-	keycode = ZOOMKEY;
-	mode = "";
->;
 
-  //////////////////////
- /////// SHADER ///////
-//////////////////////
+ 	 //////////////
+	 /// SHADER ///
+	//////////////
 
 #include "ReShade.fxh"
 
@@ -222,7 +223,10 @@ void CrossHairPS(float4 vois : SV_Position, float2 texcoord : TexCoord, out floa
 }
 
 
-technique CrossHair < ui_label = "Crosshair"; >
+technique CrossHair < ui_label = "Crosshair"; ui_tooltip = "Crosshair with zooming function (press 'Z')\n"
+"You can change default zoom button by declaring preprocessor definition\n"
+"(URL encoded hex value):\n"
+" ZOOMKEY 0x5A"; >
 {
 	pass
 	{

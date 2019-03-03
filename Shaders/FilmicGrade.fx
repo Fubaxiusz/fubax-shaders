@@ -1,5 +1,5 @@
 /*
-FilmicGrade v1.0.2 (c) 2018 Jacob Maximilian Fober,
+FilmicGrade v1.1.0 (c) 2018 Jacob Maximilian Fober,
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -7,16 +7,22 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-  ////////////////////
- /////// MENU ///////
-////////////////////
 
-#ifndef ShaderAnalyzer
+	  ////////////
+	 /// MENU ///
+	////////////
+
 uniform int Coefficients <
-	ui_label = "YUV coefficients";
-	ui_tooltip = "For digital signal use BT.709, analog (like VGA) use BT.601";
-	ui_type = "combo";
-	ui_items = "BT.709\0BT.601\0";
+	ui_tooltip = "For digital video signal (HDMI, DVI, Display Port) use BT.709,\n"
+	"for analog (like VGA, S-Video) use BT.601";
+	#if __RESHADE__ < 40000
+		ui_label = "YUV coefficients";
+		ui_type = "combo";
+		ui_items = "BT.709 (digital signal)\0BT.601 (analog signal))\0";
+	#else
+		ui_type = "radio";
+		ui_items = "BT.709 - digital\0BT.601 - analog\0";
+	#endif
 > = 0;
 
 uniform float2 LightControl <
@@ -30,11 +36,11 @@ uniform float2 LightControl <
 	#endif
 	ui_min = -1.0; ui_max = 1.0;
 > = float2(0.0, 0.0);
-#endif
 
-  //////////////////////
- /////// SHADER ///////
-//////////////////////
+
+	  //////////////
+	 /// SHADER ///
+	//////////////
 
 #include "ReShade.fxh"
 

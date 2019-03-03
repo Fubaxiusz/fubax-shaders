@@ -65,6 +65,7 @@ uniform float3 CustomColor <
 	ui_category = "Color settings";
 > = float3(1.0, 0.0, 0.0);
 
+
 	  //////////////
 	 /// SHADER ///
 	//////////////

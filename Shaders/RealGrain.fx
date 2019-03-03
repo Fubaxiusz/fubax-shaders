@@ -7,7 +7,8 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
- 	 ////////////
+
+	  ////////////
 	 /// MENU ///
 	////////////
 
@@ -46,6 +47,7 @@ uniform int Coefficient <
 		ui_items = "BT.709 - digital\0BT.601 - analog\0";
 	#endif
 > = 0;
+
 
 	  //////////////
 	 /// SHADER ///

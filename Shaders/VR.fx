@@ -28,8 +28,8 @@ Version 0.3.0 alpha
 #include "ReShade.fxh"
 
 
-	////////////
-	/// MENU ///
+	  ////////////
+	 /// MENU ///
 	////////////
 
 #ifndef MaximumParallaxSteps
@@ -276,8 +276,8 @@ uniform bool Sharpen <
 > = true;
 
 
-	/////////////////
-	/// FUNCTIONS ///
+	  /////////////////
+	 /// FUNCTIONS ///
 	/////////////////
 
 // Adjust to limited RGB
@@ -483,8 +483,8 @@ float Overlay(float LayerA, float LayerB)
 }
 
 
-	//////////////
-	/// SHADER ///
+	  //////////////
+	 /// SHADER ///
 	//////////////
 
 float3 VR_ps(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Target

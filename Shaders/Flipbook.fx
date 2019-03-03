@@ -10,7 +10,7 @@ http://creativecommons.org/licenses/by-sa/4.0/
 // version 1.0.2
 
 
- 	 ////////////
+	  ////////////
 	 /// MENU ///
 	////////////
 
@@ -52,7 +52,7 @@ uniform float3 Position <
 uniform float timer < source = "timer"; >;
 
 
- 	 //////////////
+	  //////////////
 	 /// SHADER ///
 	//////////////
 

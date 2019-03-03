@@ -7,6 +7,7 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
+
 	  ////////////
 	 /// MENU ///
 	////////////
@@ -47,7 +48,7 @@ uniform int Coefficient <
 > = 0;
 
 
- 	 //////////////
+	  //////////////
 	 /// SHADER ///
 	//////////////
 

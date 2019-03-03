@@ -10,7 +10,7 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
 
- 	 ////////////
+	  ////////////
 	 /// MENU ///
 	////////////
 
@@ -48,7 +48,7 @@ uniform float2 LutChromaLuma <
 > = float2(1.0, 1.0);
 
 
- 	 //////////////
+	  //////////////
 	 /// SHADER ///
 	//////////////
 

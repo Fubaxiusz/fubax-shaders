@@ -63,9 +63,9 @@ uniform bool Preview <
 #endif
 
 
-  //////////////
- /// SHADER ///
-//////////////
+	  //////////////
+	 /// SHADER ///
+	//////////////
 
 #include "ReShade.fxh"
 

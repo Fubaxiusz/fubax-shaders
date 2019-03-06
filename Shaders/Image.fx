@@ -7,19 +7,20 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
+// version 1.1.0
 
 	  ////////////
 	 /// MENU ///
 	////////////
 
-#ifndef Image
-	#define Image "image.png" // Image file name
+#ifndef TestImage
+	#define TestImage "image.png" // Image file name
 #endif
-#ifndef ImageX
-	#define ImageX 1440 // Image horizontal resolution
+#ifndef TestImageX
+	#define TestImageX 1440 // Image horizontal resolution
 #endif
-#ifndef ImageY
-	#define ImageY 1080 // Image vertical resolution
+#ifndef TestImageY
+	#define TestImageY 1080 // Image vertical resolution
 #endif
 
 uniform bool AspectCorrect <
@@ -35,7 +36,7 @@ uniform bool AspectCorrect <
 #include "ReShade.fxh"
 
 // Define image texture
-texture ImageTex < source = Image; > {Width = ImageX; Height = ImageY;};
+texture ImageTex < source = TestImage; > {Width = TestImageX; Height = TestImageY;};
 sampler ImageSampler { Texture = ImageTex; };
 
 // Anti-aliased border
@@ -61,7 +62,7 @@ float3 ImagePS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Targe
 	}
 
 	float DisplayAspect = ReShade::AspectRatio;
-	float ImageAspect = float(ImageX)/float(ImageY);
+	float ImageAspect = float(TestImageX)/float(TestImageY);
 	float AspectDifference = DisplayAspect / ImageAspect;
 
 	if(AspectDifference > 1.0)
@@ -93,7 +94,11 @@ float3 ImagePS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Targe
 }
 
 
-technique ImageTest
+technique ImageTest < ui_label = "TEST image"; ui_tooltip = "To change image file,\n"
+"define global preprocessor definition:\n"
+"  TestImage 'image.png'\n"
+"  TestImageX 1440\n"
+"  TestImageY 1080\n"; >
 {
 	pass
 	{

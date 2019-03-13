@@ -161,9 +161,9 @@ float3 NormalVector(float2 texcoord)
 	float2 posNorth  = posCenter - offset.zy;
 	float2 posEast   = posCenter + offset.xz;
 
-	float3 vertCenter = float3(posCenter - 0.5, 1) * GetDepth(posCenter);
-	float3 vertNorth  = float3(posNorth - 0.5,  1) * GetDepth(posNorth);
-	float3 vertEast   = float3(posEast - 0.5,   1) * GetDepth(posEast);
+	float3 vertCenter = float3(posCenter - 0.5, 1.0) * GetDepth(posCenter);
+	float3 vertNorth  = float3(posNorth - 0.5,  1.0) * GetDepth(posNorth);
+	float3 vertEast   = float3(posEast - 0.5,   1.0) * GetDepth(posEast);
 
 	return normalize(cross(vertCenter - vertNorth, vertCenter - vertEast)) * 0.5 + 0.5;
 }
@@ -174,7 +174,7 @@ float4 GetReflection(float2 TexCoord)
 	// Get aspect ratio
 	float Aspect = ReShade::AspectRatio;
 
-	// Sample display image (for use with DisplayDepth.fx)
+	// Sample normal pass
 	float3 Normal = NormalVector(TexCoord);
 	Normal.xy = Normal.xy * 2.0 - 1.0;
 

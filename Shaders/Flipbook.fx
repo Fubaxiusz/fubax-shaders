@@ -7,7 +7,7 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/
 */
 
-// version 1.0.2
+// version 1.1.0
 
 
 	  ////////////
@@ -26,7 +26,12 @@ http://creativecommons.org/licenses/by-sa/4.0/
 
 uniform int3 Size <
 	ui_label = "X frames, Y frames, FPS";
-	ui_tooltip = "Adjust flipbook texture dimensions and framerate\nTo change texture resolution and name,\nadd following preprocessor definition:\n  flipbook 'name.png'\n  flipbookX [ResolutionX]\n  flipbookY [ResolutionY]";
+	ui_tooltip = "Adjust flipbook texture dimensions and framerate\n"
+		"To change texture resolution and name,\n"
+		"add following preprocessor definition:\n"
+		"  flipbook 'name.png'\n"
+		"  flipbookX [ResolutionX]\n"
+		"  flipbookY [ResolutionY]";
 	#if __RESHADE__ < 40000
 		ui_type = "drag";
 		ui_step = 0.2;
@@ -34,6 +39,7 @@ uniform int3 Size <
 		ui_type = "slider";
 	#endif
 	ui_min = 1; ui_max = 30;
+	ui_category = "Texture dimensions";
 > = int3(10, 9, 30);
 
 uniform float3 Position <
@@ -46,6 +52,7 @@ uniform float3 Position <
 		ui_type = "slider";
 	#endif
 	ui_min = float3(0.0, 0.0, 0.1); ui_max = float3(1.0, 1.0, 1.0);
+	ui_category = "Position on screen";
 > = float3(1.0, 0.0, 1.0);
 
 // Get time in milliseconds from start
@@ -63,7 +70,7 @@ sampler FlipbookSampler { Texture = FlipbookTex; AddressU = REPEAT; AddressV = R
 
 float Mask(float2 Coord)
 {
-	Coord = abs(Coord*2-1);
+	Coord = abs(Coord*2.0-1.0);
 	float2 Pixel = fwidth(Coord);
 	float2 Borders = 1.0 - smoothstep(1.0-Pixel, 1.0+Pixel, Coord);
 	return min(Borders.x, Borders.y);
@@ -111,7 +118,13 @@ float3 FlipbookPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Ta
 }
 
 
-technique Flipbook
+technique Flipbook < ui_tooltip = "Flipbook animation FX:\n"
+	"======================\n"
+	"To change texture resolution and name,\n"
+	"add following preprocessor definition:\n"
+	"  flipbook 'name.png'\n"
+	"  flipbookX [ResolutionX]\n"
+	"  flipbookY [ResolutionY]"; >
 {
 	pass
 	{

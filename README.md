@@ -19,3 +19,21 @@ Syntax
 ------
 
 Check out [the language reference document](https://github.com/crosire/reshade-shaders/blob/master/REFERENCE.md) to get started on how to write your own!
+
+Shaders
+=======
+
+[Perfect Perspective](/Shaders/PerfectPerspective.fx)
+---------------------
+
+[Chromakey](/Shaders/Chromakey.fx)
+---------------------
+
+[Interlaced](/Shaders/Interlaced.fx)
+---------------------
+
+[Reflection](/Shaders/Interlaced.fx)
+---------------------
+
+[VR](/Shaders/VR.fx)
+---------------------

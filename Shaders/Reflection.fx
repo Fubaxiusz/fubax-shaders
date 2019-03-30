@@ -36,6 +36,8 @@ Soft light blending mode is from pegtop.net
 	 /// MENU ///
 	////////////
 
+#include "ReShadeUI.fxh"
+
 #ifndef ReflectionRes
 	#define ReflectionRes 512
 #endif
@@ -43,13 +45,8 @@ Soft light blending mode is from pegtop.net
 	#define ReflectionImage "matcap.png"
 #endif
 
-uniform int FOV <
+uniform int FOV < __UNIFORM_SLIDER_INT1
 	ui_label = "Field of View (horizontal)";
-	#if __RESHADE__ < 40000
-		ui_type = "drag";
-	#else
-		ui_type = "slider";
-	#endif
 	ui_min = 1; ui_max = 170;
 	ui_category = "Depth settings";
 > = 90;
@@ -75,14 +72,9 @@ uniform int BlendingMode <
 	ui_category = "Texture settings";
 > = 0;
 
-uniform float BlendingAmount <
+uniform float BlendingAmount < __UNIFORM_SLIDER_FLOAT1
 	ui_label = "Blending";
 	ui_tooltip = "Blend with background";
-	#if __RESHADE__ < 40000
-		ui_type = "drag";
-	#else
-		ui_type = "slider";
-	#endif
 	ui_min = 0.0; ui_max = 1.0;
 	ui_category = "Texture settings";
 > = 1.0;
@@ -221,6 +213,11 @@ float3 ReflectionPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_
 	if( !AlphaBlending && BlendingAmount == 1.0) return Reflection.rgb;
 	return lerp(Display, Reflection.rgb, Reflection.a * BlendingAmount);
 }
+
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique Reflection < ui_tooltip = "Apply reflection texture to a geometry...\n"
 "To change used texture, define in global preprocessor definitions:\n\n"

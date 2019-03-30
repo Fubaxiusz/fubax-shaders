@@ -8,9 +8,10 @@
 	 /// MENU ///
 	////////////
 
-uniform float4 Color <
+#include "ReShadeUI.fxh"
+
+uniform float4 Color < __UNIFORM_COLOR_FLOAT4
 	ui_label = "Bars Color";
-	ui_type = "color";
 > = float4(0.027, 0.027, 0.027, 1.0);
 
 uniform float DesiredAspect <
@@ -64,6 +65,10 @@ float3 LetterboxPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_T
 	}
 }
 
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique Letterbox < ui_tooltip = "Letterbox / Pillarbox\n"
 "Generate black-bars"; >

@@ -12,37 +12,29 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 	 /// MENU ///
 	////////////
 
-uniform float Intensity <
+#include "ReShadeUI.fxh"
+
+uniform float Intensity < __UNIFORM_SLIDER_FLOAT1
 	ui_label = "Noise intensity";
-	#if __RESHADE__ < 40000
-		ui_type = "drag";
-	#else
-		ui_type = "slider";
-	#endif
 	ui_min = 0.0; ui_max = 1.0; ui_step = 0.002;
 > = 0.4;
 
-uniform int Framerate <
+uniform int Framerate < __UNIFORM_SLIDER_INT1
 	ui_label = "Noise framerate";
 	ui_tooltip = "Zero will match in-game framerate";
 	#if __RESHADE__ < 40000
-		ui_type = "drag";
 		ui_step = 1;
-	#else
-		ui_type = "slider";
 	#endif
 	ui_min = 0; ui_max = 120;
 > = 12;
 
-uniform int Coefficient <
+uniform int Coefficient < __UNIFORM_RADIO_INT1
 	ui_tooltip = "For digital video signal (HDMI, DVI, Display Port) use BT.709,\n"
 	"for analog (like VGA, S-Video) use BT.601";
 	#if __RESHADE__ < 40000
 		ui_label = "YUV coefficients";
-		ui_type = "combo";
 		ui_items = "BT.709 (digital signal)\0BT.601 (analog signal))\0";
 	#else
-		ui_type = "radio";
 		ui_items = "BT.709 - digital\0BT.601 - analog\0";
 	#endif
 > = 0;
@@ -102,6 +94,11 @@ void SimpleGrainPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out fl
 		Overlay(Image.b, Noise)
 	);
 }
+
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique SimpleGrain < ui_label = "Simple Grain"; >
 {

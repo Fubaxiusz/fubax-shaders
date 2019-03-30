@@ -18,6 +18,11 @@ sampler InterlacedBufferSampler { Texture = InterlacedTargetBuffer;
 	MipFilter = POINT;
 };
 
+
+	  //////////////
+	 /// SHADER ///
+	//////////////
+
 #include "ReShade.fxh"
 
 // Preserve previous frame
@@ -58,6 +63,10 @@ out float3 Image : SV_Target)
 	: tex2D(InterlacedBufferSampler, Coordinates).rgb;
 }
 
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique Interlaced
 {

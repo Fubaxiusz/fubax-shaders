@@ -7,6 +7,13 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
+
+	  ////////////
+	 /// MENU ///
+	////////////
+
+#include "ReShadeUI.fxh"
+
 uniform bool Line <
 > = true;
 
@@ -21,14 +28,18 @@ uniform float Blur <
 	ui_min = 0.0; ui_max = 1.0; ui_step = 0.001;
 > = 0.0;
 
-uniform float3 Color <
+uniform float3 Color < __UNIFORM_COLOR_FLOAT3
 	ui_label = "Line color";
-	ui_type = "color";
 > = float3(0.337, 0.0, 0.118);
 
 // First pass render target
 texture BeforeTarget { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; };
 sampler BeforeSampler { Texture = BeforeTarget; };
+
+
+	  /////////////////
+	 /// FUNCTIONS ///
+	/////////////////
 
 // Overlay blending mode
 float Overlay(float LayerAB)
@@ -37,6 +48,11 @@ float Overlay(float LayerAB)
 	float MaxAB = max(LayerAB, 0.5);
 	return 2.0 * (MinAB * MinAB + MaxAB + MaxAB - MaxAB * MaxAB) - 1.5;
 }
+
+
+	  //////////////
+	 /// SHADER ///
+	//////////////
 
 #include "ReShade.fxh"
 
@@ -64,6 +80,11 @@ void AfterPS(float4 vpos : SV_Position, float2 UvCoord : TEXCOORD, out float3 Im
 		Image = lerp(tex2D(BeforeSampler, UvCoord).rgb, tex2D(ReShade::BackBuffer, UvCoord).rgb, Overlay(Mask));
 	}
 }
+
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique Before < ui_tooltip = "Place this technique before effects you want compare.\nThen move technique 'After'"; >
 {

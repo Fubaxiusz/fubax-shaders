@@ -10,12 +10,18 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 
 // Rim Light PS v0.1.4 a
 
-#include "Reshade.fxh"
 
-uniform float3 Color <
+#include "Reshade.fxh"
+#include "ReShadeUI.fxh"
+
+
+	  ////////////
+	 /// MENU ///
+	////////////
+
+uniform float3 Color < __UNIFORM_COLOR_FLOAT3
 	ui_label = "Rim Light Color";
 	ui_tooltip = "Adjust rim light tint";
-	ui_type = "color";
 > = float3(1, 1, 1);
 
 uniform bool Debug <
@@ -39,6 +45,11 @@ uniform float FarPlane <
 	ui_min = 0; ui_max = 1000; ui_step = 1;
 	ui_category = "Debug Tools";
 > = 1000.0;
+
+
+	  /////////////////
+	 /// FUNCTIONS ///
+	/////////////////
 
 // Overlay blending mode
 float Overlay(float Layer)
@@ -93,6 +104,10 @@ float3 NormalVector(float2 TexCoord)
 }
 
 
+	  //////////////
+	 /// SHADER ///
+	//////////////
+
 void RimLightPS(in float4 position : SV_Position, in float2 TexCoord : TEXCOORD0, out float3 color : SV_Target)
 {
 	float3 NormalPass = NormalVector(TexCoord);
@@ -106,6 +121,11 @@ void RimLightPS(in float4 position : SV_Position, in float2 TexCoord : TEXCOORD0
 		color += Color * Overlay(rim);
 	}
 }
+
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique RimLight < ui_label = "Rim Light"; >
 {

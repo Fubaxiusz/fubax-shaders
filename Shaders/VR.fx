@@ -25,8 +25,10 @@ I changed and adopted from various sources.
 Version 0.3.0 alpha
 */
 
-#include "ReShade.fxh"
 
+
+#include "ReShade.fxh"
+#include "ReShadeUI.fxh"
 
 	  ////////////
 	 /// MENU ///
@@ -50,12 +52,9 @@ Version 0.3.0 alpha
 #endif
 
 
-uniform int SoloLines <
+uniform int SoloLines < __UNIFORM_RADIO_INT1
 	#if __RESHADE__ < 40000
 		ui_label = "Solo lines";
-		ui_type = "combo";
-	#else
-		ui_type = "radio";
 	#endif
 	ui_items = "All lines visible\0Solo horizontal lines\0Solo vertical lines\0Switch to radial pattern\0";
 	ui_tooltip = "for chromatic aberration switch radial pattern";
@@ -82,27 +81,21 @@ uniform bool StereoSwitch <
 	ui_category = "Stereo-vision adjustment";
 > = true;
 
-uniform float ParallaxOffset <
+uniform float ParallaxOffset < __UNIFORM_SLIDER_FLOAT1
 	ui_label = "Parallax horizontal offset (disparity)";
 	ui_tooltip = "Adjust 3D effect power\n(disparity in screen percent)";
 	#if __RESHADE__ < 40000
-		ui_type = "drag";
 		ui_step = 0.001;
-	#else
-		ui_type = "slider";
 	#endif
 	ui_min = 0.0; ui_max = 1.0;
 	ui_category = "Parallax 3D effect";
 > = 0.355;
 
-uniform float ParallaxCenter <
+uniform float ParallaxCenter < __UNIFORM_SLIDER_FLOAT1
 	ui_label = "Parallax rotation center (ZPD)";
 	ui_tooltip = "Adjust 3D effect middle point\n(zero parallax distance)";
 	#if __RESHADE__ < 40000
-		ui_type = "drag";
 		ui_step = 0.001;
-	#else
-		ui_type = "slider";
 	#endif
 	ui_min = 0.0; ui_max = 1.0;
 	ui_category = "Parallax 3D effect";
@@ -116,14 +109,9 @@ uniform int ParallaxSteps <
 	ui_category = "Parallax 3D effect";
 > = 16;
 
-uniform int ParallaxMaskScalar <
+uniform int ParallaxMaskScalar < __UNIFORM_SLIDER_INT1
 	ui_label = "Parallax gaps compensation";
 	ui_tooltip = "Adjust gaps from parallax offset\n(some glithes may occur due to lack of\nanti-aliasing in the depth pass)";
-	#if __RESHADE__ < 40000
-		ui_type = "drag";
-	#else
-		ui_type = "slider";
-	#endif
 	ui_min = 0; ui_max = 32; ui_step = 0.2;
 	ui_category = "Parallax 3D effect";
 > = 10;
@@ -134,14 +122,11 @@ uniform bool ParallaxSwitch <
 	ui_category = "Parallax 3D effect";
 > = true;
 
-uniform int FOV <
+uniform int FOV < __UNIFORM_SLIDER_INT1
 	ui_label = "Lens distortion power";
 	ui_tooltip = "Adjust lens distortion main profile (vertical FOV)";
 	#if __RESHADE__ < 40000
-		ui_type = "drag";
 		ui_step = 0.1;
-	#else
-		ui_type = "slider";
 	#endif
 	ui_min = 0; ui_max = 170;
 	ui_category = "Perspective distortion";
@@ -724,6 +709,10 @@ float3 FilmicSharpenPS(float4 vois : SV_Position, float2 UvCoord : TexCoord) : S
 	return (Preview) ? HighPass : Sharpen;
 }
 
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique VR < ui_label = "Virtual Reality"; ui_tooltip = "Virtual Reality:\n"
 "* apply lens distortion correction\n"

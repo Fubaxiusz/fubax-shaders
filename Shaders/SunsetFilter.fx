@@ -7,13 +7,19 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-uniform float3 ColorA <
+
+	  ////////////
+	 /// MENU ///
+	////////////
+
+#include "ReShadeUI.fxh"
+
+uniform float3 ColorA < __UNIFORM_COLOR_FLOAT3
 	ui_label = "Colour (A)";
-	ui_type = "color";
 	ui_category = "Colors";
 > = float3(1.0, 0.0, 0.0);
 
-uniform float3 ColorB <
+uniform float3 ColorB < __UNIFORM_COLOR_FLOAT3
 	ui_label = "Colour (B)";
 	ui_type = "color";
 	ui_category = "Colors";
@@ -24,40 +30,34 @@ uniform bool Flip <
 	ui_category = "Colors";
 > = false;
 
-uniform int Axis <
+uniform int Axis < __UNIFORM_SLIDER_INT1
 	ui_label = "Angle";
 	#if __RESHADE__ < 40000
-		ui_type = "drag";
 		ui_step = 1;
-	#else
-		ui_type = "slider";
 	#endif
 	ui_min = -180; ui_max = 180;
 	ui_category = "Controls";
 > = -7;
 
-uniform float Scale <
+uniform float Scale < __UNIFORM_SLIDER_FLOAT1
 	ui_label = "Gradient sharpness";
-	#if __RESHADE__ < 40000
-		ui_type = "drag";
-	#else
-		ui_type = "slider";
-	#endif
 	ui_min = 0.5; ui_max = 1.0; ui_step = 0.005;
 	ui_category = "Controls";
 > = 1.0;
 
-uniform float Offset <
+uniform float Offset < __UNIFORM_SLIDER_FLOAT1
 	ui_label = "Position";
 	#if __RESHADE__ < 40000
-		ui_type = "drag";
 		ui_step = 0.002;
-	#else
-		ui_type = "slider";
 	#endif
 	ui_min = 0.0; ui_max = 0.5;
 	ui_category = "Controls";
 > = 0.0;
+
+
+	  /////////////////
+	 /// FUNCTIONS ///
+	/////////////////
 
 #include "ReShade.fxh"
 
@@ -72,6 +72,11 @@ float Overlay(float Layer)
 // Screen blending mode
 float3 Screen(float3 LayerA, float3 LayerB)
 { return 1.0 - (1.0 - LayerA) * (1.0 - LayerB); }
+
+
+	  //////////////
+	 /// SHADER ///
+	//////////////
 
 void SunsetFilterPS(float4 vpos : SV_Position, float2 UvCoord : TEXCOORD, out float3 Image : SV_Target)
 {
@@ -96,6 +101,11 @@ void SunsetFilterPS(float4 vpos : SV_Position, float2 UvCoord : TEXCOORD, out fl
 	// Color image
 	Image = Screen(Image.rgb, lerp(ColorA.rgb, ColorB.rgb, Flip ? 1 - BlendMask : BlendMask));
 }
+
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique SunsetFilter < ui_label = "Sunset Filter"; >
 {

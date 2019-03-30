@@ -9,6 +9,7 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 
 // version 1.1.0
 
+
 	  ////////////
 	 /// MENU ///
 	////////////
@@ -93,6 +94,10 @@ float3 ImagePS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Targe
 	);
 }
 
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique ImageTest < ui_label = "TEST image"; ui_tooltip = "To change image file,\n"
 "define global preprocessor definition:\n"

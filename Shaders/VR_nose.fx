@@ -14,6 +14,8 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 	 /// MENU ///
 	////////////
 
+#include "ReShadeUI.fxh"
+
 #ifndef nose
 	#define nose 128 // Nose texture resolution
 #endif
@@ -24,12 +26,9 @@ uniform float Brightness <
 	ui_category = "Virtual nose adjustment";
 > = 1.0;
 
-uniform float2 Scale <
+uniform float2 Scale < __UNIFORM_SLIDER_FLOAT2
 	#if __RESHADE__ < 40000
-		ui_type = "drag";
 		ui_step = 0.001;
-	#else
-		ui_type = "slider";
 	#endif
 	ui_min = 0.1; ui_max = 1.0;
 	ui_category = "Virtual nose adjustment";
@@ -84,6 +83,11 @@ float3 NosePS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Target
 	// Blend nose with display image
 	return lerp(Display, NoseTexture.rgb, NoseTexture.a);
 }
+
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique VR_nose < ui_label = "Virtual nose 4 VR"; ui_tooltip = "Virtual Reality:\n"
 "* can reduce nausea\n"

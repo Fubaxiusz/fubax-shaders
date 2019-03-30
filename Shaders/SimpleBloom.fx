@@ -7,24 +7,19 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-#ifndef ShaderAnalyzer
 
-uniform float BlurMultiplier <
+	  ////////////
+	 /// MENU ///
+	////////////
+
+#include "ReShadeUI.fxh"
+
+uniform float BlurMultiplier < __UNIFORM_SLIDER_FLOAT1
 	ui_label = "Radius";
-	#if __RESHADE__ < 40000
-		ui_type = "drag";
-	#else
-		ui_type = "slider";
-	#endif
 	ui_min = 1; ui_max = 16; ui_step = 0.01;
 > = 1.23;
 
-uniform float2 Blend <
-	#if __RESHADE__ < 40000
-		ui_type = "drag";
-	#else
-		ui_type = "slider";
-	#endif
+uniform float2 Blend < __UNIFORM_SLIDER_FLOAT2
 	ui_min = 0; ui_max = 1; ui_step = 0.001;
 > = float2(0.0, 0.8);
 
@@ -32,7 +27,6 @@ uniform bool Debug <
 	ui_label = "Debug view";
 > = false;
 
-#endif
 
 #if !defined(ResolutionX) || !defined(ResolutionY)
 	texture SimpleBloomTarget
@@ -53,6 +47,10 @@ uniform bool Debug <
 #endif
 sampler SimpleBloomSampler { Texture = SimpleBloomTarget; };
 
+
+	  //////////////
+	 /// SHADER ///
+	//////////////
 
 #include "ReShade.fxh"
 
@@ -139,6 +137,11 @@ out float3 Image : SV_Target)
 
 	Image = Debug ? Target : Image;
 }
+
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique SimpleBloom < ui_label = "Simple Bloom"; >
 {

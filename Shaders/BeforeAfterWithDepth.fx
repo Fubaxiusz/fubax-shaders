@@ -7,6 +7,13 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
+
+	  ////////////
+	 /// MENU ///
+	////////////
+
+#include "ReShadeUI.fxh"
+
 uniform bool DepthBased <
 	ui_label = "Use Depth";
 	ui_category = "Separation settings";
@@ -29,9 +36,8 @@ uniform float Blur <
 	ui_category = "Separation settings";
 > = 0.0;
 
-uniform float3 Color <
+uniform float3 Color < __UNIFORM_COLOR_FLOAT3
 	ui_label = "Line color";
-	ui_type = "color";
 	ui_category = "Separation settings";
 > = float3(0.337, 0, 0.118);
 
@@ -39,19 +45,17 @@ uniform bool RadialX <
 	ui_label = "Horizontally radial";
 	ui_category = "Radial depth adjustment";
 > = false;
+
 uniform bool RadialY <
 	ui_label = "Vertically radial";
 	ui_category = "Radial depth adjustment";
 > = false;
 
-uniform int FOV <
+uniform int FOV < __UNIFORM_SLIDER_INT1
 	ui_label = "FOV (horizontal)";
 	ui_tooltip = "Field of view in degrees";
 	#if __RESHADE__ < 40000
-		ui_type = "drag";
 		ui_step = 1;
-	#else
-		ui_type = "slider";
 	#endif
 	ui_min = 0; ui_max = 170;
 	ui_category = "Radial depth adjustment";
@@ -62,6 +66,11 @@ uniform int FOV <
 texture BeforeTarget { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; };
 sampler BeforeSampler { Texture = BeforeTarget; };
 
+
+	  /////////////////
+	 /// FUNCTIONS ///
+	/////////////////
+
 // Overlay blending mode
 float Overlay(float LayerAB)
 {
@@ -69,6 +78,11 @@ float Overlay(float LayerAB)
 	float MaxAB = max(LayerAB, 0.5);
 	return 2.0 * (MinAB * MinAB + MaxAB + MaxAB - MaxAB * MaxAB) - 1.5;
 }
+
+
+	  //////////////
+	 /// SHADER ///
+	//////////////
 
 #include "ReShade.fxh"
 
@@ -113,6 +127,11 @@ void AfterPS(float4 vpos : SV_Position, float2 UvCoord : TEXCOORD, out float3 Im
 		Image = lerp(tex2D(BeforeSampler, UvCoord).rgb, tex2D(ReShade::BackBuffer, UvCoord).rgb, Overlay(Mask));
 	}
 }
+
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique Before < ui_tooltip = "Place this technique before effects you want compare.\nThen move technique 'After'"; >
 {

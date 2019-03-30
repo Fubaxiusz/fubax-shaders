@@ -12,16 +12,12 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 	 /// MENU ///
 	////////////
 
-#ifndef ShaderAnalyzer
-uniform float2 Intensity <
+#include "ReShadeUI.fxh"
+
+uniform float2 Intensity < __UNIFORM_SLIDER_FLOAT2
 	ui_label = "Noise intensity";
 	ui_tooltip = "First Value - Macro Noise\n"
 		"Second Value - Micro Noise";
-	#if __RESHADE__ < 40000
-		ui_type = "drag";
-	#else
-		ui_type = "slider";
-	#endif
 	ui_min = 0.0; ui_max = 1.0; ui_step = 0.002;
 > = float2(0.316, 0.08);
 
@@ -35,15 +31,13 @@ uniform int2 Framerate <
 	ui_min = 0; ui_max = 120; ui_step = 1;
 > = int2(6, 12);
 
-uniform int Coefficient <
+uniform int Coefficient < __UNIFORM_RADIO_INT1
 	ui_tooltip = "For digital video signal (HDMI, DVI, Display Port) use BT.709,\n"
 	"for analog (like VGA, S-Video) use BT.601";
 	#if __RESHADE__ < 40000
 		ui_label = "YUV coefficients";
-		ui_type = "combo";
 		ui_items = "BT.709 (digital signal)\0BT.601 (analog signal))\0";
 	#else
-		ui_type = "radio";
 		ui_items = "BT.709 - digital\0BT.601 - analog\0";
 	#endif
 > = 0;
@@ -55,7 +49,7 @@ uniform int Coefficient <
 
 uniform float Timer < source = "timer"; >;
 uniform int FrameCount < source = "framecount"; >;
-#endif
+
 
 // Overlay blending mode
 float Overlay(float LayerA, float LayerB)
@@ -137,6 +131,11 @@ void RealGrainPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out floa
 		Overlay(Image.b, Noise)
 	);
 }
+
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique RealGrain < ui_label = "Real Grain"; >
 {

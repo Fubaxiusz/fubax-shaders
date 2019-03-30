@@ -14,16 +14,12 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 	 /// MENU ///
 	////////////
 
-uniform float3 Color <
-	ui_type = "color";
+#include "ReShadeUI.fxh"
+
+uniform float3 Color < __UNIFORM_COLOR_FLOAT3
 > = float3(0.871, 0.871, 0.871);
 
-uniform float Scale <
-	#if __RESHADE__ < 40000
-		ui_type = "drag";
-	#else
-		ui_type = "slider";
-	#endif
+uniform float Scale < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.1; ui_max = 1.0; ui_step = 0.001;
 > = 0.2;
 
@@ -62,6 +58,11 @@ float3 CursorPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Targ
 
 	return lerp(Display, Color, CursorTexture);
 }
+
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique Cursor < ui_tooltip = "Display on-screen mouse cursor.\n"
 "Can be placed before screen deformation techniques,\n

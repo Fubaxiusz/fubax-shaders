@@ -12,46 +12,30 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 	 /// MENU ///
 	////////////
 
-#ifndef ShaderAnalyzer
-uniform float Strength <
+#include "ReShadeUI.fxh"
+
+uniform float Strength < __UNIFORM_SLIDER_FLOAT1
 	ui_label = "Sharpen strength";
-	#if __RESHADE__ < 40000
-		ui_type = "drag";
-	#else
-		ui_type = "slider";
-	#endif
 	ui_min = 0.0; ui_max = 100.0; ui_step = 0.01;
 > = 60.0;
 
-uniform float Clamp <
+uniform float Clamp < __UNIFORM_SLIDER_FLOAT1
 	ui_label = "Sharpen clamping";
-	#if __RESHADE__ < 40000
-		ui_type = "drag";
-	#else
-		ui_type = "slider";
-	#endif
 	ui_min = 0.5; ui_max = 1.0; ui_step = 0.001;
 > = 0.65;
 
-uniform float Offset <
+uniform float Offset < __UNIFORM_SLIDER_FLOAT1
 	ui_label = "High-pass offset";
 	ui_tooltip = "High-pass cross offset in pixels";
-	#if __RESHADE__ < 40000
-		ui_type = "drag";
-	#else
-		ui_type = "slider";
-	#endif
 	ui_min = 0.01; ui_max = 2.0; ui_step = 0.002;
 > = 0.1;
 
-uniform int Coefficient <
+uniform int Coefficient <  __UNIFORM_RADIO_INT1
 	ui_tooltip = "Change if objects with relatively same brightness but different color get sharpened";
 	#if __RESHADE__ < 40000
 		ui_label = "Luma coefficient";
-		ui_type = "combo";
 		ui_items = "BT.709 (digital signal)\0BT.601 (analog signal))\0";
 	#else
-		ui_type = "radio";
 		ui_items = "BT.709 - digital\0BT.601 - analog\0";
 	#endif
 > = 0;
@@ -60,7 +44,6 @@ uniform bool Preview <
 	ui_label = "Preview sharpen layer";
 	ui_category = "Debug View";
 > = false;
-#endif
 
 
 	  //////////////
@@ -121,6 +104,11 @@ float3 FilmicSharpenPS(float4 vois : SV_Position, float2 UvCoord : TexCoord) : S
 
 	return Preview ? HighPass : Sharpen;
 }
+
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique FilmicSharpen < ui_label = "Filmic Sharpen"; >
 {

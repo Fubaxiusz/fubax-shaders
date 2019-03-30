@@ -14,6 +14,8 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 	 /// MENU ///
 	////////////
 
+#include "ReShadeUI.fxh"
+
 // Define LUT texture size
 #ifndef LutSize
 	#define LutSize 32
@@ -35,14 +37,10 @@ uniform int LutRes <
 	ui_category = "Display LUT settings";
 	ui_min = 8; ui_max = 128; ui_step = 1;
 > = 32;
-uniform float2 LutChromaLuma <
+
+uniform float2 LutChromaLuma < __UNIFORM_SLIDER_FLOAT2
 	ui_label = "LUT chroma/luma blend";
 	ui_tooltip = "How much LUT affects chrominance/luminance";
-	#if __RESHADE__ < 40000
-		ui_type = "drag";
-	#else
-		ui_type = "slider";
-	#endif
 	ui_category = "Apply LUT settings";
 	ui_min = 0.0; ui_max = 1.0; ui_step = 0.005;
 > = float2(1.0, 1.0);
@@ -125,6 +123,10 @@ void ApplyLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out float
 	}
 }
 
+
+	  //////////////
+	 /// OUTPUT ///
+	//////////////
 
 technique DisplayLUT < ui_label = "Display LUT"; ui_tooltip = "Display generated - neutral LUT texture in left to corner of the screen\n\n"
 "How to use:\n"

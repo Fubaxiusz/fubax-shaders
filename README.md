@@ -18,4 +18,4 @@ Installation
 Syntax
 ------
 
-Check out [the language reference document](REFERENCE.md) to get started on how to write your own!
+Check out [the language reference document](https://github.com/crosire/reshade-shaders/blob/master/REFERENCE.md) to get started on how to write your own!

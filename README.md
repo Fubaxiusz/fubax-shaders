@@ -32,9 +32,9 @@ Shaders
 [Interlaced](/Shaders/Interlaced.fx)
 ---------------------
 
-[Reflection](/Shaders/Interlaced.fx)
+[Reflection](/Shaders/Reflection.fx)
 ---------------------
-https://i.imgur.com/DKsZBwE.jpg
+![Reflection.fx](https://i.imgur.com/DKsZBwE.jpg "Reflection.fx: RAGE")
 
 [VR](/Shaders/VR.fx)
 ---------------------

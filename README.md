@@ -34,7 +34,7 @@ Shaders
 
 [Reflection](/Shaders/Reflection.fx)
 ---------------------
-[Reflection.fx](https://i.imgur.com/DKsZBwE.jpg "Reflection.fx: RAGE")
+!(https://i.imgur.com/DKsZBwE.jpg)
 
 [VR](/Shaders/VR.fx)
 ---------------------

@@ -22,7 +22,7 @@ Normal Map generator is from DisplayDepth.fx by CeeJay.
 Soft light blending mode is from pegtop.net
 */
 
-// version 1.0.1
+// version 1.0.2
 
 
 	  ////////////
@@ -317,7 +317,8 @@ float3 ThinFilmPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Ta
 	 /// OUTPUT ///
 	//////////////
 
-technique ThinFilm < ui_tooltip = "Apply thin-film interference (irridecensce)..."; >
+technique ThinFilm < ui_label = "Thin-film (iridescence)";
+ui_tooltip = "Apply thin-film interference (iridescence) 'holographic' effect..."; >
 {
 	pass
 	{

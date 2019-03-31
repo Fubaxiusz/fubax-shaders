@@ -29,7 +29,7 @@ Normal Map generator is from DisplayDepth.fx by CeeJay.
 Soft light blending mode is from pegtop.net
 */
 
-// version 1.2.0
+// version 1.2.1
 
 
 	  ////////////
@@ -219,11 +219,12 @@ float3 ReflectionPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_
 	 /// OUTPUT ///
 	//////////////
 
-technique Reflection < ui_tooltip = "Apply reflection texture to a geometry...\n"
-"To change used texture, define in global preprocessor definitions:\n\n"
-"   ReflectionImage 'YourImage.png'\n\n"
-"To change texture resolution, define\n\n"
-"   ReflectionRes 32"; >
+technique Reflection < ui_label = "Reflection (matcap)";
+ui_tooltip = "Apply reflection texture to a geometry...\n"
+	"To change used texture, define in global preprocessor definitions:\n\n"
+	"   ReflectionImage 'YourImage.png'\n\n"
+	"To change texture resolution, define\n\n"
+	"   ReflectionRes 32"; >
 {
 	pass
 	{

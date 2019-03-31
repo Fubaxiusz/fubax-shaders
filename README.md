@@ -43,3 +43,7 @@ Shaders (some of)
 [VR](/Shaders/VR.fx)
 ---------------------
 ![](https://i.imgur.com/GqOsqOT.jpg)
+
+Contact
+=======
+[e-mail](mailto:jakubfober@gmail.com)

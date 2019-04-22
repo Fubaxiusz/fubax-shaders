@@ -22,7 +22,7 @@ beside Brown-Conrady distortion correction model and
 Parallax Steep and Occlusion mapping which
 I changed and adopted from various sources.
 
-Version 0.4.0 alpha
+Version 0.4.1 alpha
 */
 
 
@@ -169,38 +169,6 @@ uniform bool PerspectiveSwitch <
 	ui_category = "Perspective distortion";
 > = true;
 
-uniform float2 ChGreenOffsetL <
-	ui_label = "Left green center offset";
-	ui_tooltip = "Adjust lens center for chromatic aberration";
-	ui_type = "drag";
-	ui_min = -0.2; ui_max = 0.2; ui_step = 0.001;
-	ui_category = "Chromatic left-eye center";
-> = float2(0.0, 0.0);
-
-uniform float2 ChBlueOffsetL <
-	ui_label = "Left blue center offset";
-	ui_tooltip = "Adjust lens center for chromatic aberration";
-	ui_type = "drag";
-	ui_min = -0.2; ui_max = 0.2; ui_step = 0.001;
-	ui_category = "Chromatic left-eye center";
-> = float2(0.0, 0.0);
-
-uniform float2 ChGreenOffsetR <
-	ui_label = "Right green center offset";
-	ui_tooltip = "Adjust lens center for chromatic aberration";
-	ui_type = "drag";
-	ui_min = -0.2; ui_max = 0.2; ui_step = 0.001;
-	ui_category = "Chromatic right-eye center";
-> = float2(0.0, 0.0);
-
-uniform float2 ChBlueOffsetR <
-	ui_label = "Right blue center offset";
-	ui_tooltip = "Adjust lens center for chromatic aberration";
-	ui_type = "drag";
-	ui_min = -0.2; ui_max = 0.2; ui_step = 0.001;
-	ui_category = "Chromatic right-eye center";
-> = float2(0.0, 0.0);
-
 uniform float4 ChGreenK <
 	ui_label = "Chromatic green correction";
 	ui_tooltip = "Adjust lens color fringing K\nfor green channel\n(Brown-Conrady model)\n[Zoom,K1,K2,K3]";
@@ -234,6 +202,38 @@ uniform bool ChromaticAbrSwitch <
 	ui_tooltip = "Toggle color fringing correction";
 	ui_category = "Chromatic radial correction";
 > = true;
+
+uniform float2 ChGreenOffsetL <
+	ui_label = "Left green center offset";
+	ui_tooltip = "Adjust lens center for chromatic aberration";
+	ui_type = "drag";
+	ui_min = -0.2; ui_max = 0.2; ui_step = 0.001;
+	ui_category = "Chromatic left-eye center";
+> = float2(0.0, 0.0);
+
+uniform float2 ChBlueOffsetL <
+	ui_label = "Left blue center offset";
+	ui_tooltip = "Adjust lens center for chromatic aberration";
+	ui_type = "drag";
+	ui_min = -0.2; ui_max = 0.2; ui_step = 0.001;
+	ui_category = "Chromatic left-eye center";
+> = float2(0.0, 0.0);
+
+uniform float2 ChGreenOffsetR <
+	ui_label = "Right green center offset";
+	ui_tooltip = "Adjust lens center for chromatic aberration";
+	ui_type = "drag";
+	ui_min = -0.2; ui_max = 0.2; ui_step = 0.001;
+	ui_category = "Chromatic right-eye center";
+> = float2(0.0, 0.0);
+
+uniform float2 ChBlueOffsetR <
+	ui_label = "Right blue center offset";
+	ui_tooltip = "Adjust lens center for chromatic aberration";
+	ui_type = "drag";
+	ui_min = -0.2; ui_max = 0.2; ui_step = 0.001;
+	ui_category = "Chromatic right-eye center";
+> = float2(0.0, 0.0);
 
 uniform float Strength <
 	ui_label = "Sharpen strength";

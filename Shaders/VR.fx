@@ -22,7 +22,7 @@ beside Brown-Conrady distortion correction model and
 Parallax Steep and Occlusion mapping which
 I changed and adopted from various sources.
 
-Version 0.3.0 alpha
+Version 0.4.0 alpha
 */
 
 
@@ -155,6 +155,13 @@ uniform float3 P <
 	ui_step = 0.001;
 	ui_category = "Perspective distortion";
 > = float3(0.0, 0.0, 0.0);
+
+uniform float ImageScale < __UNIFORM_SLIDER_FLOAT1
+	ui_label = "Image scale";
+	ui_tooltip = "Adjust image borders (does not affect distortion geometry)";
+	ui_min = 0.25; ui_max = 1.0;
+	ui_category = "Perspective distortion";
+> = 1.0;
 
 uniform bool PerspectiveSwitch <
 	ui_label = "Lens correction enabled";
@@ -533,6 +540,9 @@ float3 VR_ps(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Target
 		// Expand background to vertical border (but not for test grid for ease of calibration)
 		UvCoord /= TestGrid ? 1.0 : kRadial(InvDiagonal2, K.x, K.y, K.z, K.w);
 		UvCoord = UvCoord * correctionK + correctionP; // Apply lens correction
+
+		// Scale image
+		UvCoord /= TestGrid ? 1.0 : ImageScale;
 
 		// Revert aspect ratio to square
 		UvCoord.x /= rAspect;

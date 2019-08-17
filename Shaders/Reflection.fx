@@ -6,7 +6,7 @@ Attribution-NonCommercial-NoDerivatives 4.0 International License.
 To view a copy of this license, visit 
 http://creativecommons.org/licenses/by-nc-nd/4.0/ 
 
-For inquiries please contact jakubfober@gmail.com
+For inquiries please contact jakub.m.fober@pm.me
 */
 
 /*

@@ -14,7 +14,7 @@ Attribution-NonCommercial-ShareAlike 4.0 International License.
 To view a copy of this license, visit 
 http://creativecommons.org/licenses/by-nc-sa/4.0/
 
-If you want to use it commercially, contact me at jakub.m.fober@protonmail.com
+If you want to use it commercially, contact me at jakub.m.fober@pm.me
 If you have questions, visit https://reshade.me/forum/shader-discussion/
 
 I'm author of most of equations present here,

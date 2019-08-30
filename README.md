@@ -44,5 +44,4 @@ Shaders (some of)
 ----
 ![](https://i.imgur.com/GqOsqOT.jpg)
 
-Contact [e-mail](mailto:jakubfober@gmail.com)
-----------------
+[Contact me](mailto:jakub.m.fober@pm.me)

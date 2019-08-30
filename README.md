@@ -26,7 +26,7 @@ Shaders (some of)
 
 [Perfect Perspective](/Shaders/PerfectPerspective.fx)
 ---------------------
-![](https://i.imgur.com/xO6HhgK.png)
+![](https://i.imgur.com/U8BaU1s.png)
 
 [Chromakey](/Shaders/Chromakey.fx)
 -----------
@@ -34,7 +34,7 @@ Shaders (some of)
 
 [Filmic Anamorphic Sharpen](/Shaders/FilmicAnamorphSharpen.fx)
 ---------------------------
-![](https://i.imgur.com/QOgs04N.png)
+![](https://i.imgur.com/FvtLb4d.png)
 
 [Reflection (matcap)](/Shaders/Reflection.fx)
 ---------------------
@@ -44,5 +44,4 @@ Shaders (some of)
 ----
 ![](https://i.imgur.com/GqOsqOT.jpg)
 
-Contact [e-mail](mailto:jakubfober@gmail.com)
-----------------
+[Contact me](mailto:jakub.m.fober@pm.me)

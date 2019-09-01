@@ -137,7 +137,7 @@ float3 GetNormal(float2 texcoord)
 	 /// SHADER ///
 	//////////////
 
-float3 ChromakeyPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Target
+float3 ChromakeyPS(float4 pos : SV_Position, float2 texcoord : TEXCOORD0) : SV_Target
 {
 	// Define chromakey color, Ultimatte(tm) Super Blue, Ultimatte(tm) Green, or user color
 	float3 Screen;

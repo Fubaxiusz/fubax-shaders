@@ -1,5 +1,5 @@
 /*
-Chromakey PS v1.4.0 (c) 2018 Jacob Maximilian Fober
+Chromakey PS v1.5.0a (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -45,6 +45,23 @@ uniform int Pass < __UNIFORM_RADIO_INT1
 	ui_category = "Direction adjustment";
 > = 0;
 
+uniform bool Floor <
+	ui_label = "Mask floor";
+	ui_category = "Floor masking (experimental)";
+> = false;
+
+uniform float FloorAngle < __UNIFORM_SLIDER_FLOAT1
+	ui_label = "Floor angle";
+	ui_category = "Floor masking (experimental)";
+	ui_min = 0.0; ui_max = 1.0;
+> = 1.0;
+
+uniform int Precision < __UNIFORM_SLIDER_INT1
+	ui_label = "Floor precision";
+	ui_category = "Floor masking (experimental)";
+	ui_min = 2; ui_max = 64;
+> = 4;
+
 uniform int Color < __UNIFORM_RADIO_INT1
 	ui_label = "Keying color";
 	ui_tooltip = "Ultimatte(tm) Super Blue and Green are industry standard colors for chromakey";
@@ -60,8 +77,8 @@ uniform float3 CustomColor < __UNIFORM_COLOR_FLOAT3
 uniform bool AntiAliased <
 	ui_label = "Anti-aliased mask";
 	ui_tooltip = "Disabling this option will reduce masking gaps";
-	ui_category = "Color settings";
-> = true;
+	ui_category = "Additional settings";
+> = false;
 
 
 	  /////////////////
@@ -89,6 +106,32 @@ float MaskAA(float2 texcoord)
 	return smoothstep(Threshold-hPixel, Threshold+hPixel, Depth);
 }
 
+float3 GetPosition(float2 texcoord)
+{
+	// Get view angle for trigonometric functions
+	const float theta = radians(FOV*0.5);
+
+	float3 position = float3( texcoord*2.0-1.0, ReShade::GetLinearizedDepth(texcoord) );
+	// Reverse perspective
+	position.xy *= position.z;
+
+	return position;
+}
+
+// Normal map (OpenGL oriented) generator from DisplayDepth.fx
+float3 GetNormal(float2 texcoord)
+{
+	float3 offset = float3(ReShade::PixelSize.xy, 0.0);
+	float2 posCenter = texcoord.xy;
+	float2 posNorth  = posCenter - offset.zy;
+	float2 posEast   = posCenter + offset.xz;
+
+	float3 vertCenter = float3(posCenter - 0.5, 1.0) * ReShade::GetLinearizedDepth(posCenter);
+	float3 vertNorth  = float3(posNorth - 0.5,  1.0) * ReShade::GetLinearizedDepth(posNorth);
+	float3 vertEast   = float3(posEast - 0.5,   1.0) * ReShade::GetLinearizedDepth(posEast);
+
+	return normalize(cross(vertCenter - vertNorth, vertCenter - vertEast)) * 0.5 + 0.5;
+}
 
 	  //////////////
 	 /// SHADER ///
@@ -107,6 +150,17 @@ float3 ChromakeyPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_T
 
 	// Generate depth mask
 	float DepthMask = MaskAA(texcoord);
+
+	if (Floor)
+	{
+		float AngleScreen =  (float)round( GetNormal(texcoord).y*Precision )/Precision;
+		float AngleFloor = (float)round( FloorAngle*Precision )/Precision;
+
+		bool FloorMask = AngleScreen==AngleFloor;
+
+		DepthMask = FloorMask ? 1.0 : DepthMask;
+	}
+
 	if(bool(Pass)) DepthMask = 1.0-DepthMask;
 
 	return lerp(tex2D(ReShade::BackBuffer, texcoord).rgb, Screen, DepthMask);

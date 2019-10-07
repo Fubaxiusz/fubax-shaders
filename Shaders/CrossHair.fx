@@ -1,5 +1,5 @@
 /*
-CrossHair PS v1.5.0 (c) 2018 Jacob Maximilian Fober
+CrossHair PS v1.6.0 (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -16,6 +16,12 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 
 #ifndef ZOOMKEY
 	#define ZOOMKEY 0x5A
+#endif
+#ifndef CROSSHAIR
+	#define CROSSHAIR "crosshair.png"
+#endif
+#ifndef CROSSHAIR_RES
+	#define CROSSHAIR_RES 17
 #endif
 
 uniform bool AutomaticColor < __UNIFORM_INPUT_BOOL1
@@ -135,7 +141,7 @@ float3x3(
 uniform float2 MousePoint < source = "mousepoint"; >;
 
 // Define CrossHair texture
-texture CrossHairTex < source = "crosshair.png"; > {Width = 17; Height = 17; Format = RG8;};
+texture CrossHairTex < source = CROSSHAIR; > {Width = CROSSHAIR_RES; Height = CROSSHAIR_RES; Format = RG8;};
 sampler CrossHairSampler { Texture = CrossHairTex; MagFilter = POINT; MinFilter = POINT;
 	AddressU = BORDER; AddressV = BORDER;}; // Comment out this line to get crosshair span across the screen
 
@@ -237,7 +243,10 @@ void CrossHairPS(float4 pos : SV_Position, float2 texcoord : TexCoord, out float
 technique CrossHair < ui_label = "Crosshair"; ui_tooltip = "Crosshair with zooming function (press 'Z')\n"
 "You can change default zoom button by declaring preprocessor definition\n"
 "(URL encoded hex value):\n"
-" ZOOMKEY 0x5A"; >
+" ZOOMKEY 0x5A\n"
+"To change the texture, add following to preprocessor definitions:\n"
+" CROSSHAIR \"yourTexture.png\"\n"
+" CROSSHAIR_RES [resolution]"; >
 {
 	pass
 	{

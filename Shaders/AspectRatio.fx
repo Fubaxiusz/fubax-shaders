@@ -1,4 +1,4 @@
-/** Aspect Ratio PS, version 1.0.2
+/** Aspect Ratio PS, version 1.1.0
 by Fubax 2019 for ReShade
 */
 
@@ -21,10 +21,15 @@ uniform bool FitScreen < __UNIFORM_INPUT_BOOL1
 	ui_category = "Borders";
 > = true;
 
-uniform float3 Color < __UNIFORM_COLOR_FLOAT3
+uniform bool UseBackground < __UNIFORM_INPUT_BOOL1
+	ui_label = "Use background image";
+	ui_category = "Borders";
+> = true;
+
+uniform float4 Color < __UNIFORM_COLOR_FLOAT4
 	ui_label = "Background color";
 	ui_category = "Borders";
-> = float3(0.027, 0.027, 0.027);
+> = float4(0.027, 0.027, 0.027, 0.17);
 
 #include "ReShade.fxh"
 
@@ -32,12 +37,15 @@ uniform float3 Color < __UNIFORM_COLOR_FLOAT3
 	 /// SHADER ///
 	//////////////
 
-float3 AspectRatioPS(float4 pos : SV_Position, float2 coord : TEXCOORD0) : SV_Target
+texture AspectBgTex < source = "AspectRatio.jpg"; > { Width = 1351; Height = 1013; };
+sampler AspectBgSampler { Texture = AspectBgTex; };
+
+float3 AspectRatioPS(float4 pos : SV_Position, float2 texcoord : TEXCOORD0) : SV_Target
 {
 	bool Mask = false;
 
 	// Center coordinates
-	coord -= 0.5;
+	float2 coord = texcoord-0.5;
 
 	// if (Zoom != 1.0) coord /= Zoom;
 	if (Zoom != 1.0) coord /= clamp(Zoom, 1.0, 1.5); // Anti-cheat
@@ -67,7 +75,12 @@ float3 AspectRatioPS(float4 pos : SV_Position, float2 coord : TEXCOORD0) : SV_Ta
 	coord += 0.5;
 
 	// Sample display image and return
-	return Mask? Color : tex2D(ReShade::BackBuffer, coord).rgb;
+	if (UseBackground && !FitScreen) // If borders are visible
+		return Mask?
+			lerp( tex2D(AspectBgSampler, texcoord).rgb, Color.rgb, Color.a ) :
+			tex2D(ReShade::BackBuffer, coord).rgb;
+	else
+		return Mask? Color.rgb : tex2D(ReShade::BackBuffer, coord).rgb;
 }
 
 

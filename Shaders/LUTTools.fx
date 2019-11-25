@@ -1,5 +1,5 @@
 /*
-Display LUT PS v1.3.0 (c) 2018 Jacob Maximilian Fober;
+Display LUT PS v1.3.1 (c) 2018 Jacob Maximilian Fober;
 Apply LUT PS v1.2.0 (c) 2018 Jacob Maximilian Fober,
 (remix of LUT shader 1.0 (c) 2016 Marty McFly)
 
@@ -73,24 +73,19 @@ sampler LUTSampler {Texture = LUTTex; Format = RGBA8;};
 // Shader No.1 pass
 float3 DisplayLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD) : SV_Target
 {
-	// Get UV pixel size
-	const float2 PixelSize = ReShade::PixelSize;
-	// Get image resolution
-	const int2 ScreenResolution = ReShade::ScreenSize;
-
 	// Calculate LUT texture bounds
 	float2 LutBounds;
 	if (VerticalOrietation)
 		LutBounds = float2(LutRes, LutRes*LutRes);
 	else
 		LutBounds = float2(LutRes*LutRes, LutRes);
-	LutBounds /= ScreenResolution;
+	LutBounds /= ReShade::ScreenSize;
 
 	if( any(TexCoord > LutBounds) ) return tex2D(ReShade::BackBuffer, TexCoord).rgb;
 	else
 	{
 		// Generate pattern UV
-		float2 Gradient = TexCoord * ScreenResolution / LutRes;
+		float2 Gradient = TexCoord * ReShade::ScreenSize / LutRes;
 		// Convert pattern to RGB LUT
 		float3 LUT;
 		LUT.rg = frac(Gradient) - 0.5 / LutRes;

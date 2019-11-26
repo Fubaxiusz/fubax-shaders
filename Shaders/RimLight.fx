@@ -8,7 +8,7 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-// Rim Light PS v0.1.4 a
+// Rim Light PS v0.1.5 a
 
 
 #include "Reshade.fxh"
@@ -28,6 +28,7 @@ uniform bool Debug <
 	ui_label = "Display Normal Map Pass";
 	ui_tooltip = "Surface vector angle color map";
 	ui_category = "Debug Tools";
+	ui_category_closed = true;
 > = false;
 
 uniform bool CustomFarPlane <

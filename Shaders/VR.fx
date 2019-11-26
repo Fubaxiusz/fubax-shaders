@@ -22,7 +22,7 @@ beside Brown-Conrady distortion correction model and
 Parallax Steep and Occlusion mapping which
 I changed and adopted from various sources.
 
-Version 0.4.1 alpha
+Version 0.4.2 alpha
 */
 
 
@@ -73,6 +73,7 @@ uniform float IPD <
 	ui_type = "drag";
 	ui_min = 0.0; ui_max = 0.75; ui_step = 0.001;
 	ui_category = "Stereo-vision adjustment";
+	ui_category_closed = true;
 > = 0.477;
 
 uniform bool StereoSwitch <
@@ -89,6 +90,7 @@ uniform float ParallaxOffset < __UNIFORM_SLIDER_FLOAT1
 	#endif
 	ui_min = 0.0; ui_max = 1.0;
 	ui_category = "Parallax 3D effect";
+	ui_category_closed = true;
 > = 0.355;
 
 uniform float ParallaxCenter < __UNIFORM_SLIDER_FLOAT1
@@ -130,6 +132,7 @@ uniform int FOV < __UNIFORM_SLIDER_INT1
 	#endif
 	ui_min = 0; ui_max = 170;
 	ui_category = "Perspective distortion";
+	ui_category_closed = true;
 > = 96;
 
 uniform int LensType <
@@ -175,6 +178,7 @@ uniform float4 ChGreenK <
 	ui_type = "drag";
 	ui_step = 0.001;
 	ui_category = "Chromatic radial correction";
+	ui_category_closed = true;
 > = float4(0.0, 0.0, 0.0, 0.0);
 
 uniform bool SoloGreen <
@@ -209,6 +213,7 @@ uniform float2 ChGreenOffsetL <
 	ui_type = "drag";
 	ui_min = -0.2; ui_max = 0.2; ui_step = 0.001;
 	ui_category = "Chromatic left-eye center";
+	ui_category_closed = true;
 > = float2(0.0, 0.0);
 
 uniform float2 ChBlueOffsetL <
@@ -225,6 +230,7 @@ uniform float2 ChGreenOffsetR <
 	ui_type = "drag";
 	ui_min = -0.2; ui_max = 0.2; ui_step = 0.001;
 	ui_category = "Chromatic right-eye center";
+	ui_category_closed = true;
 > = float2(0.0, 0.0);
 
 uniform float2 ChBlueOffsetR <
@@ -240,6 +246,7 @@ uniform float Strength <
 	ui_type = "drag";
 	ui_min = 0.0; ui_max = 100.0; ui_step = 0.01;
 	ui_category = "Sharpen image";
+	ui_category_closed = true;
 > = 25.0;
 
 uniform float Clamp <

@@ -1,5 +1,5 @@
 /**
-Filmic Sharpen PS v1.2.0 (c) 2018 Jakub Maximilian Fober
+Filmic Sharpen PS v1.2.1 (c) 2018 Jakub Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -16,26 +16,22 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 
 uniform float Strength < __UNIFORM_SLIDER_FLOAT1
 	ui_label = "Strength";
-	ui_category = "Settings";
 	ui_min = 0.0; ui_max = 100.0; ui_step = 0.01;
 > = 60.0;
 
 uniform float Offset < __UNIFORM_SLIDER_FLOAT1
 	ui_label = "Radius";
 	ui_tooltip = "High-pass cross offset in pixels";
-	ui_category = "Settings";
 	ui_min = 0.0; ui_max = 2.0; ui_step = 0.01;
 > = 0.1;
 
 uniform float Clamp < __UNIFORM_SLIDER_FLOAT1
 	ui_label = "Clamping";
-	ui_category = "Settings";
 	ui_min = 0.5; ui_max = 1.0; ui_step = 0.001;
 > = 0.65;
 
 uniform bool UseMask <
 	ui_label = "Only center";
-	ui_category = "Settings";
 	ui_tooltip = "Sharpen only in center of the image";
 > = false;
 
@@ -50,6 +46,7 @@ uniform int Coefficient <
 		ui_items = "BT.709 - digital\0BT.601 - analog\0";
 	#endif
 	ui_category = "Additional settings";
+	ui_category_closed = true;
 > = 0;
 
 uniform bool Preview <
@@ -58,6 +55,7 @@ uniform bool Preview <
 		"If you don't see red strokes,\n"
 		"try changing Preprocessor Definitions in the Settings tab.";
 	ui_category = "Debug View";
+	ui_category_closed = true;
 > = false;
 
 

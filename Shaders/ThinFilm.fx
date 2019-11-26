@@ -22,7 +22,7 @@ Normal Map generator is from DisplayDepth.fx by CeeJay.
 Soft light blending mode is from pegtop.net
 */
 
-// version 1.0.2
+// version 1.0.3
 
 
 	  ////////////
@@ -35,6 +35,7 @@ uniform int FOV < __UNIFORM_SLIDER_INT1
 	ui_label = "Field of View (horizontal)";
 	ui_min = 1; ui_max = 170;
 	ui_category = "Depth settings";
+	ui_category_closed = true;
 > = 90;
 
 uniform float FarPlane <

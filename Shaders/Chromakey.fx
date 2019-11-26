@@ -1,5 +1,5 @@
 /*
-Chromakey PS v1.5.0a (c) 2018 Jacob Maximilian Fober
+Chromakey PS v1.5.1a (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -23,6 +23,7 @@ uniform float Threshold < __UNIFORM_SLIDER_FLOAT1
 uniform bool RadialX <
 	ui_label = "Horizontally radial depth";
 	ui_category = "Radial distance";
+	ui_category_closed = true;
 > = false;
 uniform bool RadialY <
 	ui_label = "Vertically radial depth";
@@ -48,6 +49,7 @@ uniform int Pass < __UNIFORM_RADIO_INT1
 uniform bool Floor <
 	ui_label = "Mask floor";
 	ui_category = "Floor masking (experimental)";
+	ui_category_closed = true;
 > = false;
 
 uniform float FloorAngle < __UNIFORM_SLIDER_FLOAT1
@@ -67,6 +69,7 @@ uniform int Color < __UNIFORM_RADIO_INT1
 	ui_tooltip = "Ultimatte(tm) Super Blue and Green are industry standard colors for chromakey";
 	ui_items = "Super Blue Ultimatte(tm)\0Green Ultimatte(tm)\0Custom\0";
 	ui_category = "Color settings";
+	ui_category_closed = true;
 > = 1;
 
 uniform float3 CustomColor < __UNIFORM_COLOR_FLOAT3
@@ -78,6 +81,7 @@ uniform bool AntiAliased <
 	ui_label = "Anti-aliased mask";
 	ui_tooltip = "Disabling this option will reduce masking gaps";
 	ui_category = "Additional settings";
+	ui_category_closed = true;
 > = false;
 
 

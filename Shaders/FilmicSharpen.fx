@@ -1,5 +1,5 @@
 /**
-Filmic Sharpen PS v1.2.1 (c) 2018 Jakub Maximilian Fober
+Filmic Sharpen PS v1.2.2 (c) 2018 Jakub Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -30,26 +30,20 @@ uniform float Clamp < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.5; ui_max = 1.0; ui_step = 0.001;
 > = 0.65;
 
-uniform bool UseMask <
-	ui_label = "Only center";
+uniform bool UseMask < __UNIFORM_INPUT_BOOL1
+	ui_label = "Sharpen only center";
 	ui_tooltip = "Sharpen only in center of the image";
 > = false;
 
-uniform int Coefficient <
+uniform int Coefficient < __UNIFORM_RADIO_INT1
 	ui_tooltip = "For digital video signal use BT.709, for analog (like VGA) use BT.601";
-	#if __RESHADE__ < 40000
-		ui_label = "YUV coefficients";
-		ui_type = "combo";
-		ui_items = "BT.709 (digital signal)\0BT.601 (analog signal))\0";
-	#else
-		ui_type = "radio";
-		ui_items = "BT.709 - digital\0BT.601 - analog\0";
-	#endif
+	ui_label = "YUV coefficients";
+	ui_items = "BT.709 - digital\0BT.601 - analog\0";
 	ui_category = "Additional settings";
 	ui_category_closed = true;
 > = 0;
 
-uniform bool Preview <
+uniform bool Preview < __UNIFORM_INPUT_BOOL1
 	ui_label = "Preview sharpen layer";
 	ui_tooltip = "Preview sharpen layer and mask for adjustment.\n"
 		"If you don't see red strokes,\n"
@@ -89,13 +83,14 @@ float Overlay(float LayerAB)
 }
 
 // Sharpen pass
-float3 FilmicSharpenPS(float4 vois : SV_Position, float2 UvCoord : TexCoord) : SV_Target
+float3 FilmicSharpenPS(float4 pos : SV_Position, float2 UvCoord : TEXCOORD0) : SV_Target
 {
 	// Sample display image
 	float3 Source = tex2D(ReShade::BackBuffer, UvCoord).rgb;
 
 	// Generate and apply radial mask
-	float Mask; if (UseMask)
+	float Mask;
+	if (UseMask)
 	{
 		// Generate radial mask
 		Mask = 1.0-length(UvCoord*2.0-1.0);
@@ -122,7 +117,8 @@ float3 FilmicSharpenPS(float4 vois : SV_Position, float2 UvCoord : TexCoord) : S
 	// Luma high-pass
 	float HighPass = 0.0;
 	[unroll]
-	for(int i=0; i<4; i++) HighPass += dot(tex2D(ReShade::BackBuffer, NorSouWesEst[i]).rgb, LumaCoefficient);
+	for(int i=0; i<4; i++)
+		HighPass += dot(tex2D(ReShade::BackBuffer, NorSouWesEst[i]).rgb, LumaCoefficient);
 	HighPass = 0.5 - 0.5 * (HighPass * 0.25 - dot(Source, LumaCoefficient));
 
 	// Sharpen strength

@@ -1,4 +1,4 @@
-/* Shoot Shake PS, version 1.0.0
+/* Shoot Shake PS, version 1.0.1
 (c) 2019 Jakub Max Fober
 
 This work is licensed under a Creative Commons 
@@ -48,7 +48,7 @@ uniform float FalloffTime < __UNIFORM_SLIDER_FLOAT1
 ////////////
 
 // Generate shake falloff
-float ClickFalloff (float4 pos : SV_Position, float2 texcoord : TEXCOORD0) : SV_Target
+float ClickFalloff (float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 {
 	// Get current falloff value
 	float falloff = tex2D(samperCamShakeFalloff, float2(0, 0)).r;
@@ -62,7 +62,7 @@ float ClickFalloff (float4 pos : SV_Position, float2 texcoord : TEXCOORD0) : SV_
 }
 
 // Apply shake
-float3 ScreenShakePS (float4 pos : SV_Position, float2 texcoord : TEXCOORD0) : SV_Target
+float3 ScreenShakePS (float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 {
 	// Get diagonal length
 	const float diagonal = length( float2(ReShade::AspectRatio, 1.0) );

@@ -1,5 +1,5 @@
 /*
-FilmicGrade v1.1.0 (c) 2018 Jacob Maximilian Fober,
+FilmicGrade v1.1.1 (c) 2018 Jacob Maximilian Fober,
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -95,17 +95,24 @@ float SuperGrade(float2 Controls, float Input)
 // Shader
 void FilmicGradePS(float4 vois : SV_Position, float2 texcoord : TexCoord, out float3 Display : SV_Target)
 {
-	// Sample display image and convert to YUV
-	Display = bool(Coefficients) ?
-		mul(ToYUV709, tex2D(ReShade::BackBuffer, texcoord).rgb) :
-		mul(ToYUV601, tex2D(ReShade::BackBuffer, texcoord).rgb)
-	;
-
-	// Color Grade Luma
-	Display.x = SuperGrade(LightControl, Display.x);
-
-	// Convert YUV to RGB
-	Display = bool(Coefficients) ? mul(ToRGB709, Display) : mul(ToRGB601, Display);
+	if ( Coefficients==1 )
+	{
+		// Sample display image and convert to YUV
+		Display = mul(ToYUV709, tex2D(ReShade::BackBuffer, texcoord).rgb);
+		// Color Grade Luma
+		Display.x = SuperGrade(LightControl, Display.x);
+		// Convert YUV to RGB
+		Display = mul(ToRGB709, Display);
+	}
+	else
+	{
+		// Sample display image and convert to YUV
+		Display = mul(ToYUV601, tex2D(ReShade::BackBuffer, texcoord).rgb);
+		// Color Grade Luma
+		Display.x = SuperGrade(LightControl, Display.x);
+		// Convert YUV to RGB
+		Display = mul(ToRGB601, Display);
+	}
 }
 
 

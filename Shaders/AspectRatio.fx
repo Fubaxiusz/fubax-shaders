@@ -1,4 +1,4 @@
-/** Aspect Ratio PS, version 1.1.0
+/** Aspect Ratio PS, version 1.1.1
 by Fubax 2019 for ReShade
 */
 
@@ -40,7 +40,7 @@ uniform float4 Color < __UNIFORM_COLOR_FLOAT4
 texture AspectBgTex < source = "AspectRatio.jpg"; > { Width = 1351; Height = 1013; };
 sampler AspectBgSampler { Texture = AspectBgTex; };
 
-float3 AspectRatioPS(float4 pos : SV_Position, float2 texcoord : TEXCOORD0) : SV_Target
+float3 AspectRatioPS(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 {
 	bool Mask = false;
 

@@ -1,5 +1,5 @@
 /**
-Filmic Sharpen PS v1.2.2 (c) 2018 Jakub Maximilian Fober
+Filmic Sharpen PS v1.2.3 (c) 2018 Jakub Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -83,7 +83,7 @@ float Overlay(float LayerAB)
 }
 
 // Sharpen pass
-float3 FilmicSharpenPS(float4 pos : SV_Position, float2 UvCoord : TEXCOORD0) : SV_Target
+float3 FilmicSharpenPS(float4 pos : SV_Position, float2 UvCoord : TEXCOORD) : SV_Target
 {
 	// Sample display image
 	float3 Source = tex2D(ReShade::BackBuffer, UvCoord).rgb;

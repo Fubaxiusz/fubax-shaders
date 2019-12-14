@@ -1,5 +1,5 @@
 /*
-Chromakey PS v1.5.1a (c) 2018 Jacob Maximilian Fober
+Chromakey PS v1.5.2a (c) 2018 Jacob Maximilian Fober
 
 This work is licensed under the Creative Commons 
 Attribution-ShareAlike 4.0 International License. 
@@ -141,7 +141,7 @@ float3 GetNormal(float2 texcoord)
 	 /// SHADER ///
 	//////////////
 
-float3 ChromakeyPS(float4 pos : SV_Position, float2 texcoord : TEXCOORD0) : SV_Target
+float3 ChromakeyPS(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_Target
 {
 	// Define chromakey color, Ultimatte(tm) Super Blue, Ultimatte(tm) Green, or user color
 	float3 Screen;

@@ -1,5 +1,5 @@
 /* 
-Tilt-Shift PS v1.1.3 (c) 2018 Jacob Maximilian Fober, 
+Tilt-Shift PS v1.1.4 (c) 2018 Jacob Maximilian Fober, 
 (based on TiltShift effect (c) 2016 kingeric1992)
 
 This work is licensed under the Creative Commons 
@@ -43,7 +43,7 @@ uniform float BlurMultiplier < __UNIFORM_SLIDER_FLOAT1
 > = 6.0;
 
 // First pass render target, to make sure Alpha channel exists
-texture TiltShiftTarget { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA8; };
+texture TiltShiftTarget < pooled = true; > { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA8; };
 sampler TiltShiftSampler { Texture = TiltShiftTarget; };
 
 

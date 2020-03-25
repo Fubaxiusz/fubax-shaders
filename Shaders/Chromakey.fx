@@ -1,9 +1,9 @@
 /*
 Chromakey PS v1.5.2a (c) 2018 Jacob Maximilian Fober
 
-This work is licensed under the Creative Commons 
-Attribution-ShareAlike 4.0 International License. 
-To view a copy of this license, visit 
+This work is licensed under the Creative Commons
+Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
@@ -125,7 +125,7 @@ float3 GetPosition(float2 texcoord)
 // Normal map (OpenGL oriented) generator from DisplayDepth.fx
 float3 GetNormal(float2 texcoord)
 {
-	float3 offset = float3(ReShade::PixelSize.xy, 0.0);
+	float3 offset = float3(BUFFER_PIXEL_SIZE.xy, 0.0);
 	float2 posCenter = texcoord.xy;
 	float2 posNorth  = posCenter - offset.zy;
 	float2 posEast   = posCenter + offset.xz;

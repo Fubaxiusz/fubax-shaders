@@ -70,7 +70,7 @@ float3 AspectRatioPS(float4 pos : SV_Position, float2 texcoord : TEXCOORD) : SV_
 		else // Mask image borders
 			Mask = abs(coord.y)>0.5;
 	}
-	
+
 	// Coordinates back to the corner
 	coord += 0.5;
 

@@ -1,9 +1,9 @@
 /*
 CrossHair PS v1.6.0 (c) 2018 Jacob Maximilian Fober
 
-This work is licensed under the Creative Commons 
-Attribution-ShareAlike 4.0 International License. 
-To view a copy of this license, visit 
+This work is licensed under the Creative Commons
+Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
@@ -158,9 +158,9 @@ float Overlay(float LayerA, float LayerB)
 // Draw CrossHair
 void CrossHairPS(float4 pos : SV_Position, float2 texcoord : TexCoord, out float3 Display : SV_Target)
 {
-	const float2 Pixel = ReShade::PixelSize;
-	const float2 Screen = ReShade::ScreenSize;
-	const float Aspect = ReShade::AspectRatio;
+	const float2 Pixel = BUFFER_PIXEL_SIZE;
+	const float2 Screen = BUFFER_SCREEN_SIZE;
+	const float Aspect = BUFFER_ASPECT_RATIO;
 	float2 Offset = Pixel * float2(-OffsetXY.x, OffsetXY.y);
 	float2 Position = Fixed ? float2(0.5, 0.5) : MousePoint / ReShade::ScreenSize;
 

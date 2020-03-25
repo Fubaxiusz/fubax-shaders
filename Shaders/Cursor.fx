@@ -1,9 +1,9 @@
 /*
 Cursor PS (c) 2018 Jacob Maximilian Fober
 
-This work is licensed under the Creative Commons 
-Attribution-ShareAlike 4.0 International License. 
-To view a copy of this license, visit 
+This work is licensed under the Creative Commons
+Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
@@ -45,11 +45,11 @@ sampler CursorSampler
 float3 CursorPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Target
 {
 	// Get mouse position in UV space
-	float2 Cursor = MousePoint / ReShade::ScreenSize;
+	float2 Cursor = MousePoint / BUFFER_SCREEN_SIZE;
 	// Calculate Cursor size
-	float2 CursorSize = ReShade::ScreenSize / float2(tex2Dsize(CursorSampler, 0)) / Scale;
+	float2 CursorSize = BUFFER_SCREEN_SIZE / float2(tex2Dsize(CursorSampler, 0)) / Scale;
 	// Get pixel UV size
-	float2 Pixel = ReShade::PixelSize;
+	float2 Pixel = BUFFER_PIXEL_SIZE;
 
 	// Sample display image
 	float3 Display = tex2D(ReShade::BackBuffer, texcoord).rgb;

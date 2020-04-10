@@ -7,7 +7,7 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-// version 1.1.0
+// version 1.1.1
 
 
 	  ////////////
@@ -65,7 +65,7 @@ float3 CursorPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Targ
 	//////////////
 
 technique Cursor < ui_tooltip = "Display on-screen mouse cursor.\n"
-"Can be placed before screen deformation techniques,\n
+"Can be placed before screen deformation techniques,\n"
 "like Perfect Perspective,\n"
 "that mouse would point at the right spot."; >
 {

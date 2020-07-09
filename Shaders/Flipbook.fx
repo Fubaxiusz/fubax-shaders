@@ -7,7 +7,7 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/
 */
 
-// version 1.1.0
+// version 1.1.1
 
 
 	  ////////////
@@ -26,7 +26,7 @@ http://creativecommons.org/licenses/by-sa/4.0/
 	#define flipbookY 1710 // Texture vertical resolution
 #endif
 
-uniform int3 Size < __UNIFORM_SLIDER_INT3
+uniform int3 Size < __UNIFORM_INPUT_INT3
 	ui_label = "X frames, Y frames, FPS";
 	ui_tooltip = "Adjust flipbook texture dimensions and framerate\n"
 		"To change texture resolution and name,\n"

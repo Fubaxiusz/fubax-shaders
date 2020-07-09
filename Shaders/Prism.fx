@@ -7,7 +7,7 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-nc-sa/4.0/.
 */
 
-// Chromatic Aberration PS (Prism) v1.2.5
+// Chromatic Aberration PS (Prism) v1.2.6
 // inspired by Marty McFly YACA shader
 
 
@@ -102,7 +102,7 @@ void ChromaticAberrationPS(float4 vois : SV_Position, float2 texcoord : TexCoord
 		BluredImage = 0.0;
 		for (float P = 0.0; P < Samples; P++)
 		{
-			float Progress = P / Samples;
+			float Progress = P * Sample;
 			float Offset = OffsetBase * (Progress - 0.5) + 1.0;
 	
 			// Scale UVs at center
@@ -115,7 +115,7 @@ void ChromaticAberrationPS(float4 vois : SV_Position, float2 texcoord : TexCoord
 			// Multiply texture sample by HUE color
 			BluredImage += Spectrum(Progress) * tex2Dlod(SamplerColor, float4(Position, 0.0, 0.0)).rgb;
 		}
-		BluredImage *= 2.0 / Samples;
+		BluredImage *= 2.0 * Sample;
 	}
 }
 

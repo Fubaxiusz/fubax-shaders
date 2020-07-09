@@ -1,9 +1,9 @@
 /**
-Filmic Sharpen PS v1.2.3 (c) 2018 Jakub Maximilian Fober
+Filmic Sharpen PS v1.2.4 (c) 2018 Jakub Maximilian Fober
 
-This work is licensed under the Creative Commons 
-Attribution-ShareAlike 4.0 International License. 
-To view a copy of this license, visit 
+This work is licensed under the Creative Commons
+Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
@@ -119,13 +119,14 @@ float3 FilmicSharpenPS(float4 pos : SV_Position, float2 UvCoord : TEXCOORD) : SV
 	[unroll]
 	for(int i=0; i<4; i++)
 		HighPass += dot(tex2D(ReShade::BackBuffer, NorSouWesEst[i]).rgb, LumaCoefficient);
+
 	HighPass = 0.5 - 0.5 * (HighPass * 0.25 - dot(Source, LumaCoefficient));
 
 	// Sharpen strength
 	HighPass = lerp(0.5, HighPass, Mask);
 
 	// Clamp sharpening
-	HighPass = (Clamp != 1.0) ? max(min(HighPass, Clamp), 1.0 - Clamp) : HighPass;
+	HighPass = (Clamp != 1.0) ? clamp(HighPass, 1.0-Clamp, Clamp) : HighPass;
 
 	float3 Sharpen = float3(
 		Overlay(Source.r, HighPass),

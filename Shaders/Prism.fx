@@ -7,17 +7,13 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-nc-sa/4.0/.
 */
 
-// Chromatic Aberration PS (Prism) v1.2.7
+// Chromatic Aberration PS (Prism) v1.3.0
 // inspired by Marty McFly YACA shader
 
 
 	  ////////////
 	 /// MENU ///
 	////////////
-
-#ifndef PrismLimit
-	#define PrismLimit 48 // Maximum sample count
-#endif
 
 #include "ReShadeUI.fxh"
 
@@ -76,10 +72,9 @@ void ChromaticAberrationPS(float4 vois : SV_Position, float2 texcoord : TexCoord
 	// Adjust number of samples
 	// IF Automatic IS True Ceil odd numbers to even with minimum 6, else Clamp odd numbers to even
 	float Samples = Automatic ?
-		max(6.0, 2.0 * ceil(abs(Aberration) * 0.5) + 2.0) :
+		clamp(2.0 * ceil(abs(Aberration) * 0.5) + 2.0, 6.0, 48.0) :
 		floor(SampleCount * 0.5) * 2.0;
-	// Clamp maximum sample count
-	Samples = min(Samples, PrismLimit);
+
 	// Calculate sample offset
 	float Sample = 1.0 / Samples;
 

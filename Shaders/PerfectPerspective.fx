@@ -1,4 +1,4 @@
-/** Perfect Perspective PS, version 3.4.0
+/** Perfect Perspective PS, version 3.4.1
 All rights (c) 2018 Jakub Maksymilian Fober (the Author).
 
 The Author provides this shader (the Work)
@@ -196,6 +196,7 @@ Input data:
 		where p(0,0) is at the center of the screen.
 	k -> distortion parameter (from -1, to 1).
 	l -> vertical distortion parameter (from 0, to 1).
+	s -> anamorphic correction parameter (from 0.8, to 1)
 */
 float2 univPerspective(float k, float l, float s, float2 scrCoord)
 {

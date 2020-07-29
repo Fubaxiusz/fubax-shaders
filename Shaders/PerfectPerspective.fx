@@ -1,4 +1,4 @@
-/** Perfect Perspective PS, version 3.4.1
+/** Perfect Perspective PS, version 3.4.2
 All rights (c) 2018 Jakub Maksymilian Fober (the Author).
 
 The Author provides this shader (the Work)
@@ -182,6 +182,7 @@ sampler BackBuffer
 // Convert RGB to gray-scale
 float grayscale(float3 Color)
 { return max(max(Color.r, Color.g), Color.b); }
+
 // Linear pixel step function for anti-aliasing
 float pixelStep(float x)
 { return clamp(x/fwidth(x), 0.0, 1.0); }
@@ -201,7 +202,7 @@ Input data:
 float2 univPerspective(float k, float l, float s, float2 scrCoord)
 {
 	// Bypass
-	if (k >= 1.0 || FOV == 0) return 1.0;
+	if (k >= 1.0 || FOV == 0) return scrCoord;
 
 	// Get radius
 	float R = (l == 1.0) ?
@@ -228,17 +229,81 @@ float2 univPerspective(float k, float l, float s, float2 scrCoord)
 	return scrCoord*tan(theta)/(tanOmega*R);
 }
 
+// Get reciprocal screen aspect ratio (1/x)
+#define RCP_ASPECT (BUFFER_HEIGHT*BUFFER_RCP_WIDTH)
+
 
   //////////////
  /// SHADER ///
 //////////////
 
-// Shader pass
+// Border mask shader
+float BorderMaskPS(float2 sphCoord)
+{
+	float borderMask;
+
+	if (BorderCorner == 0.0) // If sharp corners
+		borderMask = pixelStep(max(abs(sphCoord.x), abs(sphCoord.y)) -1.0);
+	else // If round corners
+	{
+		// Get coordinates for each corner
+		float2 borderCoord = abs(sphCoord);
+		// Correct corner aspect ratio
+		if (BUFFER_ASPECT_RATIO > 1.0) // If in landscape mode
+			borderCoord.x = borderCoord.x*BUFFER_ASPECT_RATIO + 1.0-BUFFER_ASPECT_RATIO;
+		else if (BUFFER_ASPECT_RATIO < 1.0) // If in portrait mode
+			borderCoord.y = borderCoord.y*RCP_ASPECT + 1.0-RCP_ASPECT;
+
+		// Generate mask
+		borderMask = length(max(borderCoord +BorderCorner -1.0, 0.0)) / BorderCorner;
+		borderMask = pixelStep(borderMask-1.0);
+	}
+
+	return borderMask;
+}
+
+
+// Debug view mode shader
+float3 DebugViewModePS(float3 display, float2 texCoord, float2 sphCoord)
+{
+	// Calculate radial screen coordinates before and after perspective transformation
+	float4 radialCoord = float4(texCoord, sphCoord)*2.0 -1.0;
+	// Correct vertical aspect ratio
+	radialCoord.yw *= RCP_ASPECT;
+
+	// Define Mapping color
+	const float3 underSmpl = float3(1.0, 0.0, 0.2); // Red
+	const float3 superSmpl = float3(0.0, 1.0, 0.5); // Green
+	const float3 neutralSmpl = float3(0.0, 0.5, 1.0); // Blue
+
+	// Calculate Pixel Size difference...
+	float pixelScaleMap = fwidth( length(radialCoord.xy) );
+	// ...and simulate Dynamic Super Resolution (DSR) scalar
+	pixelScaleMap *= ResScale.x / (fwidth( length(radialCoord.zw) ) * ResScale.y);
+	pixelScaleMap -= 1.0;
+
+	// Generate super-sampled/under-sampled color map
+	float3 resMap = lerp(
+		superSmpl,
+		underSmpl,
+		step(0.0, pixelScaleMap)
+	);
+
+	// Create black-white gradient mask of scale-neutral pixels
+	pixelScaleMap = 1.0 - abs(pixelScaleMap);
+	pixelScaleMap = saturate(pixelScaleMap * 4.0 - 3.0); // Clamp to more representative values
+
+	// Color neutral scale pixels
+	resMap = lerp(resMap, neutralSmpl, pixelScaleMap);
+
+	// Blend color map with display image
+	return normalize(resMap) * (0.8 * grayscale(display) + 0.2);
+}
+
+
+// Main shader pass
 float3 PerfectPerspectivePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD) : SV_Target
 {
-	// Get reciprocal screen aspect ratio (1/x)
-	const float RCP_ASPECT = BUFFER_HEIGHT*BUFFER_RCP_WIDTH;
-
 	// Convert FOV type..
 	float FovType; switch(Type)
 	{
@@ -253,8 +318,7 @@ float3 PerfectPerspectivePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD
 	// Aspect Ratio correction
 	sphCoord.y *= RCP_ASPECT;
 	// Zoom in image and adjust FOV type (pass 1 of 2)
-	// sphCoord *= Zooming / FovType;
-	sphCoord *= clamp(Zooming, 0.5, 2.0) / FovType; // Anti-cheat
+	sphCoord *= clamp(Zooming, 0.5, 2.0) / FovType; // Anti-cheat clamp
 
 	// Choose projection type
 	float k; switch (Projection)
@@ -264,30 +328,14 @@ float3 PerfectPerspectivePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD
 		case 2: k = -0.5; break;	// Equisolid
 		default: k = clamp(K, -1.0, 1.0); break; // Manual perspective
 	}
-	// Perspective transform, vertical distortion and FOV type (pass 2 of 2)
+	// Perspective transform and FOV type (pass 2 of 2)
 	sphCoord = univPerspective(k, Vertical, VerticalScale, sphCoord) *FovType;
 
 	// Aspect Ratio back to square
 	sphCoord.y *= BUFFER_ASPECT_RATIO;
 
 	// Outside border mask with Anti-Aliasing
-	float borderMask;
-	if (BorderCorner == 0.0) // If sharp corners
-		borderMask = pixelStep(max(abs(sphCoord.x), abs(sphCoord.y)) -1.0);
-	else // If round corners
-	{
-		// Get coordinates for each corner
-		float2 borderCoord = abs(sphCoord);
-		// Correct corner aspect ratio
-		if (BUFFER_ASPECT_RATIO > 1.0) // If landscape mode
-			borderCoord.x = borderCoord.x*BUFFER_ASPECT_RATIO + 1.0-BUFFER_ASPECT_RATIO;
-		else if (BUFFER_ASPECT_RATIO < 1.0) // If portrait mode
-			borderCoord.y = borderCoord.y*RCP_ASPECT + 1.0-RCP_ASPECT;
-
-		// Generate mask
-		borderMask = length(max(borderCoord +BorderCorner -1.0, 0.0)) / BorderCorner;
-		borderMask = pixelStep(borderMask-1.0);
-	}
+	float borderMask = BorderMaskPS(sphCoord);
 
 	// Back to UV Coordinates
 	sphCoord = sphCoord*0.5 +0.5;
@@ -307,43 +355,8 @@ float3 PerfectPerspectivePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD
 	);
 
 	// Output type choice
-	if (DebugPreview)
-	{
-		// Calculate radial screen coordinates before and after perspective transformation
-		float4 radialCoord = float4(texCoord, sphCoord)*2.0 -1.0;
-		// Correct vertical aspect ratio
-		radialCoord.yw *= RCP_ASPECT;
-
-		// Define Mapping color
-		const float3 underSmpl = float3(1.0, 0.0, 0.2); // Red
-		const float3 superSmpl = float3(0.0, 1.0, 0.5); // Green
-		const float3 neutralSmpl = float3(0.0, 0.5, 1.0); // Blue
-
-		// Calculate Pixel Size difference...
-		float pixelScaleMap = fwidth( length(radialCoord.xy) );
-		// ...and simulate Dynamic Super Resolution (DSR) scalar
-		pixelScaleMap *= ResScale.x / (fwidth( length(radialCoord.zw) ) * ResScale.y);
-		pixelScaleMap -= 1.0;
-
-		// Generate super-sampled/under-sampled color map
-		float3 resMap = lerp(
-			superSmpl,
-			underSmpl,
-			step(0.0, pixelScaleMap)
-		);
-
-		// Create black-white gradient mask of scale-neutral pixels
-		pixelScaleMap = 1.0 - abs(pixelScaleMap);
-		pixelScaleMap = saturate(pixelScaleMap * 4.0 - 3.0); // Clamp to more representative values
-
-		// Color neutral scale pixels
-		resMap = lerp(resMap, neutralSmpl, pixelScaleMap);
-
-		// Blend color map with display image
-		display = normalize(resMap) * (0.8 * grayscale(display) + 0.2);
-	}
-
-	return display;
+	if (DebugPreview) return DebugViewModePS(display, texCoord, sphCoord);
+	else return display;
 }
 
 

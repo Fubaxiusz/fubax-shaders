@@ -1,4 +1,4 @@
-/** Local Contrast PS, version 0.2.0
+/** Local Contrast PS, version 0.2.1
 All rights (c) 2020 Jakub Maksymilian Fober (the Author).
 
 The Author provides this shader (the Work)
@@ -18,8 +18,8 @@ For inquiries please contact jakub.m.fober@pm.me
  /// MENU ///
 ////////////
 
-#if !defined(CL_BLOCK)
-	#define CL_BLOCK 8
+#if !defined(LC_BLOCK)
+	#define LC_BLOCK 8
 #endif
 
 uniform bool CorrectGamma <
@@ -40,8 +40,8 @@ uniform int ContrastLimit < __UNIFORM_SLIDER_INT1
 // Local histogram values map
 texture LocalContrastMapBuffer
 {
-	Width = BUFFER_WIDTH/CL_BLOCK;
-	Height = BUFFER_HEIGHT/CL_BLOCK;
+	Width = BUFFER_WIDTH/LC_BLOCK;
+	Height = BUFFER_HEIGHT/LC_BLOCK;
 	Format = RG8;
 	// R = histogram luma min
 	// G = histogram luma max
@@ -113,7 +113,7 @@ void GetLocalHistogramPS(
 	histogramStats.t = 0.0; // Max
 	float histogramMean = 0.0; // Average
 	// Loop through image block and get histogram min, max and average
-	const int halfBlock = CL_BLOCK/2;
+	const int halfBlock = LC_BLOCK/2;
 	for (int y=-halfBlock; y<halfBlock; y++)
 	for (int x=-halfBlock; x<halfBlock; x++)
 	{
@@ -126,7 +126,7 @@ void GetLocalHistogramPS(
 		histogramStats.t = max(luma, histogramStats.t); // Max
 		histogramMean += luma; // Average
 	}
-	histogramMean /= CL_BLOCK*CL_BLOCK;
+	histogramMean /= LC_BLOCK*LC_BLOCK;
 	// Contrast limiting
 	float contrastLimit = getContrastLimit();
 	histogramStats.s = min(histogramStats.s, max(0.0, histogramMean-contrastLimit));
@@ -168,7 +168,7 @@ technique LocalContrast <
 		"CLAHE (contrast-limited adaptive histogram normalization)\n"
 		"\n"
 		"To change block size, edit global preprocessor definition:\n"
-		"\tCL_BLOCK\tdefault is 8"; >
+		"\tLC_BLOCK\tdefault is 8"; >
 {
 	pass Local_Histogram
 	{

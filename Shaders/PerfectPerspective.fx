@@ -1,4 +1,4 @@
-/** Perfect Perspective PS, version 3.5.0
+/** Perfect Perspective PS, version 3.5.1
 All rights (c) 2018 Jakub Maksymilian Fober (the Author).
 
 The Author provides this shader (the Work)
@@ -190,8 +190,8 @@ float grayscale(float3 Color)
 { return max(max(Color.r, Color.g), Color.b); }
 
 // Linear pixel step function for anti-aliasing
-float pixelStep(float x)
-{ return clamp(x/fwidth(x), 0.0, 1.0); }
+float pixStep(float x)
+{ return saturate(x/fwidth(x)); }
 
 /*Universal perspective model by Jakub Max Fober,
 Gnomonic to custom perspective variant.
@@ -297,7 +297,7 @@ float BorderMaskPS(float2 sphCoord)
 		borderMask = length( max(borderCoord +BorderCorner-1.0, 0.0) ) /BorderCorner;
 	}
 
-	return pixelStep(borderMask-1.0);
+	return pixStep(borderMask-1.0);
 }
 
 
@@ -328,14 +328,14 @@ float3 DebugViewModePS(float3 display, float2 texCoord, float2 sphCoord)
 	);
 
 	// Create black-white gradient mask of scale-neutral pixels
-	pixelScaleMap = 1.0 - abs(pixelScaleMap);
+	pixelScaleMap = 1.0-abs(pixelScaleMap);
 	pixelScaleMap = saturate(pixelScaleMap*4.0 -3.0); // Clamp to more representative values
 
 	// Color neutral scale pixels
 	resMap = lerp(resMap, neutralSmpl, pixelScaleMap);
 
 	// Blend color map with display image
-	return normalize(resMap) * (0.8 * grayscale(display) + 0.2);
+	return normalize(resMap) * (0.8*grayscale(display) +0.2);
 }
 
 

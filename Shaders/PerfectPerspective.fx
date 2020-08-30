@@ -1,4 +1,4 @@
-/** Perfect Perspective PS, version 3.5.1
+/** Perfect Perspective PS, version 3.6.0
 All rights (c) 2018 Jakub Maksymilian Fober (the Author).
 
 The Author provides this shader (the Work)
@@ -63,7 +63,7 @@ uniform int Projection < __UNIFORM_RADIO_INT1
 	ui_spacing = 1;
 	ui_category = "Perspective";
 	ui_category_closed = true;
-	ui_text = "Select gaming style";
+	ui_text = "Select gaming style:";
 	ui_label = "Perspective type";
 	ui_tooltip =
 		"Choose type of perspective, according to game-play style.\n"
@@ -98,10 +98,12 @@ uniform float K < __UNIFORM_SLIDER_FLOAT1
 uniform float Vertical < __UNIFORM_SLIDER_FLOAT1
 	ui_spacing = 2;
 	ui_category = "Perspective";
-	ui_text = "Global adjustment";
+	ui_text = "Global adjustments:";
 	ui_label = "Vertical distortion";
-	ui_tooltip = "Cylindrical perspective <<>> Spherical perspective";
-	ui_min = 0.0; ui_max = 1.0; ui_step = 0.01;
+	ui_tooltip =
+		"Cylindrical perspective <<>> Spherical perspective"
+		"\n\nFor curved displays set this above 1.";
+	ui_min = 0.0; ui_max = 1.2; ui_step = 0.01;
 > = 1.0;
 
 uniform float VerticalScale < __UNIFORM_SLIDER_FLOAT1
@@ -119,13 +121,22 @@ uniform bool Vignette < __UNIFORM_INPUT_BOOL1
 > = true;
 
 uniform float Zooming < __UNIFORM_DRAG_FLOAT1
+	ui_spacing = 2;
 	ui_category = "Border";
 	ui_label = "Border scale";
 	ui_tooltip = "Adjust image scale and cropped area";
 	ui_min = 0.5; ui_max = 2.0; ui_step = 0.001;
 > = 1.0;
 
+uniform float2 Offset < __UNIFORM_DRAG_FLOAT2
+	ui_category = "Border";
+	ui_label = "Border offset";
+	ui_tooltip = "Offset the picture in XY to adjust UI visibility";
+	ui_min = -0.1; ui_max = 0.1; ui_step = 0.001;
+> = float2(0.0, 0.0);
+
 uniform float4 BorderColor < __UNIFORM_COLOR_FLOAT4
+	ui_spacing = 2;
 	ui_category = "Border";
 	ui_label = "Border color";
 	ui_tooltip = "Use Alpha to change transparency";
@@ -359,6 +370,8 @@ float3 PerfectPerspectivePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD
 	float2 sphCoord = texCoord*2.0 -1.0;
 	// Aspect Ratio correction
 	sphCoord.y *= RCP_ASPECT;
+	// View center offset
+	sphCoord -= float2(Offset.y, -Offset.x);
 	// Zoom in image and adjust FOV type (pass 1 of 2)
 	sphCoord *= clamp(Zooming, 0.5, 2.0) / FovType; // Anti-cheat clamp
 
@@ -391,7 +404,7 @@ float3 PerfectPerspectivePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD
 
 	// Mask outside-border pixels or mirror
 	display = lerp(
-		Vignette? // Apply Vignette with sRGB gamma
+		Vignette && !DebugPreview? // Apply Vignette with sRGB gamma
 			display*pow(abs(vignetteMask), rcp(2.2)) : display,
 		lerp(
 			MirrorBorder?
@@ -412,8 +425,21 @@ float3 PerfectPerspectivePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD
 
 technique PerfectPerspective <
 	ui_label = "Perfect Perspective";
-	ui_tooltip = "Adjust perspective for distortion-free picture\n"
-		"(fish-eye, panini shader and vignetting)"; >
+	ui_tooltip =
+	"Adjust perspective for distortion-free picture"
+	"\n(fish-eye, panini shader and vignetting)"
+	"\n\nManual:"
+	"\nFist select proper FOV angle and type."
+	"\nIf FOV type is unknown, find a round object within the game and look at it upfront,\n"
+	"then rotate the camera so that the object is in the corner."
+	"\nChange FOV type such that the object does not have an egg shape, but a perfect round shape."
+	"\n\nSecondly adjust perspective type according to game-play style."
+	"\nIf you look mostly at the horizon, 'Vertical distortion' value can be lowered."
+	"\nFor curved-display correction, set it above one."
+	"\n\nThirdly, adjust visible borders. You can zoom in the image and offset to hide borders and reveal UI."
+	"\n\nAdditionally for sharp picture, use FilmicSharpen.fx or run the game at Super-Resolution."
+	"\nDebug options can help you with finding the proper value."
+; >
 {
 	pass
 	{

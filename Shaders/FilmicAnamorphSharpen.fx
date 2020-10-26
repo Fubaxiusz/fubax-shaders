@@ -1,5 +1,5 @@
 /*
-Filmic Anamorph Sharpen PS v1.4.5 (c) 2018 Jakub Maximilian Fober
+Filmic Anamorph Sharpen PS v1.4.6 (c) 2018 Jakub Maximilian Fober
 Some changes by ccritchfield https://github.com/ccritchfield
 
 This work is licensed under the Creative Commons
@@ -79,7 +79,9 @@ sampler BackBuffer
 	Texture = ReShade::BackBufferTex;
 	AddressU = MIRROR;
 	AddressV = MIRROR;
-	SRGBTexture = true;
+	#if __RENDERER__ < 0xb000 || __RENDERER__ >= 0x10000
+		SRGBTexture = true;
+	#endif
 };
 
   /////////////////

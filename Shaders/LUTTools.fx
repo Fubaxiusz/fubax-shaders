@@ -1,11 +1,11 @@
 /*
-Display LUT PS v1.3.1 (c) 2018 Jacob Maximilian Fober;
-Apply LUT PS v1.2.0 (c) 2018 Jacob Maximilian Fober,
+Display LUT PS v1.3.2 (c) 2018 Jacob Maximilian Fober;
+Apply LUT PS v1.2.1 (c) 2018 Jacob Maximilian Fober,
 (remix of LUT shader 1.0 (c) 2016 Marty McFly)
 
-This work is licensed under the Creative Commons 
-Attribution-ShareAlike 4.0 International License. 
-To view a copy of this license, visit 
+This work is licensed under the Creative Commons
+Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
@@ -14,28 +14,29 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 	 /// MENU ///
 	////////////
 
-#include "ReShadeUI.fxh"
-
 // Define LUT texture size
-#ifndef LutSize
-	#define LutSize 32
+#ifndef LUT_BLOCK_SIZE
+	#define LUT_BLOCK_SIZE 32
 #endif
 // Define LUT texture name
-#ifndef LutName
-	#define LutName "lut.png"
+#ifndef LUT_FILE_NAME
+	#define LUT_FILE_NAME "lut.png"
 #endif
 // Define LUT orientation
-// #define LutVertical
+#ifndef LUT_VERTICAL
+	#define LUT_VERTICAL false
+#endif
 
+#include "ReShadeUI.fxh"
 
 uniform int LutRes <
 	ui_label = "LUT box resolution";
 	ui_tooltip = "Horizontal resolution equals value squared.\n"
 		"Default 32 is 1024.\n"
 		"To set texture size and name for ApplyLUT, define\n"
-		" LutSize [number]\n"
+		" LUT_BLOCK_SIZE [number]\n"
 		"and \n"
-		" LutName [name]";
+		" LUT_FILE_NAME [name]";
 	ui_type = "drag";
 	ui_category = "Display LUT settings";
 	ui_min = 8; ui_max = 128; ui_step = 1;
@@ -44,7 +45,7 @@ uniform int LutRes <
 uniform bool VerticalOrietation < __UNIFORM_INPUT_BOOL1
 	ui_label = "Vertical LUT";
 	ui_tooltip = "Select LUT texture orientation, default is horizontal.\n"
-		"To change orientation for input LUT, add PreProcessor definition 'LutVertical'.";
+		"To change orientation for input LUT, add PreProcessor definition 'LUT_VERTICAL true'.";
 	ui_category = "Display LUT settings";
 > = false;
 
@@ -60,10 +61,10 @@ uniform float2 LutChromaLuma < __UNIFORM_SLIDER_FLOAT2
 	//////////////
 
 // LUT texture for Apply Lut PS
-#ifdef LutVertical
-	texture LUTTex < source = LutName; > { Width = LutSize; Height = LutSize*LutSize; Format = RGBA8; };
+#if LUT_VERTICAL
+	texture LUTTex < source = LUT_FILE_NAME;>{ Width = LUT_BLOCK_SIZE; Height = LUT_BLOCK_SIZE*LUT_BLOCK_SIZE; Format = RGBA8; };
 #else
-	texture LUTTex < source = LutName; > { Width = LutSize * LutSize; Height = LutSize; Format = RGBA8; };
+	texture LUTTex < source = LUT_FILE_NAME;>{ Width = LUT_BLOCK_SIZE*LUT_BLOCK_SIZE; Height = LUT_BLOCK_SIZE; Format = RGBA8; };
 #endif
 sampler LUTSampler {Texture = LUTTex; Format = RGBA8;};
 
@@ -79,18 +80,18 @@ float3 DisplayLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD) : SV_
 		LutBounds = float2(LutRes, LutRes*LutRes);
 	else
 		LutBounds = float2(LutRes*LutRes, LutRes);
-	LutBounds /= ReShade::ScreenSize;
+	LutBounds *= BUFFER_PIXEL_SIZE;
 
-	if( any(TexCoord > LutBounds) ) return tex2D(ReShade::BackBuffer, TexCoord).rgb;
+	if( any(TexCoord>LutBounds) ) return tex2D(ReShade::BackBuffer, TexCoord).rgb;
 	else
 	{
 		// Generate pattern UV
-		float2 Gradient = TexCoord * ReShade::ScreenSize / LutRes;
+		float2 Gradient = TexCoord*BUFFER_SCREEN_SIZE/LutRes;
 		// Convert pattern to RGB LUT
 		float3 LUT;
-		LUT.rg = frac(Gradient) - 0.5 / LutRes;
-		LUT.rg /= 1.0 - 1.0 / LutRes;
-		LUT.b = floor(VerticalOrietation ? Gradient.g : Gradient.r) / (LutRes - 1.0);
+		LUT.rg = frac(Gradient)-0.5/LutRes;
+		LUT.rg /= 1.0-1.0/LutRes;
+		LUT.b = floor(VerticalOrietation? Gradient.g : Gradient.r)/(LutRes-1.0);
 		// Display LUT texture
 		return LUT;
 	}
@@ -102,21 +103,21 @@ void ApplyLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out float
 	// Grab background color
 	Image = tex2D(ReShade::BackBuffer, TexCoord).rgb;
 
-	#ifdef LutVertical
-		float2 LutPixelSize = 1.0 / float2(LutSize, LutSize*LutSize);
+	#if LUT_VERTICAL
+		float2 LutPixelSize = 1.0/float2(LUT_BLOCK_SIZE, LUT_BLOCK_SIZE*LUT_BLOCK_SIZE);
 	#else
-		float2 LutPixelSize = 1.0 / float2(LutSize*LutSize, LutSize);
+		float2 LutPixelSize = 1.0/float2(LUT_BLOCK_SIZE*LUT_BLOCK_SIZE, LUT_BLOCK_SIZE);
 	#endif
 
 	float4 LutCoord;
-	LutCoord.xyz = Image.rgb * LutSize - Image.rgb;
-	LutCoord.xy = (LutCoord.xy + 0.5) * LutPixelSize;
-	#ifdef LutVertical
-		LutCoord.y += floor(LutCoord.z) * LutPixelSize.x;
+	LutCoord.xyz = Image.rgb*LUT_BLOCK_SIZE-Image.rgb;
+	LutCoord.xy = (LutCoord.xy+0.5)*LutPixelSize;
+	#if LUT_VERTICAL
+		LutCoord.y += floor(LutCoord.z)*LutPixelSize.x;
 		// Blue lerp scalar
 		LutCoord.z = frac(LutCoord.z);
 		// Y' coordinate for blue lerp
-		LutCoord.w = LutCoord.y + LutPixelSize.x;
+		LutCoord.w = LutCoord.y+LutPixelSize.x;
 
 		// LUT corrected image
 		float3 LutImage = lerp(
@@ -125,11 +126,11 @@ void ApplyLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out float
 			LutCoord.z
 		);
 	#else
-		LutCoord.x += floor(LutCoord.z) * LutPixelSize.y;
+		LutCoord.x += floor(LutCoord.z)*LutPixelSize.y;
 		// Blue lerp scalar
 		LutCoord.z = frac(LutCoord.z);
 		// X' coordinate for blue lerp
-		LutCoord.w = LutCoord.x + LutPixelSize.y;
+		LutCoord.w = LutCoord.x+LutPixelSize.y;
 
 		// LUT corrected image
 		float3 LutImage = lerp(
@@ -147,7 +148,7 @@ void ApplyLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out float
 			normalize(Image),
 			normalize(LutImage),
 			LutChromaLuma.x
-		) * lerp(
+		)*lerp(
 			length(Image),
 			length(LutImage),
 			LutChromaLuma.y
@@ -160,14 +161,16 @@ void ApplyLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out float
 	 /// OUTPUT ///
 	//////////////
 
-technique DisplayLUT < ui_label = "Display LUT";
-ui_tooltip = "Display generated - neutral LUT texture in left to corner of the screen\n\n"
-"How to use:\n"
-"* adjust lut size\n"
-"* (optionally) adjust color effecs to bake shaders into LUT\n"
-"* take a screenshot\n"
-"* adjust and crop screenshot to texture using external image editor\n"
-"* load LUT texture in 'Apply LUT .fx'";
+technique DisplayLUT <
+	ui_label = "Display LUT";
+	ui_tooltip =
+		"Display generated-neutral LUT texture in left to corner of the screen\n\n"
+		"How to use:\n"
+		"* adjust lut size\n"
+		"* (optionally) adjust color effecs to bake shaders into LUT\n"
+		"* take a screenshot\n"
+		"* adjust and crop screenshot to texture using external image editor\n"
+		"* load LUT texture in 'Apply LUT .fx'";
 >
 {
 	pass
@@ -177,14 +180,16 @@ ui_tooltip = "Display generated - neutral LUT texture in left to corner of the s
 	}
 }
 
-technique ApplyLUT < ui_label = "Apply LUT";
-ui_tooltip = "Apply LUT texture color adjustment\n"
-"To change texture name, add following to global preprocessor definitions:\n\n"
-"   LutName 'YourLUT.png'\n\n"
-"To change LUT texture resolution, define:\n\n"
-"   LutSize 17\n\n"
-"To change LUT texture orientation, define:\n\n"
-"   LutVertical";
+technique ApplyLUT <
+	ui_label = "Apply LUT";
+	ui_tooltip =
+		"Apply LUT texture color adjustment\n"
+		"To change texture name, add following to global preprocessor definitions:\n\n"
+		"   LUT_FILE_NAME 'YourLUT.png'\n\n"
+		"To change LUT texture resolution, define:\n\n"
+		"   LUT_BLOCK_SIZE 17\n\n"
+		"To change LUT texture orientation, define:\n\n"
+		"   LUT_VERTICAL true";
 >
 {
 	pass

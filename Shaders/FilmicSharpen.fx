@@ -1,5 +1,5 @@
 /**
-Filmic Sharpen PS v1.2.4 (c) 2018 Jakub Maximilian Fober
+Filmic Sharpen PS v1.2.6 (c) 2018 Jakub Maximilian Fober
 
 This work is licensed under the Creative Commons
 Attribution-ShareAlike 4.0 International License.
@@ -8,9 +8,9 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
 
-	  ////////////
-	 /// MENU ///
-	////////////
+  ////////////
+ /// MENU ///
+////////////
 
 #include "ReShadeUI.fxh"
 
@@ -52,12 +52,24 @@ uniform bool Preview < __UNIFORM_INPUT_BOOL1
 	ui_category_closed = true;
 > = false;
 
-
-	  //////////////
-	 /// SHADER ///
-	//////////////
+  ////////////////
+ /// TEXTURES ///
+////////////////
 
 #include "ReShade.fxh"
+
+// Define screen texture with mirror tiles
+sampler BackBuffer
+{
+	Texture = ReShade::BackBufferTex;
+	AddressU = MIRROR;
+	AddressV = MIRROR;
+	SRGBTexture = true;
+};
+
+  /////////////////
+ /// FUNCTIONS ///
+/////////////////
 
 // RGB to YUV709 luma
 static const float3 Luma709 = float3(0.2126, 0.7152, 0.0722);
@@ -71,7 +83,7 @@ float Overlay(float LayerA, float LayerB)
 	float MinB = min(LayerB, 0.5);
 	float MaxA = max(LayerA, 0.5);
 	float MaxB = max(LayerB, 0.5);
-	return 2.0 * (MinA * MinB + MaxA + MaxB - MaxA * MaxB) - 1.5;
+	return 2.0*((MinA*MinB+MaxA)+(MaxB-MaxA*MaxB))-1.5;
 }
 
 // Overlay blending mode for one input
@@ -79,14 +91,21 @@ float Overlay(float LayerAB)
 {
 	float MinAB = min(LayerAB, 0.5);
 	float MaxAB = max(LayerAB, 0.5);
-	return 2.0 * (MinAB * MinAB + MaxAB + MaxAB - MaxAB * MaxAB) - 1.5;
+	return 2.0*((MinAB*MinAB+MaxAB)+(MaxAB-MaxAB*MaxAB))-1.5;
 }
+
+// Convert to linear gamma
+float gamma(float grad) { return pow(abs(grad), 2.2); }
+
+  //////////////
+ /// SHADER ///
+//////////////
 
 // Sharpen pass
 float3 FilmicSharpenPS(float4 pos : SV_Position, float2 UvCoord : TEXCOORD) : SV_Target
 {
 	// Sample display image
-	float3 Source = tex2D(ReShade::BackBuffer, UvCoord).rgb;
+	float3 Source = tex2D(BackBuffer, UvCoord).rgb;
 
 	// Generate and apply radial mask
 	float Mask;
@@ -94,21 +113,21 @@ float3 FilmicSharpenPS(float4 pos : SV_Position, float2 UvCoord : TEXCOORD) : SV
 	{
 		// Generate radial mask
 		Mask = 1.0-length(UvCoord*2.0-1.0);
-		Mask = Overlay(Mask) * Strength;
+		Mask = Overlay(Mask)*Strength;
 		// Bypass
 		if (Mask <= 0) return Source;
 	}
 	else Mask = Strength;
 
 	// Get pixel size
-	float2 Pixel = ReShade::PixelSize * Offset;
+	float2 Pixel = BUFFER_PIXEL_SIZE*Offset;
 
 	// Sampling coordinates
 	float2 NorSouWesEst[4] = {
-		float2(UvCoord.x, UvCoord.y + Pixel.y),
-		float2(UvCoord.x, UvCoord.y - Pixel.y),
-		float2(UvCoord.x + Pixel.x, UvCoord.y),
-		float2(UvCoord.x - Pixel.x, UvCoord.y)
+		float2(UvCoord.x, UvCoord.y+Pixel.y),
+		float2(UvCoord.x, UvCoord.y-Pixel.y),
+		float2(UvCoord.x+Pixel.x, UvCoord.y),
+		float2(UvCoord.x-Pixel.x, UvCoord.y)
 	};
 
 	// Choose luma coefficient, if False BT.709 luma, else BT.601 luma
@@ -118,15 +137,15 @@ float3 FilmicSharpenPS(float4 pos : SV_Position, float2 UvCoord : TEXCOORD) : SV
 	float HighPass = 0.0;
 	[unroll]
 	for(int i=0; i<4; i++)
-		HighPass += dot(tex2D(ReShade::BackBuffer, NorSouWesEst[i]).rgb, LumaCoefficient);
+		HighPass += dot(tex2D(BackBuffer, NorSouWesEst[i]).rgb, LumaCoefficient);
 
-	HighPass = 0.5 - 0.5 * (HighPass * 0.25 - dot(Source, LumaCoefficient));
+	HighPass = 0.5-0.5*(HighPass*0.25-dot(Source, LumaCoefficient));
 
 	// Sharpen strength
 	HighPass = lerp(0.5, HighPass, Mask);
 
 	// Clamp sharpening
-	HighPass = (Clamp != 1.0) ? clamp(HighPass, 1.0-Clamp, Clamp) : HighPass;
+	HighPass = Clamp!=1.0? clamp(HighPass, 1.0-Clamp, Clamp) : HighPass;
 
 	float3 Sharpen = float3(
 		Overlay(Source.r, HighPass),
@@ -134,13 +153,13 @@ float3 FilmicSharpenPS(float4 pos : SV_Position, float2 UvCoord : TEXCOORD) : SV
 		Overlay(Source.b, HighPass)
 	);
 
-	return Preview ? HighPass : Sharpen;
+	return Preview? gamma(HighPass) : Sharpen;
 }
 
 
-	  //////////////
-	 /// OUTPUT ///
-	//////////////
+  //////////////
+ /// OUTPUT ///
+//////////////
 
 technique FilmicSharpen < ui_label = "Filmic Sharpen"; >
 {
@@ -148,5 +167,6 @@ technique FilmicSharpen < ui_label = "Filmic Sharpen"; >
 	{
 		VertexShader = PostProcessVS;
 		PixelShader = FilmicSharpenPS;
+		SRGBWriteEnable = true;
 	}
 }

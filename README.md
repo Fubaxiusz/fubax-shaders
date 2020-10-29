@@ -4,6 +4,7 @@ Fubax ReShade FX shaders
 This repository collects post-processing shaders written in the ReShade FX shader language, that I contribute to.
 
 To get ReShade visit https://reshade.me
+To see other shaders https://github.com/Fubaxiusz/fubax-shaders-dev
 
 Installation
 ------------
@@ -35,13 +36,5 @@ Shaders (some of)
 [Filmic Anamorphic Sharpen](/Shaders/FilmicAnamorphSharpen.fx)
 ---------------------------
 ![](https://i.imgur.com/FvtLb4d.png)
-
-[Reflection (matcap)](/Shaders/Reflection.fx)
----------------------
-![](https://i.imgur.com/DKsZBwE.jpg)
-
-[VR](/Shaders/VR.fx)
-----
-![](https://i.imgur.com/GqOsqOT.jpg)
 
 [Contact me](mailto:jakub.m.fober@pm.me)

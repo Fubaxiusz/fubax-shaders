@@ -1,43 +1,48 @@
 /*
 DisplayImage PS (c) 2019 Jacob Maximilian Fober
 
-This work is licensed under the Creative Commons 
-Attribution-ShareAlike 4.0 International License. 
-To view a copy of this license, visit 
+This work is licensed under the Creative Commons
+Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-// version 1.1.0
+// version 1.1.1
 
+  ////////////
+ /// MENU ///
+////////////
 
-	  ////////////
-	 /// MENU ///
-	////////////
-
-#ifndef TestImage
-	#define TestImage "image.png" // Image file name
+// Image file name
+#ifndef TEST_IMAGE_FILE
+	#define TEST_IMAGE_FILE "image.png"
 #endif
-#ifndef TestImageX
-	#define TestImageX 1440 // Image horizontal resolution
+// Image horizontal resolution
+#ifndef TEST_IMAGE_X
+	#define TEST_IMAGE_X 1440
 #endif
-#ifndef TestImageY
-	#define TestImageY 1080 // Image vertical resolution
+// Image vertical resolution
+#ifndef TEST_IMAGE_Y
+	#define TEST_IMAGE_Y 1080
 #endif
 
 uniform bool AspectCorrect <
 	ui_label = "Preserve aspect ratio";
-	ui_tooltip = "To change image source add following to preprocessor definitions:\n Image 'filename.jpg'\n ImageX [horizontal resolution]\n ImageY [vertical resolution]";
+	ui_tooltip =
+		"To change image source add following to preprocessor definitions:\n"
+		"TEST_IMAGE_FILE 'filename.jpg'\n"
+		"TEST_IMAGE_X [horizontal resolution]\n"
+		"TEST_IMAGE_Y [vertical resolution]";
 > = true;
 
-
-	  //////////////
-	 /// SHADER ///
-	//////////////
+  //////////////
+ /// SHADER ///
+//////////////
 
 #include "ReShade.fxh"
 
 // Define image texture
-texture ImageTex < source = TestImage; > {Width = TestImageX; Height = TestImageY;};
+texture ImageTex < source = TEST_IMAGE_FILE; > {Width = TEST_IMAGE_X; Height = TEST_IMAGE_Y;};
 sampler ImageSampler { Texture = ImageTex; };
 
 // Anti-aliased border
@@ -48,7 +53,6 @@ float Border(float2 Coordinates)
 	Coordinates = smoothstep(1.0+Pixel, 1.0-Pixel, Coordinates);
 	return min(Coordinates.x, Coordinates.y);
 }
-
 
 // Draw Image
 float3 ImagePS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Target
@@ -63,7 +67,7 @@ float3 ImagePS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Targe
 	}
 
 	float DisplayAspect = ReShade::AspectRatio;
-	float ImageAspect = float(TestImageX)/float(TestImageY);
+	float ImageAspect = float(TEST_IMAGE_X)/float(TEST_IMAGE_Y);
 	float AspectDifference = DisplayAspect / ImageAspect;
 
 	if(AspectDifference > 1.0)
@@ -94,16 +98,19 @@ float3 ImagePS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Targe
 	);
 }
 
+  //////////////
+ /// OUTPUT ///
+//////////////
 
-	  //////////////
-	 /// OUTPUT ///
-	//////////////
-
-technique ImageTest < ui_label = "TEST image"; ui_tooltip = "To change image file,\n"
-"define global preprocessor definition:\n"
-"  TestImage 'image.png'\n"
-"  TestImageX 1440\n"
-"  TestImageY 1080\n"; >
+technique ImageTest <
+	ui_label = "TEST image";
+	ui_tooltip =
+		"To change image file,\n"
+		"define global preprocessor definition:\n"
+		"  TEST_IMAGE 'image.png'\n"
+		"  TEST_IMAGE_X 1440\n"
+		"  TEST_IMAGE_Y 1080";
+>
 {
 	pass
 	{

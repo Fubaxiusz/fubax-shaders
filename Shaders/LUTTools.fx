@@ -1,6 +1,6 @@
 /*
 Display LUT PS v1.3.3 (c) 2018 Jacob Maximilian Fober;
-Apply LUT PS v1.2.1 (c) 2018 Jacob Maximilian Fober,
+Apply LUT PS v2.0.0 (c) 2018 Jacob Maximilian Fober,
 (remix of LUT shader 1.0 (c) 2016 Marty McFly)
 
 This work is licensed under the Creative Commons
@@ -56,16 +56,32 @@ uniform float2 LutChromaLuma < __UNIFORM_SLIDER_FLOAT2
 	ui_min = 0.0; ui_max = 1.0; ui_step = 0.005;
 > = float2(1.0, 1.0);
 
+  /////////////////
+ /// FUNCTIONS ///
+/////////////////
+
+// Convert 3D LUT texel coordinates to 2D textel coordinates
+int2 toLut2D(int3 lut3D)
+{
+	#if LUT_VERTICAL
+		return int2(lut3D.x, lut3D.y+lut3D.z);
+	#else
+		return int2(lut3D.x+lut3D.z, lut3D.y);
+	#endif
+}
+
   //////////////
  /// SHADER ///
 //////////////
 
 // LUT texture for Apply Lut PS
 #if LUT_VERTICAL
-	texture LUTTex < source = LUT_FILE_NAME;>{ Width = LUT_BLOCK_SIZE; Height = LUT_BLOCK_SIZE*LUT_BLOCK_SIZE; Format = RGBA8; };
+	#define LUT_DIMENSIONS int2(LUT_BLOCK_SIZE, LUT_BLOCK_SIZE*LUT_BLOCK_SIZE)
 #else
-	texture LUTTex < source = LUT_FILE_NAME;>{ Width = LUT_BLOCK_SIZE*LUT_BLOCK_SIZE; Height = LUT_BLOCK_SIZE; Format = RGBA8; };
+	#define LUT_DIMENSIONS int2(LUT_BLOCK_SIZE*LUT_BLOCK_SIZE, LUT_BLOCK_SIZE)
 #endif
+#define LUT_PIXEL_SIZE 1.0/LUT_DIMENSIONS
+texture LUTTex < source = LUT_FILE_NAME;>{ Width = LUT_DIMENSIONS.x; Height = LUT_DIMENSIONS.y; Format = RGBA8; };
 sampler LUTSampler {Texture = LUTTex; Format = RGBA8;};
 
 
@@ -103,45 +119,41 @@ void ApplyLutPS(float4 vois : SV_Position, float2 TexCoord : TEXCOORD, out float
 	// Grab background color
 	Image = tex2D(ReShade::BackBuffer, TexCoord).rgb;
 
+	// Convert to sub pixel coordinates
+	float3 lut3D = Image*(LUT_BLOCK_SIZE-1);
+
+	// Get 2D LUT coordinates
+	float2 lut2D[2];
 	#if LUT_VERTICAL
-		float2 LutPixelSize = 1.0/float2(LUT_BLOCK_SIZE, LUT_BLOCK_SIZE*LUT_BLOCK_SIZE);
+		// Front
+		lut2D[0].x = lut3D.x;
+		lut2D[0].y = floor(lut3D.z)*LUT_BLOCK_SIZE+lut3D.y;
+		// Back
+		lut2D[1].x = lut3D.x;
+		lut2D[1].y = ceil(lut3D.z)*LUT_BLOCK_SIZE+lut3D.y;
 	#else
-		float2 LutPixelSize = 1.0/float2(LUT_BLOCK_SIZE*LUT_BLOCK_SIZE, LUT_BLOCK_SIZE);
+		// Front
+		lut2D[0].x = floor(lut3D.z)*LUT_BLOCK_SIZE+lut3D.x;
+		lut2D[0].y = lut3D.y;
+		// Back
+		lut2D[1].x = ceil(lut3D.z)*LUT_BLOCK_SIZE+lut3D.x;
+		lut2D[1].y = lut3D.y;
 	#endif
 
-	float4 LutCoord;
-	LutCoord.xyz = Image.rgb*LUT_BLOCK_SIZE-Image.rgb;
-	LutCoord.xy = (LutCoord.xy+0.5)*LutPixelSize;
-	#if LUT_VERTICAL
-		LutCoord.y += floor(LutCoord.z)*LutPixelSize.x;
-		// Blue lerp scalar
-		LutCoord.z = frac(LutCoord.z);
-		// Y' coordinate for blue lerp
-		LutCoord.w = LutCoord.y+LutPixelSize.x;
+	// Convert from texel to texture coords
+	lut2D[0] = (lut2D[0]+0.5)*LUT_PIXEL_SIZE;
+	lut2D[1] = (lut2D[1]+0.5)*LUT_PIXEL_SIZE;
 
-		// LUT corrected image
-		float3 LutImage = lerp(
-			tex2D(LUTSampler, LutCoord.xy).rgb,
-			tex2D(LUTSampler, LutCoord.xw).rgb,
-			LutCoord.z
-		);
-	#else
-		LutCoord.x += floor(LutCoord.z)*LutPixelSize.y;
-		// Blue lerp scalar
-		LutCoord.z = frac(LutCoord.z);
-		// X' coordinate for blue lerp
-		LutCoord.w = LutCoord.x+LutPixelSize.y;
-
-		// LUT corrected image
-		float3 LutImage = lerp(
-			tex2D(LUTSampler, LutCoord.xy).rgb,
-			tex2D(LUTSampler, LutCoord.wy).rgb,
-			LutCoord.z
-		);
-	#endif
+	// Bicubic LUT interpolation
+	float3 LutImage = lerp(
+		tex2D(LUTSampler, lut2D[0]).rgb, // Front Z
+		tex2D(LUTSampler, lut2D[1]).rgb, // Back Z
+		frac(lut3D.z)
+	);
 
 	// Blend LUT image with original
-	if(1.0 == min(LutChromaLuma.x, LutChromaLuma.y)) Image = LutImage;
+	if ( all(LutChromaLuma==1.0) )
+		Image = LutImage;
 	else
 	{
 		Image = lerp(

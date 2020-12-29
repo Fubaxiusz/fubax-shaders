@@ -7,7 +7,7 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-nc-sa/4.0/.
 */
 
-// Chromatic Aberration PS (Prism) v1.3.0
+// Chromatic Aberration PS (Prism) v1.3.1
 // inspired by Marty McFly YACA shader
 
 
@@ -41,7 +41,6 @@ uniform int SampleCount < __UNIFORM_SLIDER_INT1
 	ui_category = "Performance";
 > = 8;
 
-
 	  //////////////
 	 /// SHADER ///
 	//////////////
@@ -65,6 +64,9 @@ sampler SamplerColor
 	Texture = ReShade::BackBufferTex;
 	AddressU = MIRROR;
 	AddressV = MIRROR;
+	#if BUFFER_COLOR_BIT_DEPTH != 10
+		SRGBTexture = true;
+	#endif
 };
 
 void ChromaticAberrationPS(float4 vois : SV_Position, float2 texcoord : TexCoord, out float3 BluredImage : SV_Target)
@@ -123,5 +125,6 @@ technique ChromaticAberration < ui_label = "Chromatic Aberration"; >
 	{
 		VertexShader = PostProcessVS;
 		PixelShader = ChromaticAberrationPS;
+		SRGBWriteEnable = true;
 	}
 }

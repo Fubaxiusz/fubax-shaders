@@ -7,7 +7,7 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-nc-sa/4.0/.
 */
 
-// Chromatic Aberration PS (Prism) v1.3.1
+// Chromatic Aberration PS (Prism) v1.3.2
 // inspired by Marty McFly YACA shader
 
 
@@ -50,11 +50,12 @@ uniform int SampleCount < __UNIFORM_SLIDER_INT1
 // Special Hue generator by JMF
 float3 Spectrum(float Hue)
 {
-	float Hue4 = Hue * 4.0;
-	float3 HueColor = abs(Hue4 - float3(1.0, 2.0, 1.0));
-	HueColor = saturate(1.5 - HueColor);
-	HueColor.xz += saturate(Hue4 - 3.5);
-	HueColor.z = 1.0 - HueColor.z;
+	float3 HueColor;
+	Hue *= 4.0;
+	HueColor.rg = Hue-float2(1.0, 2.0);
+	HueColor.rg = saturate(1.5-abs(HueColor.rg));
+	HueColor.r += saturate(Hue-3.5);
+	HueColor.b = 1.0-HueColor.r;
 	return HueColor;
 }
 

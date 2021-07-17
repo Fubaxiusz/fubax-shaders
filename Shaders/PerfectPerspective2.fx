@@ -1,5 +1,5 @@
 /**
-Pantomorphic PS, version 4.4.0
+Pantomorphic PS, version 4.4.1
 (c) 2021 Jakub Maksymilian Fober (the Author).
 
 The Author provides this shader (the Work)
@@ -69,7 +69,7 @@ uniform int SimplePresets < __UNIFORM_RADIO_INT1
 		"flying\0"
 		"stereopsis\0"
 		"cinematic\0";
-> = 0;
+> = 2;
 
 uniform bool Manual < __UNIFORM_INPUT_BOOL1
 	ui_category = "Manual"; ui_category_closed = true;

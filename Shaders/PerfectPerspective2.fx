@@ -1,5 +1,5 @@
 /**
-Pantomorphic PS, version 4.4.1
+Pantomorphic PS, version 4.4.2
 (c) 2021 Jakub Maksymilian Fober (the Author).
 
 The Author provides this shader (the Work)
@@ -63,8 +63,8 @@ uniform int SimplePresets < __UNIFORM_RADIO_INT1
 	ui_category = "Presets"; ui_category_closed = false;
 	ui_label = "Gaming style";
 	ui_items =
-		"shooting\0"
-		"racing\0"
+		"shooting (as.)\0"
+		"racing (as.)\0"
 		"skating (ref.)\0"
 		"flying\0"
 		"stereopsis\0"
@@ -156,7 +156,7 @@ uniform float4 BorderColor < __UNIFORM_COLOR_FLOAT4
 	ui_label = "Border color";
 	ui_spacing = 2;
 	ui_tooltip = "Use Alpha to change transparency";
-> = float4(0.027, 0.027, 0.027, 0.784);
+> = float4(0.027, 0.027, 0.027, 0.5);
 
 
 uniform float BorderCorners < __UNIFORM_SLIDER_FLOAT1
@@ -180,7 +180,7 @@ uniform int VignettingStyle < __UNIFORM_RADIO_INT1
 		"vignette turned off\0"
 		"vignette inside\0"
 		"vignette on borders\0";
-> = 2;
+> = 1;
 
 #ifndef G_CONTINUITY_CORNER_ROUNDING
 	#define G_CONTINUITY_CORNER_ROUNDING 2

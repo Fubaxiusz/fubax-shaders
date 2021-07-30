@@ -1,5 +1,5 @@
 /**
-Pantomorphic PS, version 4.4.2
+Pantomorphic PS, version 4.4.3
 (c) 2021 Jakub Maksymilian Fober (the Author).
 
 The Author provides this shader (the Work)
@@ -26,19 +26,28 @@ https://github.com/Fubaxiusz/fubax-shaders
 
 // FIELD OF VIEW
 
-uniform int FovType < __UNIFORM_COMBO_INT1
+uniform int FovAngle < __UNIFORM_SLIDER_INT1
 	ui_category = "Game field-of-view"; ui_category_closed = false;
+	ui_label = "FOV angle";
+	ui_tooltip = "This setting should match your in-game FOV (in degrees).";
+	#if __RESHADE__ < 40000
+		ui_step = 0.2;
+	#endif
+	ui_min = 0; ui_max = 170;
+> = 90;
+
+uniform int FovType < __UNIFORM_COMBO_INT1
+	ui_category = "Game field-of-view";
 	ui_label = "FOV type";
-	ui_tooltip = "...in stereographic mode\n"
-		"If image bulges in movement (too high FOV),\n"
+	ui_tooltip = "This setting should match your in-game FOV type.\n"
+		"\nIn stereographic mode (ref. option), adjust\n"
+		"such that round objects are still round, not oblong,\n"
+		"when at corners.\n"
+		"\nIf image bulges in movement (too high FOV),\n"
 		"change it to 'Diagonal'.\n"
 		"When proportions are distorted at the periphery\n"
 		"(too low FOV), choose 'Vertical' or '4:3'.\n"
-		"For ultra-wide display you may want '16:9' instead.\n\n"
-		"Adjust so that round objects are still round in\n"
-		"the corners, and not oblong.\n\n"
-		"*This method works only in 'navigation' preset,\n"
-		"or k=0.5 in manual.";
+		"For ultra-wide display you may want '16:9' instead.";
 	ui_items =
 		"horizontal\0"
 		"diagonal\0"
@@ -47,21 +56,18 @@ uniform int FovType < __UNIFORM_COMBO_INT1
 		"16:9\0";
 > = 0;
 
-uniform int FovAngle < __UNIFORM_SLIDER_INT1
-	ui_category = "Game field-of-view";
-	ui_label = "FOV angle";
-	ui_tooltip = "This setting should match your in-game FOV (in degrees)";
-	#if __RESHADE__ < 40000
-		ui_step = 0.2;
-	#endif
-	ui_min = 0; ui_max = 170;
-> = 90;
-
 // PERSPECTIVE
 
 uniform int SimplePresets < __UNIFORM_RADIO_INT1
 	ui_category = "Presets"; ui_category_closed = false;
 	ui_label = "Gaming style";
+	ui_tooltip = "Choose preferable gaming style.\n\n"
+		"Shooting    [0.0 0.75 -0.5]  (aiming, panini, distance)\n"
+		"Racing      [0.5 -0.5 0.0]   (cornering, distance, speed)\n"
+		"Skating     [0.5 0.5]        (stereographic lens)\n"
+		"Flying      [-0.5 0.0]       (distance, pitch)\n"
+		"Stereopsis  [0.0 -0.5]       (aiming, distance)\n"
+		"Cinematic   [0.618 0.862]    (panini-anamorphic)\n";
 	ui_items =
 		"shooting (as.)\0"
 		"racing (as.)\0"
@@ -71,73 +77,81 @@ uniform int SimplePresets < __UNIFORM_RADIO_INT1
 		"cinematic\0";
 > = 2;
 
+
 uniform bool Manual < __UNIFORM_INPUT_BOOL1
 	ui_category = "Manual"; ui_category_closed = true;
 	ui_label = "enable Manual";
 	ui_tooltip = "Change horizontal and vertical perspective manually.";
 > = false;
 
-uniform int PresetKx < __UNIFORM_RADIO_INT1
-	ui_category = "Manual";
-	ui_label = "Horizontal perspective";
-	ui_spacing = 1;
-	ui_items =
-		"x  shape/angle\0"
-		"x  speed/aim\0"
-		"x  distance/size\0";
-> = 0;
-
-uniform int PresetKy < __UNIFORM_RADIO_INT1
-	ui_category = "Manual";
-	ui_label = "Vertical perspective";
-	ui_spacing = 2;
-	ui_items =
-		"y  shape/angle\0"
-		"y  speed/aim\0"
-		"y  distance/size\0";
-> = 0;
-
 uniform bool AsymmetricalManual < __UNIFORM_INPUT_BOOL1
 	ui_category = "Manual";
 	ui_label = "enable Asymmetrical";
-	ui_spacing = 2;
+	ui_spacing = 1;
 	ui_tooltip = "Third option drives the bottom half of the screen.";
 > = false;
 
-uniform int PresetKz < __UNIFORM_RADIO_INT1
+uniform int PresetKx < __UNIFORM_LIST_INT1
 	ui_category = "Manual";
-	ui_label = "Vertical-bottom perspective";
+	ui_label = "Horizontal persp.";
+	ui_tooltip = "Kx\n"
+		"\nProjection type for horizontal axis.";
 	ui_items =
-		"z  shape/angle\0"
-		"z  speed/aim\0"
-		"z  distance/size\0";
+		"shape,angles\0"
+		"speed,aim\0"
+		"distance,size\0";
 > = 0;
+
+uniform int PresetKy < __UNIFORM_LIST_INT1
+	ui_category = "Manual";
+	ui_label = "Vertical persp.";
+	ui_tooltip = "Ky\n"
+		"\nProjection type for vertical axis.";
+	ui_items =
+		"shape,angles\0"
+		"speed,aim\0"
+		"distance,size\0";
+> = 0;
+
+uniform int PresetKz < __UNIFORM_LIST_INT1
+	ui_category = "Manual";
+	ui_label = "Vertical bottom (as.)";
+	ui_tooltip = "Kz\n"
+		"\nProjection type for bottom-vertical axis,\n"
+		"an asymmetrical perspective.";
+	ui_items =
+		"shape,angles\0"
+		"speed,aim\0"
+		"distance,size\0";
+> = 0;
+
 
 uniform bool Expert < __UNIFORM_INPUT_BOOL1
 	ui_category = "Expert"; ui_category_closed = true;
 	ui_label = "enable Expert";
+	ui_tooltip = "Change pantomorphic K values manually.";
 > = false;
 
 uniform bool AsymmetricalExpert < __UNIFORM_INPUT_BOOL1
 	ui_category = "Expert";
 	ui_label = "enable Asymmetrical";
 	ui_spacing = 1;
-	ui_tooltip = "Third value of 'k' drives the bottom-half of the screen.";
+	ui_tooltip = "Third value of K, drives the bottom-half of the screen.";
 > = false;
 
 uniform float3 K < __UNIFORM_SLIDER_FLOAT3
 	ui_category = "Expert";
-	ui_label = "k 2.5D";
+	ui_label = "K pantomorphic";
 	ui_tooltip =
-		"K  1 ...Rectilinear projection (standard), preserves straight lines,"
+		"K   1   Rectilinear projection (standard), preserves straight lines,"
 		" but doesn't preserve proportions, angles or scale.\n"
-		"K  0.5 ...Stereographic projection (navigation, shapes) preserves angles and proportions,"
+		"K  0.5  Stereographic projection (navigation, shapes) preserves angles and proportions,"
 		" best for navigation through tight spaces.\n"
-		"K  0 .....Equidistant (aiming) maintains angular speed of motion,"
+		"K   0   Equidistant (aiming) maintains angular speed of motion,"
 		" best for aiming at fast targets.\n"
-		"K -0.5 ...Equisolid projection (distances) preserves area relation,"
+		"K -0.5  Equisolid projection (distances) preserves area relation,"
 		" best for navigation in open spaces.\n"
-		"K -1 ...Orthographic projection preserves planar luminance as cosine-law,"
+		"K  -1   Orthographic projection preserves planar luminance as cosine-law,"
 		" has extreme radial compression. Found in peephole viewer.";
 	ui_min = -1; ui_max = 1;
 > = float3(1, 1, 1);
@@ -147,22 +161,22 @@ uniform float3 K < __UNIFORM_SLIDER_FLOAT3
 uniform float Zoom < __UNIFORM_DRAG_FLOAT1
 	ui_category = "Border settings"; ui_category_closed = true;
 	ui_label = "Scale image";
-	ui_tooltip = "Adjust image scale and cropped area size";
+	ui_tooltip = "Adjust image scale and cropped area size.";
 	ui_min = 0.8; ui_max = 1.5; ui_step = 0.001;
 > = 1;
 
 uniform float4 BorderColor < __UNIFORM_COLOR_FLOAT4
 	ui_category = "Border settings";
 	ui_label = "Border color";
-	ui_spacing = 2;
-	ui_tooltip = "Use Alpha to change transparency";
+	ui_tooltip = "Use Alpha to change transparency.";
 > = float4(0.027, 0.027, 0.027, 0.5);
-
 
 uniform float BorderCorners < __UNIFORM_SLIDER_FLOAT1
 	ui_category = "Border settings";
 	ui_label = "Corner roundness";
-	ui_tooltip = "Represents corners curvature\n0 gives sharp corners";
+	ui_spacing = 2;
+	ui_tooltip = "Represents corners curvature.\n"
+		"Value of 0, gives sharp corners.";
 	ui_min = 0; ui_max = 1;
 > = 0.0862;
 
@@ -175,7 +189,8 @@ uniform bool MirrorBorder < __UNIFORM_INPUT_BOOL1
 uniform int VignettingStyle < __UNIFORM_RADIO_INT1
 	ui_category = "Border settings";
 	ui_label = "Vignetting style";
-	ui_spacing = 2;
+	ui_spacing = 1;
+	ui_tooltip = "Redering options for automatic vignette.";
 	ui_items =
 		"vignette turned off\0"
 		"vignette inside\0"
@@ -432,7 +447,7 @@ float3 PantomorphicPS(float4 pos : SV_Position, float2 texCoord : TEXCOORD) : SV
 technique Pantomorphic <
 	ui_tooltip =
 		"Adjust perspective for distortion-free picture\n"
-		"(anamorphic (asymmetrical), fish-eye and vignetting)\n"
+		"(asymmetrical anamorphic, fish-eye and vignetting)\n"
 		"\nManual:\n"
 		"Fist select proper FOV angle and type.\n"
 		"If FOV type is unknown, set preset to 'skating' and find a round object within the game.\n"

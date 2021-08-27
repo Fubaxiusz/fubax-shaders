@@ -1,5 +1,5 @@
 /**
-Scopes - Vectorscope Shader, version 1.0.0
+Scopes - Vectorscope Shader, version 1.1.0
 All rights (c) 2021 Jakub Maksymilian Fober (the Author)
 
 This effect will analyze all the pixels on the screen
@@ -20,6 +20,7 @@ https://github.com/Fubaxiusz/fubax-shaders/
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
 
+
 // Macros
 
 // Draw UI in a vertex shader (aliased)
@@ -34,6 +35,10 @@ https://github.com/Fubaxiusz/fubax-shaders/
 // Determine native scope size
 #ifndef SCOPES_TEXTURE_SIZE
 	#define SCOPES_TEXTURE_SIZE 256
+#endif
+// Checkerboard sampling increases performance 2x
+#ifndef SCOPES_FAST_CHECKERBOARD
+	#define SCOPES_FAST_CHECKERBOARD 1
 #endif
 
 
@@ -79,13 +84,14 @@ uniform float ScopeTransparency < __UNIFORM_SLIDER_FLOAT1
 // Non-fast UI line thickness
 #define SCOPE_LINE_WIDTH 1.0
 
+
 // Constants
 
 #if SCOPES_ITU_REC==709
 	// RGB to Chroma BT.709 matrix
 	static const float3x2 ChromaMtx =
 		float3x2(
-			// float3(0.2126, 0.7152, 0.0722), // Luma (Y)
+//			float3(0.2126, 0.7152, 0.0722), // Luma (Y)
 			float3(-0.1146, -0.3854, 0.5),  // Chroma (Cb)
 			float3(0.5, -0.4542, -0.0458)   // Chroma (Cr)
 		);
@@ -93,7 +99,7 @@ uniform float ScopeTransparency < __UNIFORM_SLIDER_FLOAT1
 	// RGB to Chroma BT.601 matrix
 	static const float3x2 ChromaMtx =
 		float3x2(
-			// float3(0.299, 0.587, 0.114),       // Luma (Y)
+//			float3(0.299, 0.587, 0.114),       // Luma (Y)
 			float3(-0.168736, -0.331264, 0.5), // Chroma (Cb)
 			float3(0.5, -0.418688, -0.081312)  // Chroma (Cr)
 		);
@@ -179,13 +185,23 @@ void GatherStatsVS(uint pixelID : SV_VertexID, out float4 position : SV_Position
 	texelCoord.x = pixelID%BUFFER_WIDTH;
 	texelCoord.y = pixelID/BUFFER_WIDTH;
 
+#if SCOPES_FAST_CHECKERBOARD
+	texelCoord.y = texelCoord.y*2+(1-texelCoord.x%2); // Get next row index every odd column
+#endif
+
 	// Get current-pixel color data, convert to chroma CbCr and store as position
 	position.xy = chroma = mul(ChromaMtx, tex2Dfetch(ReShade::BackBuffer, texelCoord).rgb);
 }
 
 // Generate add pixel data to vectorscope image
 void GatherStatsPS(float4 pos : SV_Position, float2 chroma : TEXCOORD0, out float value : SV_Target)
-{ value = SCOPES_BRIGHTNESS*ScopeBrightness; }
+{
+#if SCOPES_FAST_CHECKERBOARD
+	value = SCOPES_BRIGHTNESS*ScopeBrightness*2;
+#else
+	value = SCOPES_BRIGHTNESS*ScopeBrightness;
+#endif
+}
 
 #if !SCOPES_FAST_UI
 	/** Pixel scale function for anti-aliasing by Jakub Max Fober
@@ -395,7 +411,11 @@ technique Vectorscope <
 {
 	pass AnalyzeColor
 	{
+	#if SCOPES_FAST_CHECKERBOARD
+		VertexCount = (BUFFER_HEIGHT/2)*BUFFER_WIDTH;
+	#else
 		VertexCount = BUFFER_HEIGHT*BUFFER_WIDTH;
+	#endif
 		PrimitiveTopology = POINTLIST;
 
 		BlendEnable = true;

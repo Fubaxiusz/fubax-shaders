@@ -1,5 +1,5 @@
 /**
-Scopes - Vectorscope Shader, version 1.1.1
+Scopes - Vectorscope Shader, version 1.1.2
 All rights (c) 2021 Jakub Maksymilian Fober (the Author)
 
 This effect will analyze all the pixels on the screen
@@ -51,7 +51,7 @@ uniform int ScopeBrightness < __UNIFORM_SLIDER_INT1
 	ui_min = 1; ui_max = 1024;
 > = 128;
 
-uniform float3 ScopePosition < __UNIFORM_SLIDER_FLOAT3
+uniform float3 ScopePosition < __UNIFORM_DRAG_FLOAT3
 	ui_category = "Location";
 	ui_label = "Position and size";
 	ui_tooltip = "Move vectorscope on the screen";

@@ -1,5 +1,5 @@
 /**
-Scopes - Vectorscope Shader, version 1.1.0
+Scopes - Vectorscope Shader, version 1.1.1
 All rights (c) 2021 Jakub Maksymilian Fober (the Author)
 
 This effect will analyze all the pixels on the screen
@@ -36,7 +36,7 @@ https://github.com/Fubaxiusz/fubax-shaders/
 #ifndef SCOPES_TEXTURE_SIZE
 	#define SCOPES_TEXTURE_SIZE 256
 #endif
-// Checkerboard sampling increases performance 2x
+// Checkerboard sampling increases performance 2x, gives 4-frame 'motion blur'
 #ifndef SCOPES_FAST_CHECKERBOARD
 	#define SCOPES_FAST_CHECKERBOARD 1
 #endif
@@ -71,6 +71,9 @@ uniform float ScopeTransparency < __UNIFORM_SLIDER_FLOAT1
 	ui_tooltip = "Set vectorscope transparency-level";
 	ui_min = 0.5; ui_max = 1.0; ui_step = 0.01;
 > = 0.99;
+
+
+uniform uint FRAME_INDEX < source = "framecount"; >;
 
 
 // Convert to linear gamma all vector types
@@ -126,12 +129,17 @@ uniform float ScopeTransparency < __UNIFORM_SLIDER_FLOAT1
 
 // Textures
 
-// Vectorscope texture target
+// Vectorscope texture target; gathers chroma quantity statistics
 texture2D vectorscopeTex
 {
 	// Square resolution
-	Width = SCOPES_TEXTURE_SIZE; Height = SCOPES_TEXTURE_SIZE;
+	Width  = SCOPES_TEXTURE_SIZE;
+	Height = SCOPES_TEXTURE_SIZE;
+#if SCOPES_FAST_CHECKERBOARD
+	Format = RGBA32F; // Store 4-frames in 4-channels
+#else
 	Format = R32F;
+#endif
 };
 
 // Vectorscope texture sampler with black borders
@@ -139,14 +147,15 @@ sampler2D vectorscopeSampler
 {
 	Texture = vectorscopeTex;
 	MagFilter = POINT;
-	AddressU = BORDER; AddressV = BORDER;
+	AddressU = BORDER;
+	AddressV = BORDER;
 };
 
 // Define screen texture with sRGB blending for nice anti-aliasing
 sampler2D BackBuffer
 {
 	Texture = ReShade::BackBufferTex;
-#if BUFFER_COLOR_BIT_DEPTH != 10
+#if BUFFER_COLOR_BIT_DEPTH==8
 	SRGBTexture = true;
 #endif
 };
@@ -161,17 +170,40 @@ float3 getScopeOffset()
 	// Get scope offset from screen edge
 	scopeOffset.xy = SCOPES_TEXTURE_SIZE*BUFFER_PIXEL_SIZE*SCOPES_BORDER_SIZE;
 	// Accommodate for scale-up
+#if BUFFER_WIDTH>BUFFER_HEIGHT // Panorama
 	scopeOffset.xy = lerp(scopeOffset.xy, float2(BUFFER_HEIGHT*BUFFER_RCP_WIDTH*0.5, 0.5), ScopePosition.z);
+#elif BUFFER_WIDTH<BUFFER_HEIGHT // Portrait
+	scopeOffset.xy = lerp(scopeOffset.xy, float2(0.5, BUFFER_WIDTH*BUFFER_RCP_HEIGHT*0.5), ScopePosition.z);
+#else // Square
+	scopeOffset.xy = lerp(scopeOffset.xy, float2(0.5, 0.5), ScopePosition.z);
+#endif
+
 	// Limit offset to bounds
 	scopeOffset.xy = lerp(scopeOffset.xy, 1.0-scopeOffset.xy, ScopePosition.xy);
 	// Get scale limited to bounds
-	scopeOffset.z = lerp(SCOPES_TEXTURE_SIZE*BUFFER_RCP_HEIGHT, 0.5/SCOPES_BORDER_SIZE, ScopePosition.z);
+	scopeOffset.z = lerp(SCOPES_TEXTURE_SIZE*max(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT), 0.5/SCOPES_BORDER_SIZE, ScopePosition.z);
 
 	return scopeOffset;
 }
 
 
 // Shaders
+
+#if SCOPES_FAST_CHECKERBOARD
+	// Clar render target
+	float4 ClearRenderTargetPS(float4 pos : SV_Position, float2 texCoord : TEXCOORD0) : SV_Target
+	{
+		static const float4 channelMask[4] =
+			{
+				float4(0, 1, 1, 1)*(ScopeBrightness*SCOPES_TEXTURE_SIZE/4), // Frame 0
+				float4(1, 0, 1, 1)*(ScopeBrightness*SCOPES_TEXTURE_SIZE/4), // Frame 1
+				float4(1, 1, 0, 1)*(ScopeBrightness*SCOPES_TEXTURE_SIZE/4), // Frame 2
+				float4(1, 1, 1, 0)*(ScopeBrightness*SCOPES_TEXTURE_SIZE/4)  // Frame 3
+			};
+
+		return channelMask[FRAME_INDEX%4];
+	}
+#endif
 
 // Gather chroma statistics and store in a vertex position
 void GatherStatsVS(uint pixelID : SV_VertexID, out float4 position : SV_Position, out float2 chroma : TEXCOORD0)
@@ -182,26 +214,50 @@ void GatherStatsVS(uint pixelID : SV_VertexID, out float4 position : SV_Position
 
 	// Get pixel coordinates from vertex ID
 	uint2 texelCoord;
+#if SCOPES_FAST_CHECKERBOARD
+	// Get 1/4-resolution pixel coordinates
+	texelCoord.x = pixelID%(BUFFER_WIDTH/2)*2;
+	texelCoord.y = pixelID/(BUFFER_WIDTH/2)*2;
+
+	// Checkerboard pattern offset cycle
+	static const uint2 offset_Z[4] = // Z-sampling pattern
+		{
+			uint2(0, 0), // Frame 0
+			uint2(1, 0), // Frame 1
+			uint2(0, 1), // Frame 2
+			uint2(1, 1)  // Frame 3
+		};
+	// Offset sampled pixel in 4-frame cycle
+	texelCoord += offset_Z[FRAME_INDEX%4];
+#else
 	texelCoord.x = pixelID%BUFFER_WIDTH;
 	texelCoord.y = pixelID/BUFFER_WIDTH;
-
-#if SCOPES_FAST_CHECKERBOARD
-	texelCoord.y = texelCoord.y*2+(1-texelCoord.x%2); // Get next row index every odd column
 #endif
 
 	// Get current-pixel color data, convert to chroma CbCr and store as position
 	position.xy = chroma = mul(ChromaMtx, tex2Dfetch(ReShade::BackBuffer, texelCoord).rgb);
 }
 
-// Generate add pixel data to vectorscope image
-void GatherStatsPS(float4 pos : SV_Position, float2 chroma : TEXCOORD0, out float value : SV_Target)
-{
+// Add pixel data to vectorscope image
 #if SCOPES_FAST_CHECKERBOARD
-	value = SCOPES_BRIGHTNESS*ScopeBrightness*2;
+	void GatherStatsPS(float4 pos : SV_Position, float2 chroma : TEXCOORD0, out float4 values : SV_Target)
+	{
+		// Store 4-frames as 4-channels
+		static const float4 channelMask[4] =
+			{
+				float4(1, 0, 0, 0), // Frame 0
+				float4(0, 1, 0, 0), // Frame 1
+				float4(0, 0, 1, 0), // Frame 2
+				float4(0, 0, 0, 1)  // Frame 3
+			};
+
+		// Isolate each channel for each frame
+		values = channelMask[FRAME_INDEX%4]*(SCOPES_BRIGHTNESS*ScopeBrightness);
+	}
 #else
-	value = SCOPES_BRIGHTNESS*ScopeBrightness;
+	void GatherStatsPS(float4 pos : SV_Position, float2 chroma : TEXCOORD0, out float value : SV_Target)
+	{ value = SCOPES_BRIGHTNESS*ScopeBrightness; }
 #endif
-}
 
 #if !SCOPES_FAST_UI
 	/** Pixel scale function for anti-aliasing by Jakub Max Fober
@@ -301,7 +357,7 @@ void GatherStatsPS(float4 pos : SV_Position, float2 chroma : TEXCOORD0, out floa
 		color.rgb = saturate(mul(RgbMtx, color.rgb)); // Convert to RGB
 
 	// Correct for sRGB gamma
-	#if BUFFER_COLOR_BIT_DEPTH != 10
+	#if BUFFER_COLOR_BIT_DEPTH==8
 		// Convert to sRGB
 		color.rgb = sRGB_TO_LINEAR(color.rgb);
 		color.a *= sRGB_TO_LINEAR(ScopeUITransparency);
@@ -325,18 +381,26 @@ void DisplayScopePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD0, out f
 	// Move vectorscope UI position
 	texCoord -= scopeOffset.xy;
 	// Correct aspect ratio
+#if BUFFER_WIDTH>BUFFER_HEIGHT // Panorama
 	texCoord.x *= BUFFER_ASPECT_RATIO;
+#elif BUFFER_WIDTH<BUFFER_HEIGHT // Portrait
+	texCoord.y *= BUFFER_HEIGHT*BUFFER_RCP_WIDTH;
+#endif
 	// Scale vectorscope UI
 	texCoord /= scopeOffset.z;
 
 	// Generate round border mask
-	float borderMask = clamp(0.5-(length(texCoord)-SCOPES_BORDER_SIZE)*BUFFER_HEIGHT*scopeOffset.z*0.5, 0.0, 1.0);
+	float borderMask = clamp(0.5-(length(texCoord)-SCOPES_BORDER_SIZE)*min(BUFFER_WIDTH, BUFFER_HEIGHT)*scopeOffset.z*0.5, 0.0, 1.0);
 
 	// Determine vectorscope look
 	color = float3(GOLDEN_RATIO, texCoord.x, -texCoord.y); // Base color in YCbCr
 	color = mul(RgbMtx, color); // Convert to RGB
 	// Mask vectorscope image
+#if SCOPES_FAST_CHECKERBOARD
+	color *= dot(tex2D(vectorscopeSampler, texCoord+0.5), float4(1, 1, 1, 1));
+#else
 	color *= tex2D(vectorscopeSampler, texCoord+0.5).r;
+#endif
 
 	// Blend with background
 	color = lerp(background, color, borderMask*ScopeTransparency);
@@ -383,7 +447,11 @@ void DisplayScopePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD0, out f
 		// Scale vectorscope UI
 		position.xy *= scopeOffset.z;
 		// Correct aspect ratio
-		position.x /= BUFFER_ASPECT_RATIO;
+	#if BUFFER_WIDTH>BUFFER_HEIGHT // Panorama
+		position.x *= BUFFER_HEIGHT*BUFFER_RCP_WIDTH;
+	#elif BUFFER_WIDTH<BUFFER_HEIGHT // Portrait
+		position.y *= BUFFER_ASPECT_RATIO;
+	#endif
 		// Move vectorscope UI position
 		position.x += scopeOffset.x-1.0;
 		position.y -= scopeOffset.y-1.0;
@@ -409,20 +477,44 @@ technique Vectorscope <
 		"\nfor more info, production use, contact jakub.m.fober@pm.me";
 >
 {
+#if SCOPES_FAST_CHECKERBOARD
+	pass ClearRenderTarget
+	{
+		BlendEnable = true;
+		BlendOp = MIN;
+		BlendOpAlpha = MIN;
+		// Foreground
+		SrcBlend = ONE;
+		SrcBlendAlpha = ONE;
+		// Background
+		DestBlend = ONE;
+		DestBlendAlpha = ONE;
+
+		RenderTarget = vectorscopeTex;
+
+		VertexShader = PostProcessVS;
+		PixelShader = ClearRenderTargetPS;
+	}
 	pass AnalyzeColor
 	{
-	#if SCOPES_FAST_CHECKERBOARD
-		VertexCount = (BUFFER_HEIGHT/2)*BUFFER_WIDTH;
-	#else
+		VertexCount = (BUFFER_HEIGHT/2)*(BUFFER_WIDTH/2);
+		ClearRenderTargets = false;
+
+		BlendOpAlpha = ADD;
+		SrcBlendAlpha = ONE;  // Foreground
+		DestBlendAlpha = ONE; // Background
+#else
+	pass AnalyzeColor
+	{
 		VertexCount = BUFFER_HEIGHT*BUFFER_WIDTH;
-	#endif
+		ClearRenderTargets = true;
+#endif
 		PrimitiveTopology = POINTLIST;
 
 		BlendEnable = true;
 		BlendOp = ADD;
 		SrcBlend = ONE;  // Foreground
 		DestBlend = ONE; // Background
-		ClearRenderTargets = true;
 
 		RenderTarget = vectorscopeTex;
 

@@ -1,5 +1,5 @@
 /**
-Scopes - Vectorscope Shader, version 1.1.2
+Scopes - Vectorscope Shader, version 1.1.3
 All rights (c) 2021 Jakub Maksymilian Fober (the Author)
 
 This effect will analyze all the pixels on the screen
@@ -120,9 +120,9 @@ uniform uint FRAME_INDEX < source = "framecount"; >;
 	// BT.601 YCbCr to RGB matrix
 	static const float3x3 RgbMtx =
 		float3x3(
-			float3(1.0, 0.0, 1.402),      // Red
+			float3(1.0, 0.0, 1.402),           // Red
 			float3(1.0, -0.344136, -0.714136), // Green
-			float3(1.0, 1.772, 0.0)       // Blue
+			float3(1.0, 1.772, 0.0)            // Blue
 		);
 #endif
 
@@ -152,13 +152,13 @@ sampler2D vectorscopeSampler
 };
 
 // Define screen texture with sRGB blending for nice anti-aliasing
-sampler2D BackBuffer
-{
-	Texture = ReShade::BackBufferTex;
 #if BUFFER_COLOR_BIT_DEPTH==8
-	SRGBTexture = true;
+	sampler2D BackBuffer
+	{
+		Texture = ReShade::BackBufferTex;
+		SRGBTexture = true;
+	};
 #endif
-};
 
 
 // Functions
@@ -183,6 +183,7 @@ float3 getScopeOffset()
 	// Get scale limited to bounds
 	scopeOffset.z = lerp(SCOPES_TEXTURE_SIZE*max(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT), 0.5/SCOPES_BORDER_SIZE, ScopePosition.z);
 
+	// Offset and scale
 	return scopeOffset;
 }
 
@@ -190,9 +191,11 @@ float3 getScopeOffset()
 // Shaders
 
 #if SCOPES_FAST_CHECKERBOARD
-	// Clar render target
+	// Clear render target
 	float4 ClearRenderTargetPS(float4 pos : SV_Position, float2 texCoord : TEXCOORD0) : SV_Target
 	{
+		// Store 4-frames as 4-channels
+		// Here, mask stores maximum possible value, for each channel
 		static const float4 channelMask[4] =
 			{
 				float4(0, 1, 1, 1)*(ScopeBrightness*SCOPES_TEXTURE_SIZE/4), // Frame 0
@@ -201,7 +204,7 @@ float3 getScopeOffset()
 				float4(1, 1, 1, 0)*(ScopeBrightness*SCOPES_TEXTURE_SIZE/4)  // Frame 3
 			};
 
-		return channelMask[FRAME_INDEX%4];
+		return channelMask[FRAME_INDEX%4]; // This mask uses MIN filter
 	}
 #endif
 
@@ -212,8 +215,7 @@ void GatherStatsVS(uint pixelID : SV_VertexID, out float4 position : SV_Position
 	position.z = 0.0; // Not used
 	position.w = 0.5; // Fill texture
 
-	// Get pixel coordinates from vertex ID
-	uint2 texelCoord;
+	uint2 texelCoord; // Get pixel coordinates from vertex ID
 #if SCOPES_FAST_CHECKERBOARD
 	// Get 1/4-resolution pixel coordinates
 	texelCoord.x = pixelID%(BUFFER_WIDTH/2)*2;
@@ -305,6 +307,7 @@ void GatherStatsVS(uint pixelID : SV_VertexID, out float4 position : SV_Position
 		// Normalize skin-tone line
 		float2 skintoneLine = skintonePos/dot(skintonePos, skintonePos);
 
+		// Initialize variables
 		float hexagonGradient[6];
 		float skintoneGradient[2];
 		float gradientPixelScale[7];
@@ -327,15 +330,16 @@ void GatherStatsVS(uint pixelID : SV_VertexID, out float4 position : SV_Position
 		float hexagonSdf75 = -SCOPE_LINE_WIDTH;
 		[unroll] for (uint i=0; i<6; i++)
 		{
+			// Combine 6-edges distance fields into a single hexagon SDF
 			hexagonSdf100 = max(hexagonSdf100, hexagonGradient[i]*gradientPixelScale[i]);
 			hexagonSdf75 = max(hexagonSdf75, (hexagonGradient[i]+0.25)*gradientPixelScale[i]);
 		}
 
 		// Initialize UI color
-		float4 color; color.a = 0;
+		float4 uiColor; uiColor.a = 0;
 		// Add 100% and 75% saturation hexagon to UI mask
-		color.a += saturate(SCOPE_LINE_WIDTH-abs(hexagonSdf100));
-		color.a += saturate(SCOPE_LINE_WIDTH-abs(hexagonSdf75));
+		uiColor.a += saturate(SCOPE_LINE_WIDTH-abs(hexagonSdf100));
+		uiColor.a += saturate(SCOPE_LINE_WIDTH-abs(hexagonSdf75));
 
 		// Generate skin-tone line anti-aliased bounds mask
 		skintoneGradient[0] = saturate((0.5-abs(skintoneGradient[0]-0.5))*gradientPixelScale[6]+0.5);
@@ -343,29 +347,29 @@ void GatherStatsVS(uint pixelID : SV_VertexID, out float4 position : SV_Position
 		skintoneGradient[1] = saturate(SCOPE_LINE_WIDTH-abs(skintoneGradient[1])*gradientPixelScale[6]);
 
 		// Add skin-tone line to UI mask
-		color.a += skintoneGradient[0]*skintoneGradient[1];
+		uiColor.a += skintoneGradient[0]*skintoneGradient[1];
 
 		// Make skin-tone line constant-color
 		if (texCoord.x > skintonePos.x &&
 			texCoord.y < skintonePos.y &&
 			texCoord.x < 0.0 &&
-			texCoord.y > 0.0)
+			texCoord.y > 0.0) // Inside bounding-box
 		texCoord = skintonePos;
 
 		// Output UI color
-		color.rgb = float3(lerp(1.0, 1.0-GOLDEN_RATIO, ScopeUITransparency), texCoord); // Get UI color in YCbCr
-		color.rgb = saturate(mul(RgbMtx, color.rgb)); // Convert to RGB
+		uiColor.rgb = float3(lerp(1.0, 1.0-GOLDEN_RATIO, ScopeUITransparency), texCoord); // Get UI color in YCbCr
+		uiColor.rgb = saturate(mul(RgbMtx, uiColor.rgb)); // Convert to RGB
 
 	// Correct for sRGB gamma
 	#if BUFFER_COLOR_BIT_DEPTH==8
 		// Convert to sRGB
-		color.rgb = sRGB_TO_LINEAR(color.rgb);
-		color.a *= sRGB_TO_LINEAR(ScopeUITransparency);
+		uiColor.rgb = sRGB_TO_LINEAR(uiColor.rgb);
+		uiColor.a *= sRGB_TO_LINEAR(ScopeUITransparency); // Apply UI transparency
 	#else
-		color.a *= ScopeUITransparency;
+		uiColor.a *= ScopeUITransparency; // Apply UI transparency
 	#endif
 
-		return color;
+		return uiColor;
 	}
 #endif
 
@@ -374,7 +378,11 @@ void GatherStatsVS(uint pixelID : SV_VertexID, out float4 position : SV_Position
 void DisplayScopePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD0, out float3 color : SV_Target)
 {
 	// Get background color
+#if BUFFER_COLOR_BIT_DEPTH==8
 	float3 background = tex2D(BackBuffer, texCoord).rgb;
+#else
+	float3 background = tex2D(ReShade::BackBuffer, texCoord).rgb;
+#endif
 
 	// Get UI offset
 	float3 scopeOffset = getScopeOffset();
@@ -397,7 +405,7 @@ void DisplayScopePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD0, out f
 	color = mul(RgbMtx, color); // Convert to RGB
 	// Mask vectorscope image
 #if SCOPES_FAST_CHECKERBOARD
-	color *= dot(tex2D(vectorscopeSampler, texCoord+0.5), float4(1, 1, 1, 1));
+	color *= dot(tex2D(vectorscopeSampler, texCoord+0.5), float4(1, 1, 1, 1)); // Combine all frames encoded in 4-color channels
 #else
 	color *= tex2D(vectorscopeSampler, texCoord+0.5).r;
 #endif
@@ -406,8 +414,14 @@ void DisplayScopePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD0, out f
 	color = lerp(background, color, borderMask*ScopeTransparency);
 
 #if !SCOPES_FAST_UI
-	float4 UI = DrawUI(texCoord);
-	color = lerp(saturate(color), UI.rgb, UI.a);
+	// Draw anti-aliased UI within bounding-box
+	if (all(abs(texCoord)<=SCOPES_BORDER_SIZE))
+	{
+		// Get the anti-aliased UI color and alpha
+		float4 UI = DrawUI(texCoord);
+		// Apply the UI to background picture
+		color = lerp(saturate(color), UI.rgb, UI.a);
+	}
 #endif
 }
 
@@ -474,7 +488,7 @@ technique Vectorscope <
 	ui_tooltip =
 		"This effect will analyze colors using vectorscope color-wheel"
 		"\n\nunder CC BY-NC-ND 3.0 license, (c) 2021 Jakub Maksymilian Fober"
-		"\nfor more info, production use, contact jakub.m.fober@pm.me";
+		"\nfor more info, game-production use, contact jakub.m.fober@pm.me";
 >
 {
 #if SCOPES_FAST_CHECKERBOARD
@@ -483,12 +497,12 @@ technique Vectorscope <
 		BlendEnable = true;
 		BlendOp = MIN;
 		BlendOpAlpha = MIN;
-		// Foreground
-		SrcBlend = ONE;
-		SrcBlendAlpha = ONE;
 		// Background
 		DestBlend = ONE;
 		DestBlendAlpha = ONE;
+		// Foreground
+		SrcBlend = ONE;
+		SrcBlendAlpha = ONE;
 
 		RenderTarget = vectorscopeTex;
 
@@ -501,8 +515,8 @@ technique Vectorscope <
 		ClearRenderTargets = false;
 
 		BlendOpAlpha = ADD;
-		SrcBlendAlpha = ONE;  // Foreground
 		DestBlendAlpha = ONE; // Background
+		SrcBlendAlpha = ONE;  // Foreground
 #else
 	pass AnalyzeColor
 	{
@@ -513,8 +527,8 @@ technique Vectorscope <
 
 		BlendEnable = true;
 		BlendOp = ADD;
-		SrcBlend = ONE;  // Foreground
 		DestBlend = ONE; // Background
+		SrcBlend = ONE;  // Foreground
 
 		RenderTarget = vectorscopeTex;
 
@@ -530,7 +544,7 @@ technique Vectorscope <
 #if SCOPES_FAST_UI
 	pass DrawUI
 	{
-		VertexCount = (6+6+1)*2;
+		VertexCount = (6+6+1)*2; // Two hexagons plus one skin-tone line
 		PrimitiveTopology = LINELIST;
 
 		BlendEnable = true;

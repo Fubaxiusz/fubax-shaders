@@ -1,5 +1,5 @@
 /**
-Scopes - Vectorscope Shader, version 1.1.3
+Scopes - Vectorscope Shader, version 1.1.4
 All rights (c) 2021 Jakub Maksymilian Fober (the Author)
 
 This effect will analyze all the pixels on the screen
@@ -72,12 +72,17 @@ uniform float ScopeTransparency < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.5; ui_max = 1.0; ui_step = 0.01;
 > = 0.99;
 
+#if SCOPES_FAST_CHECKERBOARD
+	// System variable
+	uniform uint FRAME_INDEX < source = "framecount"; >;
+#endif
 
-uniform uint FRAME_INDEX < source = "framecount"; >;
-
-
-// Convert to linear gamma all vector types
-#define sRGB_TO_LINEAR(g) pow(abs(g), 2.2)
+// Convert display gamma for all vector types
+#if BUFFER_COLOR_BIT_DEPTH!=10
+	#define TO_LINEAR_GAMMA(g) pow(abs(g), 2.2)
+#else // No gamma change
+	#define TO_LINEAR_GAMMA(g) (g)
+#endif
 // Golden ratio phi (0.618)
 #define GOLDEN_RATIO (sqrt(5.0)*0.5-0.5)
 // Get scope scale relative to border
@@ -152,7 +157,7 @@ sampler2D vectorscopeSampler
 };
 
 // Define screen texture with sRGB blending for nice anti-aliasing
-#if BUFFER_COLOR_BIT_DEPTH==8
+#if BUFFER_COLOR_BIT_DEPTH!=10
 	sampler2D BackBuffer
 	{
 		Texture = ReShade::BackBufferTex;
@@ -358,16 +363,9 @@ void GatherStatsVS(uint pixelID : SV_VertexID, out float4 position : SV_Position
 
 		// Output UI color
 		uiColor.rgb = float3(lerp(1.0, 1.0-GOLDEN_RATIO, ScopeUITransparency), texCoord); // Get UI color in YCbCr
-		uiColor.rgb = saturate(mul(RgbMtx, uiColor.rgb)); // Convert to RGB
+		uiColor.rgb = TO_LINEAR_GAMMA( saturate(mul(RgbMtx, uiColor.rgb)) ); // Convert to RGB
 
-	// Correct for sRGB gamma
-	#if BUFFER_COLOR_BIT_DEPTH==8
-		// Convert to sRGB
-		uiColor.rgb = sRGB_TO_LINEAR(uiColor.rgb);
-		uiColor.a *= sRGB_TO_LINEAR(ScopeUITransparency); // Apply UI transparency
-	#else
-		uiColor.a *= ScopeUITransparency; // Apply UI transparency
-	#endif
+		uiColor.a *= TO_LINEAR_GAMMA(ScopeUITransparency); // Apply UI transparency
 
 		return uiColor;
 	}
@@ -378,7 +376,7 @@ void GatherStatsVS(uint pixelID : SV_VertexID, out float4 position : SV_Position
 void DisplayScopePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD0, out float3 color : SV_Target)
 {
 	// Get background color
-#if BUFFER_COLOR_BIT_DEPTH==8
+#if BUFFER_COLOR_BIT_DEPTH!=10
 	float3 background = tex2D(BackBuffer, texCoord).rgb;
 #else
 	float3 background = tex2D(ReShade::BackBuffer, texCoord).rgb;
@@ -398,14 +396,17 @@ void DisplayScopePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD0, out f
 	texCoord /= scopeOffset.z;
 
 	// Generate round border mask
-	float borderMask = clamp(0.5-(length(texCoord)-SCOPES_BORDER_SIZE)*min(BUFFER_WIDTH, BUFFER_HEIGHT)*scopeOffset.z*0.5, 0.0, 1.0);
+	float borderMask = clamp(
+		0.5-(length(texCoord)-SCOPES_BORDER_SIZE)*min(BUFFER_WIDTH, BUFFER_HEIGHT)*scopeOffset.z, // Scale to pixel size
+		0.0, 1.0 // Clamp to visible range
+	);
 
 	// Determine vectorscope look
 	color = float3(GOLDEN_RATIO, texCoord.x, -texCoord.y); // Base color in YCbCr
 	color = mul(RgbMtx, color); // Convert to RGB
 	// Mask vectorscope image
 #if SCOPES_FAST_CHECKERBOARD
-	color *= dot(tex2D(vectorscopeSampler, texCoord+0.5), float4(1, 1, 1, 1)); // Combine all frames encoded in 4-color channels
+	color *= dot(tex2D(vectorscopeSampler, texCoord+0.5), 1); // Combine all frames encoded in 4-color channels
 #else
 	color *= tex2D(vectorscopeSampler, texCoord+0.5).r;
 #endif
@@ -474,10 +475,10 @@ void DisplayScopePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD0, out f
 	// Color user interface
 	void UserInterfacePS(float4 pos : SV_Position, float2 chroma : TEXCOORD0, out float4 color : SV_Target)
 	{
-		color.a = ScopeUITransparency;
+		color.a = TO_LINEAR_GAMMA(ScopeUITransparency);
 		// Get UI color in YCbCr
 		color.rgb = float3(lerp(1.0, 1.0-GOLDEN_RATIO, ScopeUITransparency), chroma);
-		color.rgb = saturate(mul(RgbMtx, color.rgb)); // Convert to RGB
+		color.rgb = TO_LINEAR_GAMMA( saturate(mul(RgbMtx, color.rgb)) ); // Convert to RGB
 	}
 #endif
 
@@ -538,12 +539,15 @@ technique Vectorscope <
 	pass DisplayVectorscope
 	{
 		SRGBWriteEnable = true; // Nice anti-aliasing
+
 		VertexShader = PostProcessVS;
 		PixelShader = DisplayScopePS;
 	}
 #if SCOPES_FAST_UI
 	pass DrawUI
 	{
+		SRGBWriteEnable = true; // Compatibility with anti-aliased UI
+
 		VertexCount = (6+6+1)*2; // Two hexagons plus one skin-tone line
 		PrimitiveTopology = LINELIST;
 

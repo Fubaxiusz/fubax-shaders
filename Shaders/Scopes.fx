@@ -1,5 +1,5 @@
 /**
-Scopes - Vectorscope Shader, version 1.1.4
+Scopes - Vectorscope Shader, version 1.1.5
 All rights (c) 2021 Jakub Maksymilian Fober (the Author)
 
 This effect will analyze all the pixels on the screen
@@ -359,7 +359,7 @@ void GatherStatsVS(uint pixelID : SV_VertexID, out float4 position : SV_Position
 			texCoord.y < skintonePos.y &&
 			texCoord.x < 0.0 &&
 			texCoord.y > 0.0) // Inside bounding-box
-		texCoord = skintonePos;
+		texCoord = skintonePos/GOLDEN_RATIO;
 
 		// Output UI color
 		uiColor.rgb = float3(lerp(1.0, 1.0-GOLDEN_RATIO, ScopeUITransparency), texCoord); // Get UI color in YCbCr
@@ -413,6 +413,7 @@ void DisplayScopePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD0, out f
 
 	// Blend with background
 	color = lerp(background, color, borderMask*ScopeTransparency);
+	color = saturate(color); // Clamp values
 
 #if !SCOPES_FAST_UI
 	// Draw anti-aliased UI within bounding-box
@@ -421,7 +422,7 @@ void DisplayScopePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD0, out f
 		// Get the anti-aliased UI color and alpha
 		float4 UI = DrawUI(texCoord);
 		// Apply the UI to background picture
-		color = lerp(saturate(color), UI.rgb, UI.a);
+		color = lerp(color, UI.rgb, UI.a);
 	}
 #endif
 }
@@ -453,7 +454,7 @@ void DisplayScopePS(float4 pos : SV_Position, float2 texCoord : TEXCOORD0, out f
 		else if (vertexID<24) position.xy = chroma = hexagonVert[vertexID-12]*0.75;
 		else // Skin-tone line
 		{
-			chroma = skintonePos; // Save skin-tone chroma
+			chroma = skintonePos/GOLDEN_RATIO; // Save skin-tone chroma
 			position.xy = skintonePos*(vertexID%2); // Skin-tone line position
 		}
 

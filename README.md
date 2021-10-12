@@ -5,7 +5,8 @@ This repository collects post-processing shaders written in the ReShade FX shade
 
 To get ReShade visit https://reshade.me
 
-To see other shaders https://github.com/Fubaxiusz/fubax-shaders-dev
+To get image-analysis Scopes https://patreon.com/fubax and **support me :)**
+
 
 Installation
 ------------

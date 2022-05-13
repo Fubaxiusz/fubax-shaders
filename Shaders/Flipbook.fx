@@ -7,7 +7,7 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/
 */
 
-// version 1.2.2
+// version 1.2.3
 
 
 	  ////////////
@@ -78,6 +78,7 @@ sampler FlipbookSampler
 	#if FLIPBOOK_PIXELATED==1
 		MagFilter = POINT;
 		MinFilter = POINT;
+		MipFilter = POINT;
 	#endif
 };
 

@@ -1,5 +1,5 @@
 /**
-Filmic Sharpen PS v1.2.8 (c) 2018 Jakub Maximilian Fober
+Filmic Sharpen PS v1.3.0 (c) 2018 Jakub Maximilian Fober
 
 This work is licensed under the Creative Commons
 Attribution-ShareAlike 4.0 International License.
@@ -14,34 +14,35 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 
 #include "ReShadeUI.fxh"
 
-uniform float Strength < __UNIFORM_SLIDER_FLOAT1
+uniform uint Strength < __UNIFORM_SLIDER_INT1
 	ui_label = "Strength";
-	ui_min = 0.0; ui_max = 100.0; ui_step = 0.01;
-> = 60.0;
+	ui_min = 1u; ui_max = 64u;
+> = 32u;
 
 uniform float Offset < __UNIFORM_SLIDER_FLOAT1
 	ui_label = "Radius";
 	ui_tooltip = "High-pass cross offset in pixels";
-	ui_min = 0.0; ui_max = 2.0; ui_step = 0.01;
+	ui_min = 0.05; ui_max = 0.25; ui_step = 0.01;
 > = 0.1;
-
-uniform float Clamp < __UNIFORM_SLIDER_FLOAT1
-	ui_label = "Clamping";
-	ui_min = 0.5; ui_max = 1.0; ui_step = 0.001;
-> = 0.65;
 
 uniform bool UseMask < __UNIFORM_INPUT_BOOL1
 	ui_label = "Sharpen only center";
 	ui_tooltip = "Sharpen only in center of the image";
 > = false;
 
-uniform int Coefficient < __UNIFORM_RADIO_INT1
-	ui_tooltip = "For digital video signal use BT.709, for analog (like VGA) use BT.601";
-	ui_label = "YUV coefficients";
-	ui_items = "BT.709 - digital\0BT.601 - analog\0";
+uniform float Clamp < __UNIFORM_SLIDER_FLOAT1
+	ui_label = "Clamping highlights";
+	ui_min = 0.5; ui_max = 1.0; ui_step = 0.1;
 	ui_category = "Additional settings";
 	ui_category_closed = true;
-> = 0;
+> = 0.6;
+
+uniform uint Coefficient < __UNIFORM_RADIO_INT1
+	ui_tooltip = "For digital video signal use BT.709, for analog (like VGA) use BT.601";
+	ui_label = "YUV coefficients";
+	ui_items = "BT.601 - analog\0BT.709 - digital\0";
+	ui_category = "Additional settings";
+> = 0u;
 
 uniform bool Preview < __UNIFORM_INPUT_BOOL1
 	ui_label = "Preview sharpen layer";
@@ -85,15 +86,7 @@ float Overlay(float LayerA, float LayerB)
 	float MinB = min(LayerB, 0.5);
 	float MaxA = max(LayerA, 0.5);
 	float MaxB = max(LayerB, 0.5);
-	return 2.0*((MinA*MinB+MaxA)+(MaxB-MaxA*MaxB))-1.5;
-}
-
-// Overlay blending mode for one input
-float Overlay(float LayerAB)
-{
-	float MinAB = min(LayerAB, 0.5);
-	float MaxAB = max(LayerAB, 0.5);
-	return 2.0*((MinAB*MinAB+MaxAB)+(MaxAB-MaxAB*MaxAB))-1.5;
+	return 2f*((MinA*MinB+MaxA)+(MaxB-MaxA*MaxB))-1.5;
 }
 
 // Convert to linear gamma
@@ -113,11 +106,11 @@ float3 FilmicSharpenPS(float4 pos : SV_Position, float2 UvCoord : TEXCOORD) : SV
 	float Mask;
 	if (UseMask)
 	{
+		// Center coordinates
+		float2 viewCoord = UvCoord*2f-1f;
+		viewCoord.y *= BUFFER_HEIGHT*BUFFER_RCP_WIDTH;
 		// Generate radial mask
-		Mask = 1.0-length(UvCoord*2.0-1.0);
-		Mask = Overlay(Mask)*Strength;
-		// Bypass
-		if (Mask <= 0) return Source;
+		Mask = Strength-min(dot(viewCoord, viewCoord), 1f)*Strength;
 	}
 	else Mask = Strength;
 
@@ -133,12 +126,12 @@ float3 FilmicSharpenPS(float4 pos : SV_Position, float2 UvCoord : TEXCOORD) : SV
 	};
 
 	// Choose luma coefficient, if False BT.709 luma, else BT.601 luma
-	const float3 LumaCoefficient = bool(Coefficient) ? Luma601 : Luma709;
+	const float3 LumaCoefficient = bool(Coefficient) ? Luma709 : Luma601;
 
 	// Luma high-pass
-	float HighPass = 0.0;
+	float HighPass = 0f;
 	[unroll]
-	for(int i=0; i<4; i++)
+	for(uint i=0u; i<4u; i++)
 		HighPass += dot(tex2D(BackBuffer, NorSouWesEst[i]).rgb, LumaCoefficient);
 
 	HighPass = 0.5-0.5*(HighPass*0.25-dot(Source, LumaCoefficient));
@@ -147,7 +140,7 @@ float3 FilmicSharpenPS(float4 pos : SV_Position, float2 UvCoord : TEXCOORD) : SV
 	HighPass = lerp(0.5, HighPass, Mask);
 
 	// Clamp sharpening
-	HighPass = Clamp!=1.0? clamp(HighPass, 1.0-Clamp, Clamp) : HighPass;
+	HighPass = Clamp!=1f? clamp(HighPass, 1f-Clamp, Clamp) : HighPass;
 
 	float3 Sharpen = float3(
 		Overlay(Source.r, HighPass),

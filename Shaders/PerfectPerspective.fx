@@ -1,4 +1,4 @@
-/** Perfect Perspective PS, version 4.3.0
+/** Perfect Perspective PS, version 4.4.0
 
 This code © 2022 Jakub Maksymilian Fober
 
@@ -187,7 +187,7 @@ uniform uint BorderGContinuity < __UNIFORM_SLIDER_INT1
 
 // DEBUG OPTIONS
 
-// GRID
+	// GRID
 
 uniform bool DebugPreview < __UNIFORM_INPUT_BOOL1
 	ui_label = "Preview debug mode";
@@ -225,6 +225,7 @@ uniform uint DebugMode < __UNIFORM_COMBO_INT1
 > = 0u;
 
 uniform float DimGridBackground < __UNIFORM_SLIDER_FLOAT1
+	ui_spacing = 1u;
 	ui_min = 0.25; ui_max = 1f; ui_step = 0.1;
 	ui_label = "Dim grid background";
 	ui_tooltip = "Adjust background visibility.";
@@ -232,7 +233,6 @@ uniform float DimGridBackground < __UNIFORM_SLIDER_FLOAT1
 		"Use calibration grid in conjunction with Image.fx, to match\n"
 		"lens distortion with a real-world camera profile.";
 	ui_category = "Debugging tools";
-	ui_spacing = 1u;
 > = 1f;
 
 uniform uint GridLook < __UNIFORM_COMBO_INT1
@@ -260,14 +260,21 @@ uniform uint GridWidth < __UNIFORM_SLIDER_INT1
 	ui_category = "Debugging tools";
 > = 2u;
 
-// Pixel scale map
+uniform float GridTilt < __UNIFORM_SLIDER_FLOAT1
+	ui_min = -1f; ui_max = 1f; ui_step = 0.01;
+	ui_label = "Tilt grid";
+	ui_tooltip = "Adjust calibration grid tilt in degrees.";
+	ui_category = "Debugging tools";
+> = 0f;
+
+	// Pixel scale map
 
 uniform uint ResScaleScreen < __UNIFORM_INPUT_INT1
+	ui_spacing = 1u;
 	ui_label = "Screen (native) resolution";
 	ui_tooltip = "Set it to default screen resolution.";
 	ui_text = "Use pixel scale-map to get optimal resolution for super-sampling.";
 	ui_category = "Debugging tools";
-	ui_spacing = 1u;
 > = 1920u;
 
 uniform uint ResScaleVirtual < __UNIFORM_DRAG_INT1
@@ -454,6 +461,24 @@ float3 GridModeViewPass(uint2 pixelCoord, float2 texCoord, float3 display)
 
 	// Get view coordinates, normalized at the corner
 	texCoord = (texCoord*2f-1f)*normalize(BUFFER_SCREEN_SIZE);
+
+	// Tilt view coordinates
+	{
+		// Convert angle to radians
+		float tiltRad = radians(GridTilt);
+		// Get rotation matrix components
+		float tiltSin = sin(tiltRad);
+		float tiltCos = cos(tiltRad);
+		// Rotate coordinates
+		texCoord = mul(
+			// Get rotation matrix
+			float2x2(
+				 tiltCos, tiltSin,
+				-tiltSin, tiltCos
+			),
+			texCoord
+		);
+	}
 
 	// Get coordinates pixel size
 	float2 delX = float2(ddx(texCoord.x), ddy(texCoord.x));

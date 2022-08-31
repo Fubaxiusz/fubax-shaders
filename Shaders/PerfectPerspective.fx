@@ -1,4 +1,4 @@
-/** Perfect Perspective PS, version 4.4.0
+/** Perfect Perspective PS, version 4.4.1
 
 This code © 2022 Jakub Maksymilian Fober
 
@@ -189,12 +189,12 @@ uniform uint BorderGContinuity < __UNIFORM_SLIDER_INT1
 
 	// GRID
 
-uniform bool DebugPreview < __UNIFORM_INPUT_BOOL1
-	ui_label = "Preview debug mode";
+uniform bool DebugModePreview < __UNIFORM_INPUT_BOOL1
+	ui_label = "Enable debugging mode";
 	ui_tooltip =
 		"Display calibration grid for lens-matching or\n"
 		"pixel scale-map for resolution matching.";
-	ui_category = "Debugging tools";
+	ui_category = "Debugging mode";
 	ui_category_closed = true;
 > = false;
 
@@ -221,18 +221,18 @@ uniform uint DebugMode < __UNIFORM_COMBO_INT1
 		"	red     under-sampling\n"
 		"	green   oversampling\n"
 		"	blue    1:1";
-	ui_category = "Debugging tools";
+	ui_category = "Debugging mode";
 > = 0u;
 
 uniform float DimGridBackground < __UNIFORM_SLIDER_FLOAT1
-	ui_spacing = 1u;
 	ui_min = 0.25; ui_max = 1f; ui_step = 0.1;
 	ui_label = "Dim grid background";
 	ui_tooltip = "Adjust background visibility.";
 	ui_text =
 		"Use calibration grid in conjunction with Image.fx, to match\n"
 		"lens distortion with a real-world camera profile.";
-	ui_category = "Debugging tools";
+	ui_category = "Debugging calibration grid";
+	ui_category_closed = true;
 > = 1f;
 
 uniform uint GridLook < __UNIFORM_COMBO_INT1
@@ -243,50 +243,50 @@ uniform uint GridLook < __UNIFORM_COMBO_INT1
 		"red-green grid\0";
 	ui_label = "Grid look";
 	ui_tooltip = "Select look of the grid.";
-	ui_category = "Debugging tools";
+	ui_category = "Debugging calibration grid";
 > = 0u;
 
 uniform uint GridSize < __UNIFORM_SLIDER_INT1
 	ui_min = 1u; ui_max = 32u;
 	ui_label = "Grid size";
 	ui_tooltip = "Adjust calibration grid size.";
-	ui_category = "Debugging tools";
+	ui_category = "Debugging calibration grid";
 > = 16u;
 
 uniform uint GridWidth < __UNIFORM_SLIDER_INT1
 	ui_min = 2u; ui_max = 16u;
 	ui_label = "Grid bar width";
 	ui_tooltip = "Adjust calibration grid bar width in pixels.";
-	ui_category = "Debugging tools";
+	ui_category = "Debugging calibration grid";
 > = 2u;
 
 uniform float GridTilt < __UNIFORM_SLIDER_FLOAT1
 	ui_min = -1f; ui_max = 1f; ui_step = 0.01;
 	ui_label = "Tilt grid";
 	ui_tooltip = "Adjust calibration grid tilt in degrees.";
-	ui_category = "Debugging tools";
+	ui_category = "Debugging calibration grid";
 > = 0f;
 
 	// Pixel scale map
 
 uniform uint ResScaleScreen < __UNIFORM_INPUT_INT1
-	ui_spacing = 1u;
 	ui_label = "Screen (native) resolution";
 	ui_tooltip = "Set it to default screen resolution.";
 	ui_text = "Use pixel scale-map to get optimal resolution for super-sampling.";
-	ui_category = "Debugging tools";
+	ui_category = "Debugging pixel scale-map";
+	ui_category_closed = true;
 > = 1920u;
 
 uniform uint ResScaleVirtual < __UNIFORM_DRAG_INT1
-	ui_category = "Debugging tools";
-	ui_label = "Virtual resolution";
-	ui_tooltip =
-		"Simulates application running beyond native\n"
-		"screen resolution (using VSR or DSR).";
 	#if __RESHADE__ < 40000
 		ui_step = 0.2;
 	#endif
 	ui_min = 16u; ui_max = 16384u;
+	ui_label = "Virtual resolution";
+	ui_tooltip =
+		"Simulates application running beyond native\n"
+		"screen resolution (using VSR or DSR).";
+	ui_category = "Debugging pixel scale-map";
 > = 1920u;
 
 
@@ -385,7 +385,7 @@ float UniversalPerspective_vignette(inout float2 viewCoord) // Returns vignette
 	float theta = get_theta(R, hlfOmega, K);
 
 	// Generate vignette
-	bool vignetteIsVisible = UseVignette && !DebugPreview;
+	bool vignetteIsVisible = UseVignette && !DebugModePreview;
 	float vignetteMask = vignetteIsVisible ? get_vignette(theta, K) : 1f;
 	// Anamorphic vignette correction
 	if (vignetteIsVisible && S!=1f)
@@ -574,7 +574,7 @@ float3 PerfectPerspectivePS(float4 pixelPos : SV_Position, float2 sphCoord : TEX
 {
 	// Bypass
 	if (FOV==0u || (K==1f && !UseVignette))
-		if (DebugPreview)
+		if (DebugModePreview)
 		{
 			float3 display; // Initialize variable
 			switch (DebugMode) // Choose output type
@@ -705,7 +705,7 @@ float3 PerfectPerspectivePS(float4 pixelPos : SV_Position, float2 sphCoord : TEX
 	}
 	else display *= vignetteMask; // Apply vignette
 
-	if (DebugPreview) // display in debug mode
+	if (DebugModePreview) // display in debug mode
 		switch (DebugMode) // Choose output type
 		{
 			default:

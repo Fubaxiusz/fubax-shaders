@@ -1,4 +1,4 @@
-/** Perfect Perspective PS, version 5.0.1
+/** Perfect Perspective PS, version 5.0.2
 
 This code © 2022 Jakub Maksymilian Fober
 
@@ -345,7 +345,7 @@ uniform uint ResScaleVirtual < __UNIFORM_DRAG_INT1
 sampler BackBuffer
 {
 	Texture = ReShade::BackBufferTex;
-#if BUFFER_COLOR_SPACE <= 2 // Linear workflow
+#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH != 10 // Linear workflow
 	SRGBTexture = true;
 #endif
 	// Border style
@@ -455,7 +455,11 @@ float3 GridModeViewPass(
 	float3 display)
 {
 	// Sample background without distortion
+#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // Manual gamma correction
+	display = to_linear_gamma_hq(tex2Dfetch(BackBuffer, pixelCoord).rgb);
+#else
 	display = tex2Dfetch(BackBuffer, pixelCoord).rgb;
+#endif
 
 	// Get view coordinates, normalized at the corner
 	texCoord = (texCoord*2f-1f)*normalize(BUFFER_SCREEN_SIZE);
@@ -497,7 +501,7 @@ float3 GridModeViewPass(
 	// Adjust grid look
 	display = lerp(
 #if BUFFER_COLOR_SPACE <= 2 // Linear workflow
-		TO_LINEAR_GAMMA_HQ(16f/255f), // Safe bottom-color in linear range
+		to_linear_gamma_hq(16f/255f), // Safe bottom-color in linear range
 #else
 		16f/255f, // Safe bottom-color range
 #endif
@@ -554,7 +558,7 @@ float3 SamplingScaleModeViewPass(
 
 
 #if BUFFER_COLOR_SPACE <= 2 // Linear workflow
-	display = TO_DISPLAY_GAMMA_HQ(display);
+	display = to_display_gamma_hq(display);
 #endif
 	// Get luma channel mapped to save range
 	display.x = lerp(
@@ -568,12 +572,13 @@ float3 SamplingScaleModeViewPass(
 		display, // Background
 		DimDebugBackground // Dimming amount
 	);
-#if BUFFER_COLOR_SPACE <= 2 // Linear workflow
-	display.x = TO_LINEAR_GAMMA_HQ(display.x);
-#endif
 	// Adjust background look
 	display = lerp(
+#if BUFFER_COLOR_SPACE <= 2 // Linear workflow
+		to_linear_gamma_hq(display.x), // Background
+#else
 		display.x, // Background
+#endif
 		pixelScaleMap, // Pixel scale map
 		sqrt(1.25)-0.5 // Golden ratio by JMF
 	);
@@ -598,10 +603,14 @@ float3 PerfectPerspectivePS(
 				// Calibration grid
 				default: display = GridModeViewPass(uint2(pixelPos.xy), texCoord, display); break;
 				// Pixel scale-map
+#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // Manual gamma correction
+				case 1u: display = SamplingScaleModeViewPass(texCoord, to_linear_gamma_hq(tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb)); break;
+#else
 				case 1u: display = SamplingScaleModeViewPass(texCoord, tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb); break;
+#endif
 			}
 #if BUFFER_COLOR_SPACE <= 2 // Linear workflow
-			display = TO_DISPLAY_GAMMA_HQ(display); // Manually correct gamma
+			display = to_display_gamma_hq(display); // Manually correct gamma
 			return BlueNoise::dither(uint2(pixelPos.xy), display); // Dither final 8-bit result
 #else
 			return display;
@@ -752,6 +761,9 @@ float3 PerfectPerspectivePS(
 #endif
 		tex2D(BackBuffer, texCoord).rgb : // Perspective projection lookup
 		tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb; // No perspective change
+#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // Manual gamma correction
+	display = to_linear_gamma_hq(display);
+#endif
 
 	// Display calibration view
 	if (DebugModePreview) switch (DebugMode) // Choose output type
@@ -771,10 +783,14 @@ float3 PerfectPerspectivePS(
 		// Get border
 		float3 border = lerp(
 			// Border background
+#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // Manual gamma correction
+			MirrorBorder? display : to_linear_gamma_hq(tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb),
+#else
 			MirrorBorder? display : tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb,
+#endif
 #if BUFFER_COLOR_SPACE <= 2 // Linear workflow
-			TO_LINEAR_GAMMA_HQ(BorderColor.rgb), // Border color
-			TO_LINEAR_GAMMA_HQ(BorderColor.a)    // Border alpha
+			to_linear_gamma_hq(BorderColor.rgb), // Border color
+			to_linear_gamma_hq(BorderColor.a)    // Border alpha
 #else
 			BorderColor.rgb, // Border color
 			BorderColor.a    // Border alpha
@@ -791,7 +807,7 @@ float3 PerfectPerspectivePS(
 
 #if BUFFER_COLOR_SPACE <= 2 // Linear workflow
 	// Manually correct gamma
-	display = TO_DISPLAY_GAMMA_HQ(display);
+	display = to_display_gamma_hq(display);
 	// Dither final 8-bit result
 	return BlueNoise::dither(uint2(pixelPos.xy), display);
 #else

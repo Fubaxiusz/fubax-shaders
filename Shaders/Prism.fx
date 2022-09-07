@@ -1,4 +1,4 @@
-/** Chromatic Aberration (Prism) PS, version 2.0.0
+/** Chromatic Aberration (Prism) PS, version 2.1.0
 
 This code © 2018-2022 Jakub Maksymilian Fober
 
@@ -36,12 +36,18 @@ inspired by Marty McFly YACA shader
 	/* MENU */
 
 uniform float4 K < __UNIFORM_DRAG_FLOAT4
-	ui_min = -0.1;
-	ui_max =  0.1;
+	ui_min = -0.1; ui_max =  0.1;
 	ui_label = "Radial 'k' coefficients";
 	ui_tooltip = "Radial distortion coefficients k1, k2, k3, k4.";
 	ui_category = "Chromatic aberration";
 > = float4(0.016, 0f, 0f, 0f);
+
+uniform float AchromatAmount < __UNIFORM_SLIDER_FLOAT1
+	ui_min = 0f; ui_max =  1f;
+	ui_label = "Achromat amount";
+	ui_tooltip = "Achromat strength factor.";
+	ui_category = "Chromatic aberration";
+> = 0f;
 
 // Performance
 
@@ -130,6 +136,9 @@ void ChromaticAberrationPS(float4 pixelPos : SV_Position, float2 viewCoord : TEX
 	// Sample background with multiple color filters at multiple offsets
 	color = 0f; // initialize color
 	for (uint i=0u; i<evenSampleCount; i++)
+	{
+		float progress = i/float(evenSampleCount-1u)-0.5;
+		progress = lerp(progress, 0.5-abs(progress), AchromatAmount);
 #if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // Manual gamma correction
 		color += to_linear_gamma_hq(tex2Dlod(
 #else
@@ -137,7 +146,7 @@ void ChromaticAberrationPS(float4 pixelPos : SV_Position, float2 viewCoord : TEX
 #endif
 			BackBuffer, // Image source
 			float4(
-				(i/float(evenSampleCount-1u)-0.5) // Aberration offset
+				progress // Aberration offset
 				*distortion // Distortion coordinates
 				+viewCoord, // Original coordinates
 			0f, 0f)
@@ -147,6 +156,7 @@ void ChromaticAberrationPS(float4 pixelPos : SV_Position, float2 viewCoord : TEX
 		).rgb
 #endif
 		*Spectrum(i/float(evenSampleCount)); // Blur layer color
+	}
 	// Preserve brightness
 	color *= 2f/evenSampleCount;
 #if BUFFER_COLOR_SPACE <= 2 // Linear workflow

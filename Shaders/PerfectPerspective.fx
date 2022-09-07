@@ -279,7 +279,7 @@ uniform float DimDebugBackground < __UNIFORM_SLIDER_FLOAT1
 	ui_category = "Debugging mode";
 > = 1f;
 
-	// GRID
+// GRID
 
 uniform uint GridLook < __UNIFORM_COMBO_INT1
 	ui_items =
@@ -317,7 +317,7 @@ uniform float GridTilt < __UNIFORM_SLIDER_FLOAT1
 	ui_category = "Debugging calibration grid";
 > = 0f;
 
-	// Pixel scale map
+// PIXEL SCALE MAP
 
 uniform uint ResScaleScreen < __UNIFORM_INPUT_INT1
 	ui_label = "Screen (native) resolution";

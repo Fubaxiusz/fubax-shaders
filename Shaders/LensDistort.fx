@@ -1,4 +1,4 @@
-/** Lens Distortion PS, version 1.3.3
+/** Lens Distortion PS, version 1.3.4
 
 This code © 2022 Jakub Maksymilian Fober
 
@@ -212,7 +212,7 @@ uniform uint BorderGContinuity < __UNIFORM_SLIDER_INT1
 	ui_category = "Border";
 > = 3u;
 
-// GRID
+// Grid
 
 uniform float DimGridBackground < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.25; ui_max = 1f; ui_step = 0.1;
@@ -256,7 +256,6 @@ uniform float GridTilt < __UNIFORM_SLIDER_FLOAT1
 	ui_tooltip = "Adjust calibration grid tilt in degrees.";
 	ui_category = "Grid";
 > = 0f;
-
 
 // Performance
 
@@ -357,7 +356,7 @@ float GetBorderMask(float2 borderCoord)
 		// Round corner
 		return aastep(glength(BorderGContinuity, borderCoord)-1f); // with G1 to G3 continuity
 	}
-	else // Just sharp corner, G0
+	else // just sharp corner, G0
 		return aastep(glength(0u, borderCoord)-1f);
 }
 
@@ -521,21 +520,18 @@ void LensDistortPS(float4 pixelPos : SV_Position, float2 viewCoord : TEXCOORD, o
 		for (uint i=0u; i<evenSampleCount; i++)
 #if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // Manual gamma correction
 			color += to_linear_gamma_hq(tex2Dlod(
-				BackBuffer, // Image source
-				float4(
-					(T*(i/float(evenSampleCount-1u)-0.5)+1f) // Aberration offset
-					*distortion // Distortion coordinates
-					+orygTexCoord, // Original coordinates
-				0f, 0f)
-			).rgb)
 #else
 			color += tex2Dlod(
+#endif
 				BackBuffer, // Image source
 				float4(
 					(T*(i/float(evenSampleCount-1u)-0.5)+1f) // Aberration offset
 					*distortion // Distortion coordinates
 					+orygTexCoord, // Original coordinates
 				0f, 0f)
+#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // Manual gamma correction
+			).rgb)
+#else
 			).rgb
 #endif
 			*Spectrum(i/float(evenSampleCount)); // Blur layer color
@@ -597,23 +593,17 @@ void LensDistortPS(float4 pixelPos : SV_Position, float2 viewCoord : TEXCOORD, o
 		);
 		switch (GridLook)
 		{
-			default:
 			// Yellow
-				color = lerp(float3(1f, 1f, 0f), color, (1f-viewCoord.x)*(1f-viewCoord.y));
-				break;
-			case 1:
+			default: color  = lerp(float3(1f, 1f, 0f), color, (1f-viewCoord.x)*(1f-viewCoord.y)); break;
 			// Black
-				color *= (1f-viewCoord.x)*(1f-viewCoord.y);
-				break;
-			case 2:
+			case  1: color *= (1f-viewCoord.x)*(1f-viewCoord.y); break;
 			// White
-				color = 1f-(1f-viewCoord.x)*(1f-viewCoord.y)*(1f-color);
-				break;
-			case 3:
+			case  2: color  = 1f-(1f-viewCoord.x)*(1f-viewCoord.y)*(1f-color); break;
 			// Color red-green
+			case  3:
 				color = lerp(color, float3(1f, 0f, 0f), viewCoord.y);
 				color = lerp(color, float3(0f, 1f, 0f), viewCoord.x);
-				break;
+			break;
 		}
 	}
 	else // sample background with distortion

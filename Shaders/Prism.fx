@@ -167,7 +167,6 @@ technique ChromaticAberration
 		"	· Accurate color split.\n"
 		"	· Driven by lens distortion Brown-Conrady division model.\n"
 		"\n"
-		"\n"
 		"This effect © 2018-2022 Jakub Maksymilian Fober\n"
 		"Licensed under CC BY-NC-ND 3.0 + additional permissions (see source).";
 >

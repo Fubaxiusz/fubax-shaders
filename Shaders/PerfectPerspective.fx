@@ -1,4 +1,4 @@
-/** Perfect Perspective PS, version 5.0.7
+/** Perfect Perspective PS, version 5.0.8
 
 This code © 2018-2023 Jakub Maksymilian Fober
 
@@ -75,7 +75,7 @@ by Fober, J. M.
 // FIELD OF VIEW
 
 uniform uint FovAngle < __UNIFORM_SLIDER_INT1
-	ui_category = "Game";
+	ui_category = "In game";
 	ui_text = "(Match game settings)";
 	ui_label = "Field of view (FOV)";
 	ui_tooltip = "This should match your in-game FOV value.";
@@ -86,7 +86,7 @@ uniform uint FovAngle < __UNIFORM_SLIDER_INT1
 > = 90u;
 
 uniform uint FovType < __UNIFORM_COMBO_INT1
-	ui_category = "Game";
+	ui_category = "In game";
 	ui_label = "Field of view type";
 	ui_tooltip =
 		"This should match game-specific FOV type.\n"
@@ -112,6 +112,7 @@ uniform uint FovType < __UNIFORM_COMBO_INT1
 
 uniform float K < __UNIFORM_SLIDER_FLOAT1
 	ui_category = "Distortion";
+	ui_text = "(Adjust distortion strength)";
 #if PATNOMORPHIC_MODE // k indicates horizontal axis projection type
 	ui_label = "Projection type 'k.x'";
 #else // k represents whole picture projection type
@@ -121,13 +122,13 @@ uniform float K < __UNIFORM_SLIDER_FLOAT1
 		"Projection coefficient 'k', represents\n"
 		"various azimuthal projections types:\n"
 		"\n"
-		"Perception     Value  Projection\n"
-		"\n"
-		"straight path   1     Rectilinear\n"
-		"shape           0.5   Stereographic\n"
-		"distance        0     Equidistant\n"
-		"depth          -0.5   Equisolid\n"
-		"illumination   -1     Orthographic\n"
+		"Perception    | Value | Projection\n"
+		"-------------------------------------\n"
+		"straight path |  1    | Rectilinear\n"
+		"shape         |  0.5  | Stereographic\n"
+		"distance      |  0    | Equidistant\n"
+		"depth         | -0.5  | Equisolid\n"
+		"illumination  | -1    | Orthographic\n"
 		"\n"
 		"\n"
 		"[Ctrl+click] to type value.";
@@ -142,13 +143,13 @@ uniform float Ky < __UNIFORM_SLIDER_FLOAT1
 		"Projection coefficient 'k', represents\n"
 		"various azimuthal projections types:\n"
 		"\n"
-		"Perception     Value  Projection\n"
-		"\n"
-		"straight path   1     Rectilinear\n"
-		"shape           0.5   Stereographic\n"
-		"distance        0     Equidistant\n"
-		"depth          -0.5   Equisolid\n"
-		"illumination   -1     Orthographic\n"
+		"Perception    | Value | Projection\n"
+		"-------------------------------------\n"
+		"straight path |  1    | Rectilinear\n"
+		"shape         |  0.5  | Stereographic\n"
+		"distance      |  0    | Equidistant\n"
+		"depth         | -0.5  | Equisolid\n"
+		"illumination  | -1    | Orthographic\n"
 		"\n"
 		"\n"
 		"[Ctrl+click] to type value.";
@@ -162,16 +163,37 @@ uniform float S < __UNIFORM_SLIDER_FLOAT1
 		"Anamorphic squeeze factor 's', affects\n"
 		"vertical axis:\n"
 		"\n"
-		"1      spherical lens\n"
-		"1.25   Ultra Panavision 70\n"
-		"1.33   16x9 TV\n"
-		"1.5    Technirama\n"
-		"1.6    digital anamorphic\n"
-		"1.8    4x3 full-frame\n"
-		"2      golden-standard";
+		"Value | Lens\n"
+		"---------------------------\n"
+		"1     | spherical lens\n"
+		"1.25  | Ultra Panavision 70\n"
+		"1.33  | 16x9 TV\n"
+		"1.5   | Technirama\n"
+		"1.6   | digital anamorphic\n"
+		"1.8   | 4x3 full-frame\n"
+		"2     | golden-standard";
 	ui_min = 1f; ui_max = 4f; ui_step = 0.05;
 > = 1f;
 #endif
+
+uniform float CroppingFactor < __UNIFORM_SLIDER_FLOAT1
+	ui_category = "Distortion";
+	ui_label = "Cropping";
+	ui_tooltip =
+		"Adjusts image scale and cropped area size:\n"
+		"\n"
+		"Value | Cropping\n"
+		"----------------------\n"
+		"0     | circular\n"
+#if PATNOMORPHIC_MODE // Range limited to [0,1]
+		"1     | cropped-circle";
+	ui_min = 0f; ui_max = 1f;
+#else // Includes full-frame cropping mode at 2
+		"1     | cropped-circle\n"
+		"2     | full-frame";
+	ui_min = 0f; ui_max = 2f;
+#endif
+> = 1f;
 
 uniform bool UseVignette < __UNIFORM_INPUT_BOOL1
 	ui_category = "Distortion";
@@ -181,53 +203,34 @@ uniform bool UseVignette < __UNIFORM_INPUT_BOOL1
 
 // BORDER
 
-uniform float CroppingFactor < __UNIFORM_SLIDER_FLOAT1
-	ui_category = "Border";
-	ui_category_closed = true;
-	ui_label = "Cropping";
-	ui_tooltip =
-		"Adjusts image scale and cropped area size:\n"
-		"\n"
-		"Value Cropping\n"
-		"\n"
-		"  0   circular\n"
-#if PATNOMORPHIC_MODE // Range limited to [0,1]
-		"  1   cropped-circle";
-	ui_min = 0f; ui_max = 1f;
-#else // Includes full-frame cropping mode at 2
-		"  1   cropped-circle\n"
-		"  2   full-frame";
-	ui_min = 0f; ui_max = 2f;
-#endif
-> = 1f;
-
 uniform bool MirrorBorder < __UNIFORM_INPUT_BOOL1
-	ui_category = "Border";
+	ui_category = "Border appearance";
+	ui_category_closed = true;
 	ui_label = "Mirror on border";
 	ui_tooltip = "Choose mirrored or original image on the border.";
 > = true;
 
 uniform bool BorderVignette < __UNIFORM_INPUT_BOOL1
-	ui_category = "Border";
+	ui_category = "Border appearance";
 	ui_label = "Vignette on border";
 	ui_tooltip = "Apply vignetting effect to border.";
 > = false;
 
 uniform float4 BorderColor < __UNIFORM_COLOR_FLOAT4
-	ui_category = "Border";
+	ui_category = "Border appearance";
 	ui_label = "Border color";
 	ui_tooltip = "Use alpha to change border transparency.";
 > = float4(0.027, 0.027, 0.027, 0.96);
 
 uniform float BorderCorner < __UNIFORM_SLIDER_FLOAT1
-	ui_category = "Border";
+	ui_category = "Border appearance";
 	ui_label = "Corner radius";
 	ui_tooltip = "Value of 0 gives sharp corners.";
 	ui_min = 0f; ui_max = 1f;
 > = 0.062;
 
 uniform uint BorderGContinuity < __UNIFORM_SLIDER_INT1
-	ui_category = "Border";
+	ui_category = "Border appearance";
 	ui_label = "Corner roundness";
 	ui_tooltip =
 		"G-surfacing continuity level for the corners:\n"
@@ -252,27 +255,25 @@ uniform bool DebugModePreview < __UNIFORM_INPUT_BOOL1
 
 uniform uint DebugMode < __UNIFORM_COMBO_INT1
 	ui_items =
-		"calibration grid\0"
-		"pixel scale-map\0";
+		"Calibration grid\0"
+		"Pixel scale-map\0";
 	ui_label = "Select debug mode";
 	ui_tooltip =
 		"Calibration grid:\n"
 		"\n"
-		"	Display distorted grid on-top of undistorted image.\n"
-		"	This can be used in conjunction with Image.fx\n"
-		"	to display real-world camera lens image and\n"
-		"	match its distortion profile.\n"
+		"	Use calibration grid in conjunction with Image.fx, to match\n"
+		"	lens distortion with a real-world camera profile.\n"
 		"\n"
 		"Pixel scale-map:\n"
 		"\n"
-		"	Display resolution-scale color map.\n"
-		"	Can indicate if super-resolution is required:\n"
+		"	Use pixel scale-map to get optimal resolution for super-sampling.\n"
 		"\n"
 		"	Color   Definition\n"
 		"\n"
 		"	red     under-sampling\n"
 		"	green   oversampling\n"
 		"	blue    1:1";
+	ui_text = "Debugging settings:";
 	ui_category = "Debugging mode";
 > = 0u;
 
@@ -293,10 +294,8 @@ uniform uint GridLook < __UNIFORM_COMBO_INT1
 		"red-green grid\0";
 	ui_label = "Grid look";
 	ui_tooltip = "Select look of the grid.";
-	ui_text =
-		"Use calibration grid in conjunction with Image.fx, to match\n"
-		"lens distortion with a real-world camera profile.";
-	ui_category = "Debugging calibration grid";
+	ui_text = "Calibration grid settings:";
+	ui_category = "Debugging mode";
 	ui_category_closed = true;
 > = 0u;
 
@@ -304,21 +303,21 @@ uniform uint GridSize < __UNIFORM_SLIDER_INT1
 	ui_min = 1u; ui_max = 32u;
 	ui_label = "Grid size";
 	ui_tooltip = "Adjust calibration grid size.";
-	ui_category = "Debugging calibration grid";
+	ui_category = "Debugging mode";
 > = 16u;
 
 uniform uint GridWidth < __UNIFORM_SLIDER_INT1
 	ui_min = 2u; ui_max = 16u;
 	ui_label = "Grid bar width";
 	ui_tooltip = "Adjust calibration grid bar width in pixels.";
-	ui_category = "Debugging calibration grid";
+	ui_category = "Debugging mode";
 > = 2u;
 
 uniform float GridTilt < __UNIFORM_SLIDER_FLOAT1
 	ui_min = -1f; ui_max = 1f; ui_step = 0.01;
 	ui_label = "Tilt grid";
 	ui_tooltip = "Adjust calibration grid tilt in degrees.";
-	ui_category = "Debugging calibration grid";
+	ui_category = "Debugging mode";
 > = 0f;
 
 // PIXEL SCALE MAP
@@ -326,8 +325,8 @@ uniform float GridTilt < __UNIFORM_SLIDER_FLOAT1
 uniform uint ResScaleScreen < __UNIFORM_INPUT_INT1
 	ui_label = "Screen (native) resolution";
 	ui_tooltip = "Set it to default screen resolution.";
-	ui_text = "Use pixel scale-map to get optimal resolution for super-sampling.";
-	ui_category = "Debugging pixel scale-map";
+	ui_text = "Pixel scale-map settings:";
+	ui_category = "Debugging mode";
 	ui_category_closed = true;
 > = 1920u;
 
@@ -340,7 +339,7 @@ uniform uint ResScaleVirtual < __UNIFORM_DRAG_INT1
 	ui_tooltip =
 		"Simulates application running beyond native\n"
 		"screen resolution (using VSR or DSR).";
-	ui_category = "Debugging pixel scale-map";
+	ui_category = "Debugging mode";
 > = 1920u;
 
 	/* TEXTURES */

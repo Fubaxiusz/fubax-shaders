@@ -1,4 +1,4 @@
-/** Contrast Limited Sharpening PS, version 1.1.1
+/** Contrast Limited Sharpening PS, version 1.1.2
 
 This code © 2023 Jakub Maksymilian Fober
 
@@ -187,7 +187,8 @@ void ContrastSharpenPassHorizontalPS(
 				abs(sampleLuminosity-luminosity)/ContrastAmount // Contrast
 			));
 		// Apply weight and add to blurred luminosity
-		cumilativeLuminosity += sampleLuminosity*
+		cumilativeLuminosity +=
+			sampleLuminosity*
 #if CONTRAST_SHARPEN_RADIUS // for fixed contrast sharpen radius
 			sampleWeight[yPos];
 		cumilativeWeight += sampleWeight[yPos];
@@ -242,12 +243,13 @@ void ContrastSharpenPassVerticalPS(
 				abs(sampleLuminosity-color.x)/ContrastAmount // Contrast
 			));
 		// Apply weight and add to blurred luminosity
-		cumilativeLuminosity += sampleLuminosity*
+		cumilativeLuminosity +=
+			sampleLuminosity*
 #if CONTRAST_SHARPEN_RADIUS // for fixed contrast sharpen radius
-		sampleWeight[xPos];
+			sampleWeight[xPos];
 		cumilativeWeight += sampleWeight[xPos];
 #else // for dynamic contrast sharpen radius
-		sampleWeight;
+			sampleWeight;
 		cumilativeWeight += sampleWeight;
 #endif
 	}

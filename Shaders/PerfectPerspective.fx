@@ -1,4 +1,4 @@
-/** Perfect Perspective PS, version 5.0.9
+/** Perfect Perspective PS, version 5.1.0
 
 This code © 2018-2023 Jakub Maksymilian Fober
 
@@ -53,9 +53,11 @@ by Fober, J. M.
 
 	/* MACROS */
 
-// Alternative to anamorphic
-#ifndef PATNOMORPHIC_MODE
-	#define PATNOMORPHIC_MODE 0
+// Alternative to anamorphic.
+// 1 gives separate distortion option for vertical axis.
+// 2 gives separate option for top and bottom half.
+#ifndef PANTOMORPHIC_MODE
+	#define PANTOMORPHIC_MODE 0
 #endif
 // Stereo 3D mode
 #ifndef SIDE_BY_SIDE_3D
@@ -113,7 +115,7 @@ uniform uint FovType < __UNIFORM_COMBO_INT1
 uniform float K < __UNIFORM_SLIDER_FLOAT1
 	ui_category = "Distortion";
 	ui_text = "(Adjust distortion strength)";
-#if PATNOMORPHIC_MODE // k indicates horizontal axis projection type
+#if PANTOMORPHIC_MODE // k indicates horizontal axis projection type
 	ui_label = "Projection type 'k.x'";
 #else // k represents whole picture projection type
 	ui_label = "Projection type 'k'";
@@ -135,8 +137,12 @@ uniform float K < __UNIFORM_SLIDER_FLOAT1
 	ui_min = -1f; ui_max = 1f; ui_step = 0.05;
 > = 0.5;
 
-#if PATNOMORPHIC_MODE // vertical axis projection is driven by separate k parameter
-uniform float Ky < __UNIFORM_SLIDER_FLOAT1
+#if PANTOMORPHIC_MODE // vertical axis projection is driven by separate k parameter
+	#if PANTOMORPHIC_MODE == 1 // vertical axis projection is driven by separate k parameter
+	uniform float Ky < __UNIFORM_SLIDER_FLOAT1
+	#elif PANTOMORPHIC_MODE >= 2 // vertical axis projection is driven by separate ky top and ky bottom parameter
+	uniform float2 Ky < __UNIFORM_SLIDER_FLOAT2
+	#endif
 	ui_category = "Distortion";
 	ui_label = "Projection type 'k.y'";
 	ui_tooltip =
@@ -185,7 +191,7 @@ uniform float CroppingFactor < __UNIFORM_SLIDER_FLOAT1
 		"Value | Cropping\n"
 		"----------------------\n"
 		"0     | circular\n"
-#if PATNOMORPHIC_MODE // Range limited to [0,1]
+#if PANTOMORPHIC_MODE // Range limited to [0,1]
 		"1     | cropped-circle";
 	ui_min = 0f; ui_max = 1f;
 #else // Includes full-frame cropping mode at 2
@@ -208,7 +214,7 @@ uniform bool MirrorBorder < __UNIFORM_INPUT_BOOL1
 	ui_category_closed = true;
 	ui_label = "Mirror on border";
 	ui_tooltip = "Choose mirrored or original image on the border.";
-> = true;
+> = false;
 
 uniform bool BorderVignette < __UNIFORM_INPUT_BOOL1
 	ui_category = "Border appearance";
@@ -594,8 +600,10 @@ float3 PerfectPerspectivePS(
 	float2 texCoord : TEXCOORD0) : SV_Target
 {
 	// Bypass perspective mapping
-#if PATNOMORPHIC_MODE // take vertical k factor into account
+#if PANTOMORPHIC_MODE == 1 // take vertical k factor into account
 	if (FovAngle==0u || (K==1f && Ky==1f && !UseVignette))
+#elif PANTOMORPHIC_MODE >= 2 // take both vertical k factors into account
+	if (FovAngle==0u || (K==1f && all(Ky==1f) && !UseVignette))
 #else // consider only global k
 	if (FovAngle==0u || (K==1f && !UseVignette))
 #endif
@@ -649,7 +657,7 @@ float3 PerfectPerspectivePS(
 	// Reciprocal focal length
 	const float rcp_focal = get_rcp_focal(halfOmega, radiusAtOmega, K);
 	// Image radius
-#if PATNOMORPHIC_MODE // Simple length function for radius
+#if PANTOMORPHIC_MODE // Simple length function for radius
 	float radius = length(texCoord);
 #else // derive radius from anamorphic coordinates
 	float radius = S==1f ?
@@ -662,7 +670,7 @@ float3 PerfectPerspectivePS(
 		const float croppingHorizontal = get_radius(
 				atan(tan(halfOmega)/radiusAtOmega*viewProportions.x),
 			rcp_focal, K)/viewProportions.x;
-#if PATNOMORPHIC_MODE // Does not include diagonal cropping radius for full-frame mode
+#if PANTOMORPHIC_MODE == 1 // Does not include diagonal cropping radius for full-frame mode
 		// Vertical edge radius
 		const float croppingVertical = get_radius(
 				atan(tan(halfOmega)/radiusAtOmega*viewProportions.y),
@@ -671,6 +679,22 @@ float3 PerfectPerspectivePS(
 		const float croppingScalar = lerp(
 				max(croppingHorizontal, croppingVertical), // Circular fish-eye
 				min(croppingHorizontal, croppingVertical), // Cropped circle
+				clamp(CroppingFactor, 0f, 1f)
+			);
+#elif PANTOMORPHIC_MODE >= 2
+		// Vertical edge radius
+		const float2 croppingVertical = float2(
+			get_radius(
+				atan(tan(halfOmega)/radiusAtOmega*viewProportions.y),
+				rcp_focal, Ky.s),
+			get_radius(
+				atan(tan(halfOmega)/radiusAtOmega*viewProportions.y),
+				rcp_focal, Ky.t)
+		)/viewProportions.y;
+		// Get radius scaling for bounds alignment
+		const float croppingScalar = lerp(
+				max(max(croppingHorizontal, croppingVertical.s), croppingVertical.t), // Circular fish-eye
+				min(min(croppingHorizontal, croppingVertical.s), croppingVertical.t), // Cropped circle
 				clamp(CroppingFactor, 0f, 1f)
 			);
 #else // border cropping radius is in anamorphic coordinates
@@ -704,18 +728,26 @@ float3 PerfectPerspectivePS(
 		radius *= croppingScalar;
 	}
 
-#if PATNOMORPHIC_MODE // derive θ angle from two distinct projections
+#if PANTOMORPHIC_MODE // derive θ angle from two distinct projections
 	// Horizontal and vertical incident angle
 	float2 theta2 = float2(
 		get_theta(radius, rcp_focal, K),
+	#if PANTOMORPHIC_MODE == 1
 		get_theta(radius, rcp_focal, Ky)
+	#else // PANTOMORPHIC_MODE >= 2
+		get_theta(radius, rcp_focal, texCoord.y>=0f ? Ky.t : Ky.s)
+	#endif
 	);
 	// Pantomorphic interpolation weights
 	float2 phiMtx = get_phi_weights(texCoord);
 	float vignette = UseVignette?
 		dot(phiMtx, float2(
 			get_vignette(theta2.x, K),
+	#if PANTOMORPHIC_MODE == 1
 			get_vignette(theta2.y, Ky)
+	#else // PANTOMORPHIC_MODE >= 2
+			get_vignette(theta2.y, texCoord.y>=0f ? Ky.t : Ky.s)
+	#endif
 		)) : 1f;
 	float theta = dot(phiMtx, theta2); // Pantomorphic incident
 #else // get θ from anamorphic radius
@@ -734,7 +766,7 @@ float3 PerfectPerspectivePS(
 #endif
 
 	// Rectilinear perspective transformation
-#if PATNOMORPHIC_MODE // simple rectilinear transformation
+#if PANTOMORPHIC_MODE // simple rectilinear transformation
 	texCoord = tan(theta)*normalize(texCoord);
 #else // normalize by anamorphic radius
 	texCoord *= tan(theta)*rcp_radius;
@@ -755,8 +787,10 @@ float3 PerfectPerspectivePS(
 #endif
 
 	// Sample display image
-#if PATNOMORPHIC_MODE // take vertical k factor into account
+#if PANTOMORPHIC_MODE == 1 // take vertical k factor into account
 	float3 display = K!=1f || Ky!=1f ?
+#elif PANTOMORPHIC_MODE >= 2 // take both vertical k factors into account
+	float3 display = K!=1f || any(Ky!=1f) ?
 #else // consider only global k
 	float3 display = K!=1f ?
 #endif
@@ -775,8 +809,10 @@ float3 PerfectPerspectivePS(
 		case 1u: display = SamplingScaleModeViewPass(texCoord, display); break;
 	}
 
-#if PATNOMORPHIC_MODE // take vertical k factor into account
+#if PANTOMORPHIC_MODE == 1 // take vertical k factor into account
 	if ((K!=1f || Ky!=1f) && CroppingFactor!=2f) // Visible borders
+#elif PANTOMORPHIC_MODE >= 2 // take both vertical k factors into account
+	if ((K!=1f || any(Ky!=1f)) && CroppingFactor!=2f) // Visible borders
 #else // consider only global k
 	if (K!=1f && CroppingFactor!=2f) // Visible borders
 #endif
@@ -824,7 +860,7 @@ technique PerfectPerspective
 		"\n"
 		"	· Fish-eye\n"
 		"	· Panini\n"
-#if PATNOMORPHIC_MODE
+#if PANTOMORPHIC_MODE
 		"	· Pantomorphic\n"
 #else
 		"	· Anamorphic\n"
@@ -836,7 +872,7 @@ technique PerfectPerspective
 		"	1# select proper FOV angle and type. If FOV type is unknown,\n"
 		"	   find a round object within the game and look at it upfront,\n"
 		"	   then rotate the camera so that the object is in the corner.\n"
-#if PATNOMORPHIC_MODE
+#if PANTOMORPHIC_MODE
 		"	   Make sure all 'k' parameters are equal 0.5 and adjust FOV type such that\n"
 #else
 		"	   Set 'k' to 0.5, change squeeze factor to 1x and adjust FOV type such that\n"
@@ -844,7 +880,7 @@ technique PerfectPerspective
 		"	   the object does not have an egg shape, but a perfect round shape.\n"
 		"\n"
 		"	2# adjust perspective type according to game-play style.\n"
-#if PATNOMORPHIC_MODE
+#if PANTOMORPHIC_MODE
 		"	   If you look mostly at the horizon, 'k.y' can be increased.\n"
 #else
 		"	   If you look mostly at the horizon, anamorphic squeeze can be increased.\n"
@@ -860,7 +896,7 @@ technique PerfectPerspective
 		"The algorithm is part of a scientific article:\n"
 		"	arXiv:2003.10558 [cs.GR] (2020)\n"
 		"	arXiv:2010.04077 [cs.GR] (2020)\n"
-#if PATNOMORPHIC_MODE
+#if PANTOMORPHIC_MODE
 		"	arXiv:2102.12682 [cs.GR] (2021)\n"
 #endif
 		"\n"

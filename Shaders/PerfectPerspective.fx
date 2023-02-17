@@ -1,4 +1,4 @@
-/** Perfect Perspective PS, version 5.1.2
+/** Perfect Perspective PS, version 5.1.3
 
 This code © 2018-2023 Jakub Maksymilian Fober
 
@@ -134,7 +134,7 @@ uniform float K < __UNIFORM_SLIDER_FLOAT1
 		"\n"
 		"\n"
 		"[Ctrl+click] to type value.";
-	ui_min = -1f; ui_max = 1f; ui_step = 0.05;
+	ui_min = -1f; ui_max = 1f; ui_step = 0.01;
 > = 0.5;
 
 #if PANTOMORPHIC_MODE // vertical axis projection is driven by separate k parameter
@@ -159,7 +159,7 @@ uniform float K < __UNIFORM_SLIDER_FLOAT1
 		"\n"
 		"\n"
 		"[Ctrl+click] to type value.";
-	ui_min = -1f; ui_max = 1f; ui_step = 0.05;
+	ui_min = -1f; ui_max = 1f; ui_step = 0.01;
 > = 0.5;
 #else // vertical axis distortion can be elongated by the anamorphic squeeze factor
 uniform float S < __UNIFORM_SLIDER_FLOAT1
@@ -178,7 +178,7 @@ uniform float S < __UNIFORM_SLIDER_FLOAT1
 		"1.6   | digital anamorphic\n"
 		"1.8   | 4x3 full-frame\n"
 		"2     | golden-standard";
-	ui_min = 1f; ui_max = 4f; ui_step = 0.05;
+	ui_min = 1f; ui_max = 4f; ui_step = 0.01;
 > = 1f;
 #endif
 

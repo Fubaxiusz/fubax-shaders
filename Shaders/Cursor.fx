@@ -7,7 +7,7 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-// version 1.1.1
+// version 1.2.0
 
 
 	  ////////////
@@ -22,6 +22,10 @@ uniform float3 Color < __UNIFORM_COLOR_FLOAT3
 uniform float Scale < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.1; ui_max = 1.0; ui_step = 0.001;
 > = 0.2;
+
+uniform float2 Offset < __UNIFORM_SLIDER_FLOAT2
+	ui_min = 0f; ui_max = 1f; ui_step = 0.01;
+> = 0f;
 
 
 	  //////////////
@@ -46,6 +50,8 @@ float3 CursorPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Targ
 {
 	// Get mouse position in UV space
 	float2 Cursor = MousePoint / BUFFER_SCREEN_SIZE;
+	// Get offset in UV space
+	float2 OffsetPos = Offset * float2(tex2Dsize(CursorSampler, 0)) / BUFFER_SCREEN_SIZE * Scale;
 	// Calculate Cursor size
 	float2 CursorSize = BUFFER_SCREEN_SIZE / float2(tex2Dsize(CursorSampler, 0)) / Scale;
 	// Get pixel UV size
@@ -54,7 +60,7 @@ float3 CursorPS(float4 vois : SV_Position, float2 texcoord : TexCoord) : SV_Targ
 	// Sample display image
 	float3 Display = tex2D(ReShade::BackBuffer, texcoord).rgb;
 	// Sample cursor texture
-	float CursorTexture = tex2D(CursorSampler, (texcoord - Cursor) * CursorSize).r;
+	float CursorTexture = tex2D(CursorSampler, (texcoord - Cursor + OffsetPos) * CursorSize).r;
 
 	return lerp(Display, Color, CursorTexture);
 }

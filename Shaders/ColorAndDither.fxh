@@ -1,4 +1,4 @@
-/** Color conversion matrix and blue noise dither library, version 1.4.1
+/** Color conversion matrix and blue noise dither library, version 1.4.0
 
 This code © 2022-2023 Jakub Maksymilian Fober
 
@@ -92,7 +92,7 @@ http://creativecommons.org/licenses/by/3.0/.
 	#define TO_LINEAR_GAMMA(g) ((g)<=0.04049936? (g)/12.92 : pow((abs(g)+0.055)/1.055, 2.4))
 #elif DISPLAY_GAMMA == 2 // Transform from and to Rec 601, 709 and 2020 gamma
 	#define TO_DISPLAY_GAMMA(g) ((g)<0.018? (g)*4.5 : pow(abs(g), 0.45)*1.099-0.099)
-	#define TO_LINEAR_GAMMA(g) ((g)<0.018? (g)/4.5 : pow((abs(g)+0.099)/1.099, rcp(0.45)))
+	#define TO_LINEAR_GAMMA(g) ((g)<0.081? (g)/4.5 : pow((abs(g)+0.099)/1.099, rcp(0.45)))
 #else // Transform from and to custom gamma value
 	#define TO_DISPLAY_GAMMA(g) pow(abs(g), rcp(DISPLAY_GAMMA*0.1))
 	#define TO_LINEAR_GAMMA(g) pow(abs(g), DISPLAY_GAMMA*0.1)

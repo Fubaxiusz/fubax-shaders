@@ -134,7 +134,7 @@ technique ACESToneMapping
 		"ACES Tone Mapping curve effect\n"
 		"\n"
 		"This effect © 2023 Jakub Maksymilian Fober\n"
-		"Licensed under CC BY-SA 3.0.";
+		"Licensed under CC BY-SA 3.0";
 >
 {
 	pass

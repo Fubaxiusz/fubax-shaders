@@ -1,4 +1,4 @@
-/** Monitor Gamma Correction PS, version 0.0.0
+/** Monitor Gamma Correction PS, version 1.1.0
 
 This code © 2023 Jakub Maksymilian Fober
 
@@ -63,6 +63,11 @@ uniform float GammaBlueShift < __UNIFORM_DRAG_FLOAT1
 	ui_min = 0.5; ui_max = 1.5;
 > = 1f;
 
+uniform bool Debug < __UNIFORM_INPUT_BOOL1
+	ui_text = "Debug options:";
+	ui_label = "Show logo permanently";
+> = false;
+
 uniform uint hovered_variable < source = "overlay_hovered"; >;
 uniform uint active_variable  < source = "overlay_active"; >;
 
@@ -108,7 +113,7 @@ void MonitorGamma_PS(
 	// Get current pixel coordinates
 	uint2 texelPos = uint2(pixCoord.xy);
 
-	if (bool(hovered_variable) || bool(active_variable)) // display calibration image
+	if (bool(hovered_variable) || bool(active_variable) || Debug) // display calibration image
 	{
 		uint2 screenCenterOffset = uint2(BUFFER_SCREEN_SIZE-GAMMA_TEX_SIZE)/2u;
 		color = lerp(texelPos.y % 2u, 0.5, tex2Dfetch(GammaTexSmp, texelPos-screenCenterOffset).r);

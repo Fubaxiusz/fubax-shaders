@@ -1,4 +1,4 @@
-/** ACES Tone Mapping PS, version 1.0.0
+/** ACES Tone Mapping PS, version 1.0.1
 
 This code © 2023 Jakub Maksymilian Fober
 
@@ -8,7 +8,7 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/3.0/.
 
 The matrices and ACES mapping where sourced from ChatGPT-4,
-which IT took from OpenColorIO documentation.
+which it took from OpenColorIO documentation.
 */
 
 	/* MACROS */
@@ -58,15 +58,6 @@ static const float3x3 ACESOutputMat =
 	);
 
 	/* FUNCTIONS */
-
-// Linear luma ACES curve
-float3 ACESFilm(float3 color)
-{
-	return saturate(
-		(color*(2.51*color+0.03))/
-		(color*(2.43*color+0.59)+0.14)
-	);
-}
 
 // Function to apply RRT and ODT
 float3 RRTAndODTFit(float3 color)

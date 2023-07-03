@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Perfect Perspective PS (version 5.4.2)
+Perfect Perspective PS (version 5.4.3)
 
 Copyright:
 This code © 2018-2023 Jakub Maksymilian Fober
@@ -94,6 +94,7 @@ by Fober, J. M.
 
 uniform uint FovAngle < __UNIFORM_SLIDER_INT1
 	ui_category = "In game";
+	ui_category_closed = true;
 	ui_text = "(Match game settings)";
 	ui_label = "Field of view (FoV)";
 	ui_tooltip = "This should match your in-game FoV value.";
@@ -128,6 +129,7 @@ uniform uint FovType < __UNIFORM_COMBO_INT1
 // k indicates horizontal axis or whole picture projection type
 uniform float K < __UNIFORM_SLIDER_FLOAT1
 	ui_category = "Distortion";
+	ui_category_closed = true;
 	ui_text = "(Adjust distortion strength)";
 #if PANTOMORPHIC_MODE // k indicates horizontal axis projection type
 	ui_label = "Projection type 'k' horizontal";
@@ -263,26 +265,27 @@ uniform bool MirrorBorder < __UNIFORM_INPUT_BOOL1
 > = false;
 
 uniform bool BorderVignette < __UNIFORM_INPUT_BOOL1
-	ui_category = "Border appearance";
+	ui_category = "Border cosmetics";
+	ui_category_closed = true;
 	ui_label = "Vignette on border";
 	ui_tooltip = "Apply vignetting effect to border.";
 > = false;
 
 uniform float4 BorderColor < __UNIFORM_COLOR_FLOAT4
-	ui_category = "Border appearance";
+	ui_category = "Border cosmetics";
 	ui_label = "Border color";
 	ui_tooltip = "Use alpha to change border transparency.";
 > = float4(0.027, 0.027, 0.027, 0.96);
 
 uniform float BorderCorner < __UNIFORM_SLIDER_FLOAT1
-	ui_category = "Border appearance";
+	ui_category = "Border cosmetics";
 	ui_label = "Corner radius";
 	ui_tooltip = "Value of 0 gives sharp corners.";
 	ui_min = 0f; ui_max = 1f;
 > = 0.062;
 
 uniform uint BorderGContinuity < __UNIFORM_SLIDER_INT1
-	ui_category = "Border appearance";
+	ui_category = "Border cosmetics";
 	ui_label = "Corner roundness";
 	ui_tooltip =
 		"G-surfacing continuity level for the corners:\n"

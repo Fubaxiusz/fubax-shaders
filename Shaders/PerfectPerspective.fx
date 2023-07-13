@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Perfect Perspective PS (version 5.4.4)
+Perfect Perspective PS (version 5.4.5)
 
 Copyright:
 This code © 2018-2023 Jakub Maksymilian Fober
@@ -402,9 +402,6 @@ uniform uint ResScaleVirtual < __UNIFORM_DRAG_INT1
 sampler BackBuffer
 {
 	Texture = ReShade::BackBufferTex;
-#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH != 10 // linear workflow
-	SRGBTexture = true;
-#endif
 	// Border style
 	AddressU = MIRROR;
 	AddressV = MIRROR;
@@ -607,7 +604,7 @@ float3 GridModeViewPass(
 	float3 display
 ){
 	// Sample background without distortion
-#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // manual gamma correction
+#if BUFFER_COLOR_SPACE <= 2 // manual gamma correction
 	display = to_linear_gamma(tex2Dfetch(BackBuffer, pixelCoord).rgb);
 #else
 	display = tex2Dfetch(BackBuffer, pixelCoord).rgb;
@@ -884,7 +881,7 @@ float3 PerfectPerspectivePS(
 				case 1u: // pixel scale-map
 					display = SamplingScaleModeViewPass(
 						texCoord,
-#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // manual gamma correction
+#if BUFFER_COLOR_SPACE <= 2 // manual gamma correction
 						to_linear_gamma(tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb)
 #else
 						tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb
@@ -900,7 +897,7 @@ float3 PerfectPerspectivePS(
 			return BlueNoise::dither(uint2(pixelPos.xy), display); // dither final 8/10-bit result
 		}
 		else // bypass all effects
-			return tex2Dfetch(ReShade::BackBuffer, uint2(pixelPos.xy)).rgb;
+			return tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb;
 	}
 
  // :: end of distortion mapping bypass :: //
@@ -993,7 +990,7 @@ float3 PerfectPerspectivePS(
 		? tex2D(BackBuffer, texCoord).rgb // perspective projection lookup
 		: tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb; // no perspective change
 
-#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // manual gamma correction
+#if BUFFER_COLOR_SPACE <= 2 // manual gamma correction
 	display = to_linear_gamma(display);
 #endif
 
@@ -1022,7 +1019,7 @@ float3 PerfectPerspectivePS(
 	{
 		// Get border image
 		float3 border = lerp(
-#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // manual gamma correction
+#if BUFFER_COLOR_SPACE <= 2 // manual gamma correction
 			MirrorBorder ? display : to_linear_gamma(tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb), // border background
 #else
 			MirrorBorder ? display : tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb, // border background

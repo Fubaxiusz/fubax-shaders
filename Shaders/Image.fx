@@ -1,14 +1,22 @@
-/* Display Image PS, version 1.2.2
+/*------------------.
+| :: Description :: |
+'-------------------/
 
-This code © 2019 Jakub Maksymilian Fober
+Display Image PS (version 1.2.3)
 
+Copyright:
+This code © 2019-2023 Jakub Maksymilian Fober
+
+License:
 This work is licensed under the Creative Commons
 Attribution-ShareAlike 4.0 International License.
 To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/4.0/.
 */
 
-	/* MACROS */
+/*-------------.
+| :: Macros :: |
+'-------------*/
 
 // Image file name
 #ifndef TEST_IMAGE_PATH
@@ -23,37 +31,50 @@ http://creativecommons.org/licenses/by-sa/4.0/.
 	#define TEST_IMAGE_SIZE_Y 1080
 #endif
 
-	/* COMMONS */
+/*--------------.
+| :: Commons :: |
+'--------------*/
 
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
-#include "ColorAndDither.fxh"
+#include "LinearGammaWorkflow.fxh"
+#include "BlueNoiseDither.fxh"
 
-	/* MENU */
+/*-----------.
+| :: Menu :: |
+'-----------*/
 
-uniform bool AspectCorrect < __UNIFORM_INPUT_BOOL1
+uniform bool AspectCorrect
+<	__UNIFORM_INPUT_BOOL1
 	ui_label = "Original aspect ratio";
 > = true;
 
-uniform bool FillImage < __UNIFORM_INPUT_BOOL1
+uniform bool FillImage
+<	__UNIFORM_INPUT_BOOL1
 	ui_label = "Fill image";
 > = false;
 
-uniform float DimBackground < __UNIFORM_SLIDER_FLOAT1
+uniform float DimBackground
+<	__UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.25; ui_max = 1f; ui_step = 0.01;
 	ui_label = "Dim background image";
 > = 1f;
 
-	/* FUNCTIONS */
+/*----------------.
+| :: Functions :: |
+'----------------*/
 
 // Emulate bitwise XOR '^' for compatibility with older APi
 bool xor(bool a, bool b)
 { return (a||b)-(a&&b); }
 
-	/* TEXTURES */
+/*---------------.
+| :: Textures :: |
+'---------------*/
 
 // Define image texture
-texture TestImageTex < source = TEST_IMAGE_PATH; >
+texture TestImageTex
+< source = TEST_IMAGE_PATH; >
 {
 	Width  = TEST_IMAGE_SIZE_X;
 	Height = TEST_IMAGE_SIZE_Y;
@@ -61,7 +82,7 @@ texture TestImageTex < source = TEST_IMAGE_PATH; >
 sampler TestImageSampler
 {
 	Texture = TestImageTex;
-#if BUFFER_COLOR_SPACE<=2 // Linear gamma workflow
+#if BUFFER_COLOR_SPACE==1 || BUFFER_COLOR_SPACE==2
 	SRGBTexture = true;
 #endif
 };
@@ -79,15 +100,19 @@ float Border(float2 coord)
 	return min(coord.x, coord.y);
 }
 
-	/* SHADER */
+/*--------------.
+| :: Shaders :: |
+'--------------*/
 
 // Draw Image
-void ImagePS(float4 pixelPos : SV_Position, float2 texCoord : TEXCOORD, out float3 color : SV_Target)
+void ImagePS(
+	float4 pixelPos  : SV_Position,
+	float2 texCoord  : TEXCOORD,
+	out float3 color : SV_Target
+)
 {
 	color = tex2Dfetch(ReShade::BackBuffer, uint2(pixelPos.xy)).rgb;
-#if BUFFER_COLOR_SPACE<=2 // Linear gamma workflow
-	color = to_linear_gamma(color);
-#endif
+	color = GammaConvert::to_linear(color); // linear workflow
 	color *= DimBackground;
 
 	if (!AspectCorrect) // bypass aspect ratio correction
@@ -122,10 +147,8 @@ void ImagePS(float4 pixelPos : SV_Position, float2 texCoord : TEXCOORD, out floa
 		}
 	}
 
-#if BUFFER_COLOR_SPACE<=2 // Linear gamma workflow
-	color = to_display_gamma(color);
+	color = GammaConvert::to_display(color);
 	color = BlueNoise::dither(uint2(pixelPos.xy), color); // Dither
-#endif
 }
 
 	/* OUTPUT */
@@ -142,7 +165,7 @@ technique Image
 		"  TEST_IMAGE_SIZE_X 1440\n"
 		"  TEST_IMAGE_SIZE_Y 1080\n"
 		"\n"
-		"This effect © 2019 Jakub Maksymilian Fober\n"
+		"This effect © 2019-2023 Jakub Maksymilian Fober\n"
 		"Licensed under CC BY-SA 4.0.";
 >
 {

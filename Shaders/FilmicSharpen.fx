@@ -1,7 +1,13 @@
-/** Filmic Sharpen PS, version 1.4.1
+/*------------------.
+| :: Description :: |
+'-------------------/
 
-This code © 2018 Jakub Maximilian Fober
+Filmic Sharpen PS (version 1.4.1)
 
+Copyright:
+This code © 2018-2023 Jakub Maximilian Fober
+
+License:
 This work is licensed under the Creative Commons
 Attribution-ShareAlike 4.0 International License.
 To view a copy of this license, visit
@@ -13,49 +19,54 @@ https://reshade.me, to any derivative work shared online.
 For updates visit GitHub repository at
 https://github.com/Fubaxiusz/fubax-shaders
 
+Contact:
 If you want to use this shader code in your commercial game/project,
 contact me at
 jakub.m.fober@protonmail.com
 */
 
-	/* MACROS */
-
-#ifndef ITU_REC
-	#define ITU_REC 601
-#endif
-
-	/* COMMONS */
+/*--------------.
+| :: Commons :: |
+'--------------*/
 
 #include "ReShadeUI.fxh"
 #include "ReShade.fxh"
-#include "ColorAndDither.fxh"
+#include "ColorConversion.fxh"
+#include "BlueNoiseDither.fxh"
 
-	/* MENU */
+/*-----------.
+| :: Menu :: |
+'-----------*/
 
-uniform uint Strength < __UNIFORM_SLIDER_INT1
+uniform uint Strength
+<	__UNIFORM_SLIDER_INT1
 	ui_label = "Strength";
 	ui_min = 1u; ui_max = 64u;
 > = 32u;
 
-uniform float Offset < __UNIFORM_SLIDER_FLOAT1
+uniform float Offset
+<	__UNIFORM_SLIDER_FLOAT1
 	ui_label = "Radius";
 	ui_tooltip = "High-pass cross offset in pixels";
 	ui_min = 0.05; ui_max = 0.25; ui_step = 0.01;
 > = 0.1;
 
-uniform bool UseMask < __UNIFORM_INPUT_BOOL1
+uniform bool UseMask
+<	__UNIFORM_INPUT_BOOL1
 	ui_label = "Sharpen only center";
 	ui_tooltip = "Sharpen only in center of the image";
 > = false;
 
-uniform float Clamp < __UNIFORM_SLIDER_FLOAT1
+uniform float Clamp
+<	__UNIFORM_SLIDER_FLOAT1
 	ui_label = "Clamping highlights";
 	ui_min = 0.5; ui_max = 1.0; ui_step = 0.1;
 	ui_category = "Additional settings";
 	ui_category_closed = true;
 > = 0.6;
 
-uniform bool Preview < __UNIFORM_INPUT_BOOL1
+uniform bool Preview
+<	__UNIFORM_INPUT_BOOL1
 	ui_label = "Preview sharpen layer";
 	ui_tooltip = "Preview sharpen layer and mask for adjustment.\n"
 		"If you don't see red strokes,\n"
@@ -64,7 +75,9 @@ uniform bool Preview < __UNIFORM_INPUT_BOOL1
 	ui_category_closed = true;
 > = false;
 
-	/* FUNCTIONS */
+/*----------------.
+| :: Functions :: |
+'----------------*/
 
 // Overlay blending mode
 float Overlay(float LayerA, float LayerB)
@@ -76,10 +89,16 @@ float Overlay(float LayerA, float LayerB)
 	return 2f*((MinA*MinB+MaxA)+(MaxB-MaxA*MaxB))-1.5;
 }
 
-	/* SHADER */
+/*--------------.
+| :: Shaders :: |
+'--------------*/
 
 // Sharpen pass
-void FilmicSharpenPS(float4 pixelPos : SV_Position, float2 UvCoord : TEXCOORD, out float3 color : SV_Target)
+void FilmicSharpenPS(
+	float4 pixelPos  : SV_Position,
+	float2 UvCoord   : TEXCOORD,
+	out float3 color : SV_Target
+)
 {
 	// Sample display image
 	color = tex2D(ReShade::BackBuffer, UvCoord).rgb;
@@ -110,11 +129,10 @@ void FilmicSharpenPS(float4 pixelPos : SV_Position, float2 UvCoord : TEXCOORD, o
 
 	// Luma high-pass
 	float HighPass = 0f;
-	[unroll]
-	for(uint i=0u; i<4u; i++)
-		HighPass += dot(LumaMtx, tex2D(ReShade::BackBuffer, NorSouWesEst[i]).rgb);
+	[unroll] for(uint i=0u; i<4u; i++)
+		HighPass += ColorConvert::RGB_to_Luma(tex2D(ReShade::BackBuffer, NorSouWesEst[i]).rgb);
 
-	HighPass = 0.5-0.5*(HighPass*0.25-dot(LumaMtx, color));
+	HighPass = 0.5-0.5*(HighPass*0.25-ColorConvert::RGB_to_Luma(color));
 
 	// Sharpen strength
 	HighPass = lerp(0.5, HighPass, Mask);
@@ -126,8 +144,7 @@ void FilmicSharpenPS(float4 pixelPos : SV_Position, float2 UvCoord : TEXCOORD, o
 	if (Preview) color = HighPass;
 	else
 	{
-		[unroll]
-		for(uint i=0u; i<3u; i++)
+		[unroll] for(uint i=0u; i<3u; i++)
 			// Apply sharpening
 			color[i] = Overlay(color[i], HighPass);
 	}
@@ -136,9 +153,17 @@ void FilmicSharpenPS(float4 pixelPos : SV_Position, float2 UvCoord : TEXCOORD, o
 	color = BlueNoise::dither(uint2(pixelPos.xy), color);
 }
 
-	/* OUTPUT */
+/*-------------.
+| :: Output :: |
+'-------------*/
 
-technique FilmicSharpen < ui_label = "Filmic Sharpen"; >
+technique FilmicSharpen
+<
+	ui_label = "Filmic Sharpen";
+	ui_tooltip =
+		"This effect © 2018-2023 Jakub Maksymilian Fober\n"
+		"Licensed under CC BY-SA 4.0.";
+>
 {
 	pass
 	{

@@ -1,7 +1,13 @@
-/** ACES Tone Mapping PS, version 1.0.1
+/*------------------.
+| :: Description :: |
+'-------------------/
 
+ACES Tone Mapping PS (version 1.0.2)
+
+Copyright:
 This code © 2023 Jakub Maksymilian Fober
 
+License:
 This work is licensed under the Creative Commons,
 Attribution-ShareAlike 3.0 Unported License.
 To view a copy of this license, visit
@@ -11,35 +17,37 @@ The matrices and ACES mapping where sourced from ChatGPT-4,
 which it took from OpenColorIO documentation.
 */
 
-	/* MACROS */
-
-// Luminosity transformation
-#ifndef ITU_REC
-	#define ITU_REC 601
-#endif
-
-	/* COMMONS */
+/*--------------.
+| :: Commons :: |
+'--------------*/
 
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
-#include "ColorAndDither.fxh"
+#include "LinearGammaWorkflow.fxh"
+#include "BlueNoiseDither.fxh"
 
-	/* MENU */
+/*-----------.
+| :: Menu :: |
+'-----------*/
 
-uniform float Exposure < __UNIFORM_SLIDER_FLOAT1
+uniform float Exposure
+<	__UNIFORM_SLIDER_FLOAT1
 	ui_tooltip = "Increase exposure of the image.";
 	ui_min = 1f; ui_max = 10f;
 	ui_step = 0.01;
 > = 3.82;
 
-uniform float DryWet < __UNIFORM_SLIDER_FLOAT1
+uniform float DryWet
+<	__UNIFORM_SLIDER_FLOAT1
 	ui_text = "Final mix";
 	ui_label = "Dry/Wet blending";
 	ui_tooltip = "Blend between original color and the ACES tone mapping.";
 	ui_step = 0.01;
 > = 0.75;
 
-	/* CONSTANTS */
+/*----------------.
+| :: Constants :: |
+'----------------*/
 
 // Linear RGB to ACES2065-1 conversion matrix
 static const float3x3 ACESInputMat =
@@ -57,7 +65,9 @@ static const float3x3 ACESOutputMat =
 	   -0.00327, -0.07276,  1.07602
 	);
 
-	/* FUNCTIONS */
+/*----------------.
+| :: Functions :: |
+'----------------*/
 
 // Function to apply RRT and ODT
 float3 RRTAndODTFit(float3 color)
@@ -66,12 +76,15 @@ float3 RRTAndODTFit(float3 color)
 		   (color*(color*0.983729+0.4329510)+0.238081);
 }
 
-	/* SHADERS */
+/*--------------.
+| :: Shaders :: |
+'--------------*/
 
 // Vertex shader generating a triangle covering the entire screen
 void ACESToneMapping_VS(
 	in  uint   vertexId  : SV_VertexID,
-	out float4 vertexPos : SV_Position)
+	out float4 vertexPos : SV_Position
+)
 {
 	// Define vertex position
 	const float2 vertexPosList[3] =
@@ -88,7 +101,8 @@ void ACESToneMapping_VS(
 // Horizontal luminosity blur pass
 void ACESToneMapping_PS(
 	in  float4 pixCoord : SV_Position,
-	out float3    color : SV_Target)
+	out float3 color    : SV_Target
+)
 {
 	// Get current pixel coordinates
 	uint2 texelPos = uint2(pixCoord.xy);
@@ -97,7 +111,7 @@ void ACESToneMapping_PS(
 	float3 oryginalColor = tex2Dfetch(ReShade::BackBuffer, texelPos).rgb;
 
 	// Convert to linear RGB value and apply exposure
-	color = to_linear_gamma(oryginalColor)*Exposure;
+	color = GammaConvert::to_linear(oryginalColor)*Exposure;
 
 	// Convert to to ACES2065-1 color space
 	color = mul(ACESInputMat, color);
@@ -107,7 +121,7 @@ void ACESToneMapping_PS(
 	color = mul(ACESOutputMat, color);
 
 	// Apply sRGB gamma and clamp
-	color = clamp(to_display_gamma(color), 0f, 1f);
+	color = clamp(GammaConvert::to_display(color), 0f, 1f);
 
 	// Dry/Wet blending
 	color = lerp(oryginalColor, color, DryWet);
@@ -116,7 +130,9 @@ void ACESToneMapping_PS(
 	color = BlueNoise::dither(texelPos, color);
 }
 
-	/* OUTPUT */
+/*-------------.
+| :: Output :: |
+'-------------*/
 
 technique ACESToneMapping
 <

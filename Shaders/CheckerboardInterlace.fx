@@ -1,63 +1,87 @@
-/**
-Checkerboard Interlace PS, version 1.0.0
-All rights (c) 2021 Jakub Maksymilian Fober (the Author)
+/*------------------.
+| :: Description :: |
+'-------------------/
 
-Licensed under the Creative Commons CC BY-SA 3.0,
-license available online at http://creativecommons.org/licenses/by-sa/3.0/
+Checkerboard Interlace PS (version 1.0.1)
+
+Copyright:
+This code © 2021-2023 Jakub Maksymilian Fober
+
+License:
+This work is licensed under the Creative Commons
+Attribution-ShareAlike 3.0 Unported License.
+To view a copy of this license, visit
+http://creativecommons.org/licenses/by-sa/3.0/.
 */
+
+/*--------------.
+| :: Commons :: |
+'--------------*/
 
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
 
+/*-----------.
+| :: Menu :: |
+'-----------*/
 
-// Menu items
-
-uniform bool HighFPS < __UNIFORM_INPUT_BOOL1
+uniform bool HighFPS
+<	__UNIFORM_INPUT_BOOL1
 	ui_label = "Enable high FPS mode";
 	ui_tooltip =
 		"Interpolates 4-frames instead of two."
 		"\nUse only when game runs at 120 FPS or more";
 > = false;
 
-uniform uint CheckerboardPattern < __UNIFORM_COMBO_INT1
+uniform uint CheckerboardPattern
+<	__UNIFORM_COMBO_INT1
 	ui_spacing = 1u;
 	ui_category = "High FPS mode settings";
 	ui_category_closed = true;
 	ui_label = "Pattern shape";
 	ui_tooltip =
-		"Works only in high FPS mode!"
-		"\n\nInterlace pattern shape type";
+		"Works only in high FPS mode!\n"
+		"\n"
+		"Interlace pattern shape type";
 	ui_items = "Z\0N'\0U\0D\0A\0C\0";
 > = 0;
 
-uniform bool ReversePattern < __UNIFORM_INPUT_BOOL1
+uniform bool ReversePattern
+<	__UNIFORM_INPUT_BOOL1
 	ui_category = "High FPS mode settings";
 	ui_label = "Reverse sampling order";
 	ui_tooltip = "Reverse pattern winding";
 > = false;
 
-uniform bool DisplayPattern < __UNIFORM_INPUT_BOOL1
+uniform bool DisplayPattern
+<	__UNIFORM_INPUT_BOOL1
 	ui_category = "Debug settings";
 	ui_category_closed = true;
 	ui_label = "Display pattern";
 	ui_tooltip = "Display pattern";
 > = false;
 
-uniform uint PatternScale < __UNIFORM_SLIDER_INT1
+uniform uint PatternScale
+<	__UNIFORM_SLIDER_INT1
 	ui_category = "Debug settings";
 	ui_label = "Pattern size (preview)";
 	ui_tooltip = "Decrease preview resolution for debugging";
 	ui_min = 1u; ui_max = 32u;
 > = 8u;
 
-// System variable
+/*---------------.
+| :: Uniforms :: |
+'---------------*/
+
 uniform uint FRAME_INDEX < source = "framecount"; >;
 
-
-// Textures
+/*---------------.
+| :: Textures :: |
+'---------------*/
 
 // Full-screen texture with alpha as interpolation target
-texture interlaceTex < pooled = false; >
+texture interlaceTex
+< pooled = false; >
 {
 	Width  = BUFFER_WIDTH;
 	Height = BUFFER_HEIGHT;
@@ -72,8 +96,9 @@ sampler interlaceSampler
 	MagFilter = POINT;
 };
 
-
-// Constants
+/*----------------.
+| :: Constants :: |
+'----------------*/
 
 // Left-right, top-bottom
 static const float4x4 PixelMask[6] =
@@ -181,11 +206,15 @@ static const float2x4 altPixelMask = float2x4(
 		1f, 0f)
 );
 
-
-// Shaders
+/*--------------.
+| :: Shaders :: |
+'--------------*/
 
 // Render full-screen triangle without texture coordinates
-void FullscreenTriangleVS(uint vertexID : SV_VertexID, out float4 position : SV_Position)
+void FullscreenTriangleVS(
+	uint vertexID : SV_VertexID,
+	out float4 position : SV_Position
+)
 {
 	// Initialize values
 	position.z = 0f; // Not used
@@ -204,7 +233,10 @@ void FullscreenTriangleVS(uint vertexID : SV_VertexID, out float4 position : SV_
 }
 
 // Save pixels in interlaced checkerboard pattern
-void CheckerboardSavePS(float4 pos : SV_Position, out float4 color : SV_Target)
+void CheckerboardSavePS(
+	float4 pos : SV_Position,
+	out float4 color : SV_Target
+)
 {
 	// Get pixel position index
 	uint2 texelCoord = uint2(pos.xy);
@@ -238,21 +270,27 @@ void CheckerboardSavePS(float4 pos : SV_Position, out float4 color : SV_Target)
 }
 
 // Display interlaced texture
-void CheckerboardDisplayPS(float4 pos : SV_Position, out float3 color : SV_Target)
+void CheckerboardDisplayPS(
+	float4 pos : SV_Position,
+	out float3 color : SV_Target
+)
 {
 	// Sample background texture
 	color = tex2Dfetch(interlaceSampler, uint2(pos.xy)).rgb;
 }
 
+/*-------------.
+| :: Output :: |
+'-------------*/
 
-// Output
-
-technique CheckerboardInterlace <
+technique CheckerboardInterlace
+<
 	ui_label = "Checkerboard interlacing";
 	ui_tooltip =
 		"Adds checkerboard 2 or 4-frame motion-blur"
-		"\n\nUnder the Creative Commons CC BY-SA 3.0 license"
-		"\n(c) 2021 Jakub Maksymilian Fober";
+		"\n"
+		"This effect © 2021-2023 Jakub Maksymilian Fober\n"
+		"Licensed under CC BY-NC-ND 3.0";
 >
 {
 	pass SaveFrame

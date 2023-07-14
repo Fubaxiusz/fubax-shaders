@@ -1,15 +1,22 @@
-/** Monitor Gamma Correction PS, version 1.1.0
+/*------------------.
+| :: Description :: |
+'-------------------/
 
+Monitor Gamma Correction PS (version 1.1.1)
+
+Copyright:
 This code © 2023 Jakub Maksymilian Fober
 
+License:
 This work is licensed under the Creative Commons,
 Attribution-ShareAlike 3.0 Unported License.
 To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/3.0/.
-
 */
 
-	/* MACROS */
+/*-------------.
+| :: Macros :: |
+'-------------*/
 
 #ifndef GAMMA_TEX_FILE
 	#define GAMMA_TEX_FILE "GammaTex.png"
@@ -18,15 +25,21 @@ http://creativecommons.org/licenses/by-sa/3.0/.
 	#define GAMMA_TEX_SIZE 256
 #endif
 
-	/* COMMONS */
+/*--------------.
+| :: Commons :: |
+'--------------*/
 
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
-#include "ColorAndDither.fxh"
+#include "LinearGammaWorkflow.fxh"
+#include "BlueNoiseDither.fxh"
 
-	/* MENU */
+/*-----------.
+| :: Menu :: |
+'-----------*/
 
-uniform float Gamma < __UNIFORM_DRAG_FLOAT1
+uniform float Gamma
+<	__UNIFORM_DRAG_FLOAT1
 	ui_text = "Make logo disappear:";
 	ui_label = "Monitor gamma";
 	ui_tooltip =
@@ -35,7 +48,8 @@ uniform float Gamma < __UNIFORM_DRAG_FLOAT1
 	ui_min = 1f; ui_max = 3f;
 > = 1f;
 
-uniform float GammaRedShift < __UNIFORM_DRAG_FLOAT1
+uniform float GammaRedShift
+<	__UNIFORM_DRAG_FLOAT1
 	ui_category = "color shift";
 	ui_text = "If the logo has some color tint:";
 	ui_label = "Red gamma";
@@ -45,7 +59,8 @@ uniform float GammaRedShift < __UNIFORM_DRAG_FLOAT1
 	ui_min = 0.5; ui_max = 1.5;
 > = 1f;
 
-uniform float GammaGreenShift < __UNIFORM_DRAG_FLOAT1
+uniform float GammaGreenShift
+<	__UNIFORM_DRAG_FLOAT1
 	ui_category = "color shift";
 	ui_label = "Green gamma";
 	ui_tooltip =
@@ -54,7 +69,8 @@ uniform float GammaGreenShift < __UNIFORM_DRAG_FLOAT1
 	ui_min = 0.5; ui_max = 1.5;
 > = 1f;
 
-uniform float GammaBlueShift < __UNIFORM_DRAG_FLOAT1
+uniform float GammaBlueShift
+<	__UNIFORM_DRAG_FLOAT1
 	ui_category = "color shift";
 	ui_label = "Blue gamma";
 	ui_tooltip =
@@ -63,7 +79,8 @@ uniform float GammaBlueShift < __UNIFORM_DRAG_FLOAT1
 	ui_min = 0.5; ui_max = 1.5;
 > = 1f;
 
-uniform bool Debug < __UNIFORM_INPUT_BOOL1
+uniform bool Debug
+<	__UNIFORM_INPUT_BOOL1
 	ui_text = "Debug options:";
 	ui_label = "Show logo permanently";
 > = false;
@@ -71,13 +88,16 @@ uniform bool Debug < __UNIFORM_INPUT_BOOL1
 uniform uint hovered_variable < source = "overlay_hovered"; >;
 uniform uint active_variable  < source = "overlay_active"; >;
 
-	/* TEXTURES */
+/*---------------.
+| :: Textures :: |
+'---------------*/
 
 texture GammaTex
 <
 	source = GAMMA_TEX_FILE;
 	pooled = true;
->{
+>
+{
 	Width = GAMMA_TEX_SIZE;
 	Height = GAMMA_TEX_SIZE;
 	Format = R8;
@@ -86,12 +106,15 @@ texture GammaTex
 sampler GammaTexSmp
 { Texture = GammaTex; };
 
-	/* SHADERS */
+/*--------------.
+| :: Shaders :: |
+'--------------*/
 
 // Vertex shader generating a triangle covering the entire screen
 void MonitorGamma_VS(
 	in  uint   vertexId  : SV_VertexID,
-	out float4 vertexPos : SV_Position)
+	out float4 vertexPos : SV_Position
+)
 {
 	// Define vertex position
 	const float2 vertexPosList[3] =
@@ -108,7 +131,8 @@ void MonitorGamma_VS(
 // Horizontal luminosity blur pass
 void MonitorGamma_PS(
 	in  float4 pixCoord : SV_Position,
-	out float3    color : SV_Target)
+	out float3    color : SV_Target
+)
 {
 	// Get current pixel coordinates
 	uint2 texelPos = uint2(pixCoord.xy);
@@ -124,7 +148,7 @@ void MonitorGamma_PS(
 		color = tex2Dfetch(ReShade::BackBuffer, texelPos).rgb;
 
 		// Convert to linear gamma
-		color = to_linear_gamma(color);
+		color = GammaConvert::to_linear(color);
 	}
 
 	// Apply correction gamma
@@ -137,7 +161,9 @@ void MonitorGamma_PS(
 	color = BlueNoise::dither(texelPos, color);
 }
 
-	/* OUTPUT */
+/*-------------.
+| :: Output :: |
+'-------------*/
 
 technique MonitorGamma
 <

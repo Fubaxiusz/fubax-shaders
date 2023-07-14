@@ -1,7 +1,13 @@
-/** Lens Distortion PS, version 1.3.8
+/*------------------.
+| :: Description :: |
+'-------------------/
 
-This code © 2022 Jakub Maksymilian Fober
+Lens Distortion PS (version 1.3.9)
 
+Copyright:
+This code © 2022-2023 Jakub Maksymilian Fober
+
+License:
 This work is licensed under the Creative Commons,
 Attribution-NonCommercial-NoDerivs 3.0 Unported License.
 To view a copy of this license, visit
@@ -23,6 +29,7 @@ Intent §: For better accessibility and understanding across different languages
 Result §: The desired outcome is to promote usability across users from diverse
 linguistic backgrounds, and for them to be able to engage with the shader.
 
+Contact:
 If you need additional licensing for your commercial product, contact
 me at jakub.m.fober@protonmail.com.
 
@@ -40,6 +47,7 @@ me at jakub.m.fober@protonmail.com.
 For updates visit GitHub repository at
 https://github.com/Fubaxiusz/fubax-shaders.
 
+About:
 This shader version is based upon following research article:
 	Temporally-smooth Antialiasing and Lens Distortion
 	with Rasterization Map
@@ -52,7 +60,9 @@ and
 by Fober, J. M.
 */
 
-	/* MACROS */
+/*-------------.
+| :: Macros :: |
+'-------------*/
 
 // Alternative anamorphic mode
 #ifndef PATNOMORPHIC_LENS_MODE
@@ -69,15 +79,22 @@ by Fober, J. M.
 	#define PARRALLAX_ABERRATION_MAX_SAMPLES 255u
 #endif
 
-	/* COMMONS */
+/*--------------.
+| :: Commons :: |
+'--------------*/
 
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
-#include "ColorAndDither.fxh"
+#include "ColorConversion.fxh"
+#include "LinearGammaWorkflow.fxh"
+#include "BlueNoiseDither.fxh"
 
-	/* MENU */
+/*-----------.
+| :: Menu :: |
+'-----------*/
 
-uniform bool ShowGrid < __UNIFORM_INPUT_BOOL1
+uniform bool ShowGrid
+<	__UNIFORM_INPUT_BOOL1
 	ui_label = "Display calibration grid";
 	ui_tooltip =
 		"This can be used in conjunction with Image.fx\n"
@@ -85,10 +102,11 @@ uniform bool ShowGrid < __UNIFORM_INPUT_BOOL1
 		"match its distortion profile.";
 > = false;
 
-// Main distortion
+// :: Main distortion :: //
 
 #if PATNOMORPHIC_LENS_MODE==0
-	uniform float4 K < __UNIFORM_DRAG_FLOAT4
+	uniform float4 K
+	<	__UNIFORM_DRAG_FLOAT4
 		ui_min = -0.2;
 		ui_max =  0.2;
 		ui_label = "Radial distortion";
@@ -96,7 +114,8 @@ uniform bool ShowGrid < __UNIFORM_INPUT_BOOL1
 		ui_category = "Geometrical lens distortions";
 	> = 0f;
 
-	uniform float S < __UNIFORM_SLIDER_FLOAT1
+	uniform float S
+	<	__UNIFORM_SLIDER_FLOAT1
 		ui_min = 1f;
 		ui_max = 2f;
 		ui_step = 0.05;
@@ -115,7 +134,8 @@ uniform bool ShowGrid < __UNIFORM_INPUT_BOOL1
 		ui_category = "Geometrical lens distortions";
 	> = 1f;
 #else
-	uniform float4 Ky < __UNIFORM_DRAG_FLOAT4
+	uniform float4 Ky
+	<	__UNIFORM_DRAG_FLOAT4
 		ui_min = -0.2;
 		ui_max =  0.2;
 		ui_label = "Radial distortion - vertical";
@@ -125,7 +145,8 @@ uniform bool ShowGrid < __UNIFORM_INPUT_BOOL1
 		ui_category = "Geometrical lens distortions";
 	> = 0f;
 
-	uniform float4 Kx < __UNIFORM_DRAG_FLOAT4
+	uniform float4 Kx
+	<	__UNIFORM_DRAG_FLOAT4
 		ui_min = -0.2;
 		ui_max =  0.2;
 		ui_label = "Radial distortion - horizontal";
@@ -136,15 +157,17 @@ uniform bool ShowGrid < __UNIFORM_INPUT_BOOL1
 	> = 0f;
 #endif
 
-// Color
+// :: Color :: //
 
-uniform bool UseVignette < __UNIFORM_DRAG_FLOAT2
+uniform bool UseVignette
+<	__UNIFORM_DRAG_FLOAT2
 	ui_label = "Brightness aberration";
 	ui_tooltip = "Automatically change image brightness based on projection area.";
 	ui_category = "Color aberrations";
 > = true;
 
-uniform float T < __UNIFORM_DRAG_FLOAT1
+uniform float T
+<	__UNIFORM_DRAG_FLOAT1
 	ui_min = -0.2;
 	ui_max =  0.2;
 	ui_label = "Chromatic radius";
@@ -152,9 +175,10 @@ uniform float T < __UNIFORM_DRAG_FLOAT1
 	ui_category = "Color aberrations";
 > = -0.2;
 
-// Miss-alignment
+// :: Miss-alignment :: //
 
-uniform float2 P < __UNIFORM_DRAG_FLOAT2
+uniform float2 P
+<	__UNIFORM_DRAG_FLOAT2
 	ui_min = -0.1;
 	ui_max =  0.1;
 	ui_label = "Decentering";
@@ -162,7 +186,8 @@ uniform float2 P < __UNIFORM_DRAG_FLOAT2
 	ui_category = "Elements misalignment";
 > = 0f;
 
-uniform float2 Q < __UNIFORM_DRAG_FLOAT2
+uniform float2 Q
+<	__UNIFORM_DRAG_FLOAT2
 	ui_min = -0.05;
 	ui_max =  0.05;
 	ui_label = "Thin prism";
@@ -170,7 +195,8 @@ uniform float2 Q < __UNIFORM_DRAG_FLOAT2
 	ui_category = "Elements misalignment";
 > = 0f;
 
-uniform float2 C < __UNIFORM_DRAG_FLOAT2
+uniform float2 C
+<	__UNIFORM_DRAG_FLOAT2
 	ui_min = -0.05;
 	ui_max =  0.05;
 	ui_label = "Center";
@@ -179,9 +205,11 @@ uniform float2 C < __UNIFORM_DRAG_FLOAT2
 > = 0f;
 
 #if PARALLAX_ABERRATION
-// Parallax
 
-uniform float4 Kp < __UNIFORM_DRAG_FLOAT4
+// :: Parallax :: //
+
+uniform float4 Kp
+<	__UNIFORM_DRAG_FLOAT4
 	ui_min = -0.2;
 	ui_max = 0f;
 	ui_label = "Radial parallax";
@@ -192,35 +220,40 @@ uniform float4 Kp < __UNIFORM_DRAG_FLOAT4
 > = 0f;
 #endif
 
-// Border
+// :: Border :: //
 
-uniform bool MirrorBorder < __UNIFORM_INPUT_BOOL1
+uniform bool MirrorBorder
+<	__UNIFORM_INPUT_BOOL1
 	ui_label = "Mirror on border";
 	ui_tooltip = "Choose between mirrored image or original background on the border.";
 	ui_category = "Border";
 	ui_category_closed = true;
 > = true;
 
-uniform bool BorderVignette < __UNIFORM_INPUT_BOOL1
+uniform bool BorderVignette
+<	__UNIFORM_INPUT_BOOL1
 	ui_label = "Brightness aberration on border";
 	ui_tooltip = "Apply brightness aberration effect to the border.";
 	ui_category = "Border";
 > = true;
 
-uniform float4 BorderColor < __UNIFORM_COLOR_FLOAT4
+uniform float4 BorderColor
+<	__UNIFORM_COLOR_FLOAT4
 	ui_label = "Border color";
 	ui_tooltip = "Use alpha to change border transparency.";
 	ui_category = "Border";
 > = float4(0.027, 0.027, 0.027, 0.96);
 
-uniform float BorderCorner < __UNIFORM_SLIDER_FLOAT1
+uniform float BorderCorner
+<	__UNIFORM_SLIDER_FLOAT1
 	ui_min = 0f; ui_max = 1f;
 	ui_label = "Corner radius";
 	ui_tooltip = "Value of 0.0 gives sharp corners.";
 	ui_category = "Border";
 > = 0.062;
 
-uniform uint BorderGContinuity < __UNIFORM_SLIDER_INT1
+uniform uint BorderGContinuity
+<	__UNIFORM_SLIDER_INT1
 	ui_min = 1u; ui_max = 3u;
 	ui_label = "Corner roundness";
 	ui_tooltip =
@@ -233,9 +266,10 @@ uniform uint BorderGContinuity < __UNIFORM_SLIDER_INT1
 	ui_category = "Border";
 > = 3u;
 
-// Grid
+// :: Grid :: //
 
-uniform float DimGridBackground < __UNIFORM_SLIDER_FLOAT1
+uniform float DimGridBackground
+<	__UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.25; ui_max = 1f; ui_step = 0.1;
 	ui_label = "Dim background";
 	ui_tooltip = "Adjust background visibility.";
@@ -246,7 +280,8 @@ uniform float DimGridBackground < __UNIFORM_SLIDER_FLOAT1
 		"lens distortion with a real-world camera profile.";
 > = 1f;
 
-uniform uint GridLook < __UNIFORM_COMBO_INT1
+uniform uint GridLook
+<	__UNIFORM_COMBO_INT1
 	ui_items =
 		"yellow grid\0"
 		"black grid\0"
@@ -257,30 +292,34 @@ uniform uint GridLook < __UNIFORM_COMBO_INT1
 	ui_category = "Grid";
 > = 0u;
 
-uniform uint GridSize < __UNIFORM_SLIDER_INT1
+uniform uint GridSize
+<	__UNIFORM_SLIDER_INT1
 	ui_min = 1u; ui_max = 32u;
 	ui_label = "Grid size";
 	ui_tooltip = "Adjust calibration grid size.";
 	ui_category = "Grid";
 > = 16u;
 
-uniform uint GridWidth < __UNIFORM_SLIDER_INT1
+uniform uint GridWidth
+<	__UNIFORM_SLIDER_INT1
 	ui_min = 2u; ui_max = 16u;
 	ui_label = "Grid bar width";
 	ui_tooltip = "Adjust calibration grid bar width in pixels.";
 	ui_category = "Grid";
 > = 2u;
 
-uniform float GridTilt < __UNIFORM_SLIDER_FLOAT1
+uniform float GridTilt
+<	__UNIFORM_SLIDER_FLOAT1
 	ui_min = -1f; ui_max = 1f; ui_step = 0.01;
 	ui_label = "Tilt grid";
 	ui_tooltip = "Adjust calibration grid tilt in degrees.";
 	ui_category = "Grid";
 > = 0f;
 
-// Performance
+// :: Performance :: //
 
-uniform uint ChromaticSamplesLimit < __UNIFORM_SLIDER_INT1
+uniform uint ChromaticSamplesLimit
+<	__UNIFORM_SLIDER_INT1
 	ui_min = 6u; ui_max = CHROMATIC_ABERRATION_MAX_SAMPLES; ui_step = 2u;
 	ui_label = "Chromatic aberration samples limit";
 	ui_tooltip =
@@ -291,7 +330,8 @@ uniform uint ChromaticSamplesLimit < __UNIFORM_SLIDER_INT1
 > = 32u;
 
 #if PARALLAX_ABERRATION
-uniform uint ParallaxSamples < __UNIFORM_SLIDER_INT1
+uniform uint ParallaxSamples
+<	__UNIFORM_SLIDER_INT1
 	ui_min = 2u; ui_max = 64u;
 	ui_label = "Parallax aberration samples";
 	ui_tooltip =
@@ -300,21 +340,22 @@ uniform uint ParallaxSamples < __UNIFORM_SLIDER_INT1
 > = 32u;
 #endif
 
-	/* TEXTURES */
+/*---------------.
+| :: Textures :: |
+'---------------*/
 
 // Define screen texture with mirror tiles
 sampler BackBuffer
 {
 	Texture = ReShade::BackBufferTex;
-#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH != 10 // Linear workflow
-	SRGBTexture = true;
-#endif
 	// Border style
 	AddressU = MIRROR;
 	AddressV = MIRROR;
 };
 
-	/* FUNCTIONS */
+/*----------------.
+| :: Functions :: |
+'----------------*/
 
 // Get reciprocal screen aspect ratio (1/x)
 #define BUFFER_RCP_ASPECT_RATIO (BUFFER_HEIGHT*BUFFER_RCP_WIDTH)
@@ -381,10 +422,16 @@ float GetBorderMask(float2 borderCoord)
 		return aastep(glength(0u, borderCoord)-1f);
 }
 
-	/* SHADERS */
+/*--------------.
+| :: Shaders :: |
+'--------------*/
 
 // Vertex shader generating a triangle covering the entire screen
-void LensDistortVS(in uint id : SV_VertexID, out float4 position : SV_Position, out float2 viewCoord : TEXCOORD)
+void LensDistortVS(
+	in  uint   id        : SV_VertexID,
+	out float4 position  : SV_Position,
+	out float2 viewCoord : TEXCOORD
+)
 {
 	// Define vertex position
 	const float2 vertexPos[3] =
@@ -404,11 +451,15 @@ void LensDistortVS(in uint id : SV_VertexID, out float4 position : SV_Position, 
 
 #if PARALLAX_ABERRATION
 // Parallax aberration pixel shader
-void ParallaxPS(float4 pixelPos : SV_Position, float2 viewCoord : TEXCOORD, out float3 color : SV_Target)
+void ParallaxPS(
+	float4 pixelPos  : SV_Position,
+	float2 viewCoord : TEXCOORD,
+	out float3 color : SV_Target
+)
 {
 	if (all(Kp==0f)) // bypass parallax aberration
 	{
-		color = tex2Dfetch(ReShade::BackBuffer, uint2(pixelPos.xy)).rgb;
+		color = tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb;
 		return;
 	}
 
@@ -449,15 +500,18 @@ void ParallaxPS(float4 pixelPos : SV_Position, float2 viewCoord : TEXCOORD, out 
 	texCoord -= centerCoord*offset;
 
 	color = tex2D(BackBuffer, texCoord).rgb;
-	#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH != 10 // Linear workflow
-	color = to_display_gamma(color); // Correct gamma
-	#endif
+	// Linear workflow
+	color = GammaConvert::to_display(color); // Correct gamma
 	color = BlueNoise::dither(uint2(pixelPos.xy), color); // Dither
 }
 #endif
 
 // Lens distortion pixel shader
-void LensDistortPS(float4 pixelPos : SV_Position, float2 viewCoord : TEXCOORD, out float3 color : SV_Target)
+void LensDistortPS(
+	float4 pixelPos  : SV_Position,
+	float2 viewCoord : TEXCOORD,
+	out float3 color : SV_Target
+)
 {
 	// Bypass all effects
 #if PATNOMORPHIC_LENS_MODE==0
@@ -466,7 +520,7 @@ void LensDistortPS(float4 pixelPos : SV_Position, float2 viewCoord : TEXCOORD, o
 	if (!ShowGrid && all(Kx==0f) && all(Ky==0f) && all(P==0f) && all(Q==0f))
 #endif
 	{
-		color = tex2Dfetch(ReShade::BackBuffer, uint2(pixelPos.xy)).rgb;
+		color = tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb;
 		return;
 	}
 
@@ -539,22 +593,15 @@ void LensDistortPS(float4 pixelPos : SV_Position, float2 viewCoord : TEXCOORD, o
 		// Sample background with multiple color filters at multiple offsets
 		color = 0f; // initialize color
 		for (uint i=0u; i<evenSampleCount; i++)
-#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // Manual gamma correction
-			color += to_linear_gamma(tex2Dlod(
-#else
-			color += tex2Dlod(
-#endif
+			// Manual gamma correction
+			color += GammaConvert::to_linear(tex2Dlod(
 				BackBuffer, // Image source
 				float4(
 					(T*(i/float(evenSampleCount-1u)-0.5)+1f) // Aberration offset
 					*distortion // Distortion coordinates
 					+orygTexCoord, // Original coordinates
 				0f, 0f)
-#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // Manual gamma correction
 			).rgb)
-#else
-			).rgb
-#endif
 			*Spectrum(i/float(evenSampleCount)); // Blur layer color
 		// Preserve brightness
 		color *= 2f/evenSampleCount;
@@ -562,11 +609,7 @@ void LensDistortPS(float4 pixelPos : SV_Position, float2 viewCoord : TEXCOORD, o
 	else if (ShowGrid) // generate lens-match grid
 	{
 		// Sample background without distortion
-#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // Manual gamma correction
-		color = to_linear_gamma(tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb);
-#else
-		color = tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb;
-#endif
+		color = GammaConvert::to_linear(tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb); // manual gamma correction
 
 		// Tilt view coordinates
 		{
@@ -604,11 +647,8 @@ void LensDistortPS(float4 pixelPos : SV_Position, float2 viewCoord : TEXCOORD, o
 
 		// Adjust grid look
 		color = lerp(
-	#if BUFFER_COLOR_SPACE <= 2 // Linear workflow
-			to_linear_gamma(16f/255f),
-	#else
-			16f/255f,
-	#endif
+			// Linear workflow
+			GammaConvert::to_linear(16f/255f),
 			color,
 			DimGridBackground
 		);
@@ -635,12 +675,7 @@ void LensDistortPS(float4 pixelPos : SV_Position, float2 viewCoord : TEXCOORD, o
 		}
 	}
 	else // sample background with distortion
-#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // Manual gamma correction
-		color = to_linear_gamma(tex2D(BackBuffer, texCoord).rgb);
-#else
-		color = tex2D(BackBuffer, texCoord).rgb;
-#endif
-
+		color = GammaConvert::to_linear(tex2D(BackBuffer, texCoord).rgb); // manual gamma correction
 
 	if (!ShowGrid) // draw border and vignette
 	{
@@ -653,18 +688,11 @@ void LensDistortPS(float4 pixelPos : SV_Position, float2 viewCoord : TEXCOORD, o
 		// Get border
 		float3 border = lerp(
 			// Border background
-#if BUFFER_COLOR_SPACE <= 2 && BUFFER_COLOR_BIT_DEPTH == 10 // Manual gamma correction
-			MirrorBorder? color : to_linear_gamma(tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb),
-#else
-			MirrorBorder? color : tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb,
-#endif
-#if BUFFER_COLOR_SPACE <= 2 // Linear workflow
-			to_linear_gamma(BorderColor.rgb), // Border color
-			to_linear_gamma(BorderColor.a)    // Border alpha
-#else
-			BorderColor.rgb, // Border color
-			BorderColor.a    // Border alpha
-#endif
+			MirrorBorder? color : GammaConvert::to_linear(tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb), // manual gamma correction
+
+			// Linear workflow
+			GammaConvert::to_linear(BorderColor.rgb), // Border color
+			GammaConvert::to_linear(BorderColor.a)    // Border alpha
 		);
 
 		// Apply vignette with border
@@ -674,13 +702,14 @@ void LensDistortPS(float4 pixelPos : SV_Position, float2 viewCoord : TEXCOORD, o
 		color = saturate(color);
 	}
 
-#if BUFFER_COLOR_SPACE <= 2 // Linear workflow
-	color = to_display_gamma(color); // Correct gamma
-#endif
+	// Linear workflow
+	color = GammaConvert::to_display(color); // Correct gamma
 	color = BlueNoise::dither(uint2(pixelPos.xy), color); // Dither
 }
 
-	/* OUTPUT */
+/*-------------.
+| :: Output :: |
+'-------------*/
 
 technique LensDistort
 <
@@ -704,7 +733,7 @@ technique LensDistort
 		"	arXiv:2010.04077 [cs.GR] (2020)\n"
 		"	arXiv:2102.12682 [cs.GR] (2021)\n"
 		"\n"
-		"This effect © 2022 Jakub Maksymilian Fober\n"
+		"This effect © 2022-2023 Jakub Maksymilian Fober\n"
 		"Licensed under CC BY-NC-ND 3.0 + additional permissions (see source).";
 >
 {

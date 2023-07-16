@@ -2,16 +2,17 @@
 | :: Description :: |
 '-------------------/
 
-Monitor Gamma Correction PS (version 1.1.1)
+Monitor Gamma Correction PS (version 1.1.2)
+
+Author:
+Jakub Maksymilian Fober
+
+First publication:
+2023
 
 Copyright:
-This code © 2023 Jakub Maksymilian Fober
-
-License:
-This work is licensed under the Creative Commons,
-Attribution-ShareAlike 3.0 Unported License.
-To view a copy of this license, visit
-http://creativecommons.org/licenses/by-sa/3.0/.
+This work is free of known copyright restrictions.
+https://creativecommons.org/publicdomain/mark/1.0/
 */
 
 /*-------------.
@@ -171,8 +172,8 @@ technique MonitorGamma
 	ui_tooltip =
 		"Calibrate your monitor gamma.\n"
 		"\n"
-		"This effect © 2023 Jakub Maksymilian Fober\n"
-		"Licensed under CC BY-SA 3.0";
+		"by Jakub Maksymilian Fober\n"
+		"under CC0 Public Domain";
 >
 {
 	pass

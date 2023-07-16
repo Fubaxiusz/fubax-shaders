@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-ACES Tone Mapping PS (version 1.0.2)
+ACES Tone Mapping PS (version 1.0.3)
 
 Copyright:
 This code © 2023 Jakub Maksymilian Fober
@@ -11,8 +11,9 @@ License:
 This work is licensed under the Creative Commons,
 Attribution-ShareAlike 3.0 Unported License.
 To view a copy of this license, visit
-http://creativecommons.org/licenses/by-sa/3.0/.
+http://creativecommons.org/licenses/by-sa/3.0/
 
+About:
 The matrices and ACES mapping where sourced from ChatGPT-4,
 which it took from OpenColorIO documentation.
 */

@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Lens Distortion PS (version 1.3.9)
+Lens Distortion PS (version 1.3.10)
 
 Copyright:
 This code © 2022-2023 Jakub Maksymilian Fober
@@ -501,7 +501,7 @@ void ParallaxPS(
 	color = tex2D(BackBuffer, texCoord).rgb;
 	// Linear workflow
 	color = GammaConvert::to_display(color); // Correct gamma
-	color = BlueNoise::dither(uint2(pixelPos.xy), color); // Dither
+	color = BlueNoise::dither(color, uint2(pixelPos.xy)); // Dither
 }
 #endif
 
@@ -703,7 +703,7 @@ void LensDistortPS(
 
 	// Linear workflow
 	color = GammaConvert::to_display(color); // Correct gamma
-	color = BlueNoise::dither(uint2(pixelPos.xy), color); // Dither
+	color = BlueNoise::dither(color, uint2(pixelPos.xy)); // Dither
 }
 
 /*-------------.

@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Display Image PS (version 1.2.3)
+Display Image PS (version 1.2.4)
 
 Copyright:
 This code © 2019-2023 Jakub Maksymilian Fober
@@ -148,7 +148,7 @@ void ImagePS(
 	}
 
 	color = GammaConvert::to_display(color);
-	color = BlueNoise::dither(uint2(pixelPos.xy), color); // Dither
+	color = BlueNoise::dither(color, uint2(pixelPos.xy)); // Dither
 }
 
 	/* OUTPUT */

@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Monitor Gamma Correction PS (version 1.1.2)
+Monitor Gamma Correction PS (version 1.1.3)
 
 Author:
 Jakub Maksymilian Fober
@@ -159,7 +159,7 @@ void MonitorGamma_PS(
 		color = pow(abs(color), rcp(float3(GammaRedShift, GammaGreenShift, GammaBlueShift)));
 
 	// Apply color dither
-	color = BlueNoise::dither(texelPos, color);
+	color = BlueNoise::dither(color, texelPos);
 }
 
 /*-------------.

@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Filmic Anamorph Sharpen PS (version 1.4.8)
+Filmic Anamorph Sharpen PS (version 1.4.9)
 
 Copyright:
 This code © 2018-2023 Jakub Maximilian Fober
@@ -23,7 +23,6 @@ http://creativecommons.org/licenses/by-sa/4.0/
 #include "ReShadeUI.fxh"
 #include "ColorConversion.fxh"
 #include "LinearGammaWorkflow.fxh"
-#include "BlueNoiseDither.fxh"
 
 /*-----------.
 | :: Menu :: |

@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Contrast Limited Sharpening PS (version 1.1.7)
+Contrast Limited Sharpening PS (version 1.1.8)
 
 Copyright:
 This code © 2023 Jakub Maksymilian Fober
@@ -227,7 +227,7 @@ void ContrastSharpenPassHorizontalPS(
 
 	// Dither output to increase perceivable picture bit-depth
 	if (DitheringEnabled)
-		luminosity = BlueNoise::dither(uint2(pixCoord.xy), luminosity);
+		luminosity = BlueNoise::dither(luminosity, uint2(pixCoord.xy));
 }
 
 // Horizontal luminance blur and contrast sharpening pass
@@ -295,7 +295,7 @@ void ContrastSharpenPassVerticalPS(
 
 	// Dither output to increase perceivable picture bit-depth
 	if (DitheringEnabled)
-		color = BlueNoise::dither(uint2(pixCoord.xy), color);
+		color = BlueNoise::dither(color, uint2(pixCoord.xy));
 }
 
 /*-------------.

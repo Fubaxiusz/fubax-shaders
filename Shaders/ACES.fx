@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-ACES Tone Mapping PS (version 1.0.3)
+ACES Tone Mapping PS (version 1.0.4)
 
 Copyright:
 This code © 2023 Jakub Maksymilian Fober
@@ -128,7 +128,7 @@ void ACESToneMapping_PS(
 	color = lerp(oryginalColor, color, DryWet);
 
 	// Apply color dither
-	color = BlueNoise::dither(texelPos, color);
+	color = BlueNoise::dither(color, texelPos);
 }
 
 /*-------------.

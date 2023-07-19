@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Perfect Perspective PS (version 5.5.1)
+Perfect Perspective PS (version 5.5.2)
 
 Copyright:
 This code © 2018-2023 Jakub Maksymilian Fober
@@ -932,7 +932,7 @@ float3 PerfectPerspectivePS(
 			// Linear workflow
 			display = GammaConvert::to_display(display); // manually correct gamma
 
-			return BlueNoise::dither(uint2(pixelPos.xy), display); // dither final 8/10-bit result
+			return BlueNoise::dither(display, uint2(pixelPos.xy)); // dither final 8/10-bit result
 		}
 		else // bypass all effects
 			return tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb;
@@ -1077,7 +1077,7 @@ float3 PerfectPerspectivePS(
 	display = GammaConvert::to_display(display);
 
 	// Dither final 8/10-bit result
-	return BlueNoise::dither(uint2(pixelPos.xy), display);
+	return BlueNoise::dither(display, uint2(pixelPos.xy));
 }
 
 /*-------------.

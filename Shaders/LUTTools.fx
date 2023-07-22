@@ -3,7 +3,7 @@
 '-------------------/
 
 Display LUT PS (version 1.3.4)
-Apply LUT PS (version 2.0.1)
+Apply LUT PS (version 2.0.2)
 
 Copyright:
 Display LUT © 2018-2023 Jakub Maksymilian Fober
@@ -112,10 +112,7 @@ texture LUTTex < source = LUT_FILE_NAME;>
 	Format = RGBA8;
 };
 sampler LUTSampler
-{
-	Texture = LUTTex;
-	Format = RGBA8;
-};
+{ Texture = LUTTex; };
 
 /*--------------.
 | :: Shaders :: |

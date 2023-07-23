@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Filmic Anamorph Sharpen PS (version 1.4.10)
+Filmic Anamorph Sharpen PS (version 1.5.0)
 
 Copyright:
 This code © 2018-2023 Jakub Maximilian Fober
@@ -36,6 +36,7 @@ uniform float Strength
 
 uniform float Offset
 <	__UNIFORM_SLIDER_FLOAT1
+	ui_units = " pixel";
 	ui_label = "Radius";
 	ui_tooltip = "High-pass cross offset in pixels";
 	ui_min = 0.0; ui_max = 2.0; ui_step = 0.01;

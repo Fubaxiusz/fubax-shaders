@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Lens Distortion PS (version 1.3.10)
+Lens Distortion PS (version 1.4.0)
 
 Copyright:
 This code © 2022-2023 Jakub Maksymilian Fober
@@ -254,6 +254,7 @@ uniform float BorderCorner
 uniform uint BorderGContinuity
 <	__UNIFORM_SLIDER_INT1
 	ui_min = 1u; ui_max = 3u;
+	ui_units = "G";
 	ui_label = "Corner roundness";
 	ui_tooltip =
 		"G-surfacing continuity level for the corners:\n"
@@ -302,6 +303,7 @@ uniform uint GridSize
 uniform uint GridWidth
 <	__UNIFORM_SLIDER_INT1
 	ui_min = 2u; ui_max = 16u;
+	ui_units = " pixels";
 	ui_label = "Grid bar width";
 	ui_tooltip = "Adjust calibration grid bar width in pixels.";
 	ui_category = "Grid";
@@ -310,6 +312,7 @@ uniform uint GridWidth
 uniform float GridTilt
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_min = -1f; ui_max = 1f; ui_step = 0.01;
+	ui_units = "°";
 	ui_label = "Tilt grid";
 	ui_tooltip = "Adjust calibration grid tilt in degrees.";
 	ui_category = "Grid";

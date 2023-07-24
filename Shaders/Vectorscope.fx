@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Scopes FX - Vectorscope PS/VS (version 1.6.1)
+Scopes FX - Vectorscope PS/VS (version 1.6.2)
 
 Copyright:
 This code © 2021-2023 Jakub Maksymilian Fober
@@ -47,7 +47,7 @@ as a vectorscope color-wheel.
 #endif
 // Determine native scope size
 #ifndef SCOPES_VECTORSCOPE_SIZE
-	#define SCOPES_VECTORSCOPE_SIZE 192
+	#define SCOPES_VECTORSCOPE_SIZE 256
 #endif
 
 /*--------------.
@@ -70,7 +70,7 @@ uniform float2 ScopePosition
 	ui_label = "position on screen";
 	ui_tooltip = "Move vectorscope on the screen.";
 	ui_min = 0f; ui_max = 1f;
-> = float2(0.988, 0.028);
+> = float2(0.9, 0.1);
 
 uniform float ScopeSize
 <	__UNIFORM_SLIDER_FLOAT1

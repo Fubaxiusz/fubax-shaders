@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Scopes FX - Zebra Lines PS (version 1.2.1)
+Scopes FX - Zebra Lines PS (version 1.2.2)
 
 Copyright:
 This code © 2021-2023 Jakub Maksymilian Fober
@@ -60,12 +60,12 @@ uniform float ScopeThresholdWhite
 	ui_min = 50f;
 	ui_max = 100f;
 	ui_step = 0.1;
-> = 235f/255f*100f;
+> = 99f;
 
 uniform bool ScopeClipWhite
 <	__UNIFORM_INPUT_BOOL1
 	ui_category = "Clipping threshold";
-	ui_label = "whites clipping";
+	ui_label = "show whites clipping";
 	ui_tooltip = "Enable whites-clipping zebra lines.";
 > = true;
 
@@ -77,21 +77,21 @@ uniform float ScopeThresholdBlack
 	ui_spacing = 2u;
 	ui_tooltip = "Inclusive percent value threshold for blacks clipping.";
 	ui_min = 0f;
-	ui_max = 49.9f;
+	ui_max = 50f;
 	ui_step = 0.1;
-> = 16f/255f*100f;
+> = 1f;
 
 uniform bool ScopeClipBlack
 <	__UNIFORM_INPUT_BOOL1
 	ui_category = "Clipping threshold";
-	ui_label = "blacks clipping";
+	ui_label = "show blacks clipping";
 	ui_tooltip = "Enable blacks-clipping zebra lines.";
 > = true;
 
 uniform bool ScopeRGBClipping
 <	__UNIFORM_INPUT_BOOL1
 	ui_category = "Clipping threshold";
-	ui_label = "RGB clipping";
+	ui_label = "RGB clipping mode";
 	ui_tooltip = "Enable zebra-lines for red, green, blue components.";
 > = false;
 
@@ -160,8 +160,8 @@ void ZebraLinesPS(
 	// Limit to visible range
 	zebraLines = clamp(zebraLines, 0f, 1f);
 
-	// Sample background image in sRGB
-	color = tex2Dfetch(ReShade::BackBuffer, uint2(pos.xy)).rgb;
+	// Sample background image in sRGB and convert to linear RGB
+	color = GammaConvert::to_linear(tex2Dfetch(ReShade::BackBuffer, uint2(pos.xy)).rgb);
 
 	// UI settings
 	if (ScopeRGBClipping)
@@ -172,10 +172,6 @@ void ZebraLinesPS(
 		mask.a = ScopeThresholdBlack*0.01-max(max(color.r, color.g), color.b);
 		// Apply edge sharpness
 		mask = clamp(mask*(255u*2u)+1f, 0f, 1f);
-		// Gamma correction for linear-color space interpolation
-		// Linear workflow
-		color = GammaConvert::to_linear(color); // manual gamma correction
-
 		// Blend background with zebra-lines using threshold
 		if (ScopeClipWhite) color = lerp(
 				color,
@@ -195,10 +191,6 @@ void ZebraLinesPS(
 		mask.y = ScopeThresholdBlack*0.01-mask.y;
 		// Apply edge sharpness
 		mask = clamp(mask*(255u*2u)+1f, 0f, 1f);
-		// Gamma correction for linear-color space interpolation
-		// Linear workflow
-		color = GammaConvert::to_linear(color); // manual gamma correction
-
 		// Blend background with zebra-lines using threshold
 		if (ScopeClipWhite) color = lerp(color, zebraLines.x, mask.x);
 		if (ScopeClipBlack) color = lerp(color, zebraLines.y, mask.y);

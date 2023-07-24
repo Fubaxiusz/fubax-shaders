@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Scopes FX - Waveform PS/VS (version 1.4.1)
+Scopes FX - Waveform PS/VS (version 1.4.2)
 
 Copyright:
 This code © 2021-2023 Jakub Maksymilian Fober
@@ -50,7 +50,7 @@ and display them as a waveform pattern.
 #endif
 // Determine native scope size
 #ifndef SCOPES_WAVEFORM_SIZE
-	#define SCOPES_WAVEFORM_SIZE 192
+	#define SCOPES_WAVEFORM_SIZE 256
 #endif
 
 /*--------------.
@@ -73,7 +73,7 @@ uniform float2 ScopePosition
 	ui_label = "position on screen";
 	ui_tooltip = "Move waveform on the screen.";
 	ui_min = 0f; ui_max = 1f;
-> = float2(0.191, 0.069);
+> = float2(0.1, 0.1);
 
 uniform float2 ScopeScale
 <	__UNIFORM_DRAG_FLOAT2
@@ -82,7 +82,7 @@ uniform float2 ScopeScale
 	ui_tooltip = "Scale waveform on the screen.";
 	ui_spacing = 1u;
 	ui_min = 0f; ui_max = 1f;
-> = float2(0.618, 0f);
+> = float2(0.5, 0f);
 
 uniform uint ScopeBrightness
 <	__UNIFORM_SLIDER_INT1

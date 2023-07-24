@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Scopes FX - Waveform PS/VS (version 1.4.0)
+Scopes FX - Waveform PS/VS (version 1.4.1)
 
 Copyright:
 This code © 2021-2023 Jakub Maksymilian Fober
@@ -70,26 +70,26 @@ and display them as a waveform pattern.
 uniform float2 ScopePosition
 <	__UNIFORM_DRAG_FLOAT2
 	ui_category = "Location and size";
-	ui_label = "Position";
-	ui_tooltip = "Move waveform on the screen";
+	ui_label = "position on screen";
+	ui_tooltip = "Move waveform on the screen.";
 	ui_min = 0f; ui_max = 1f;
 > = float2(0.191, 0.069);
 
 uniform float2 ScopeScale
 <	__UNIFORM_DRAG_FLOAT2
 	ui_category = "Location and size";
-	ui_label = "Scale";
-	ui_tooltip = "Scale waveform on the screen";
+	ui_label = "size scale";
+	ui_tooltip = "Scale waveform on the screen.";
 	ui_spacing = 1u;
 	ui_min = 0f; ui_max = 1f;
 > = float2(0.618, 0f);
 
 uniform uint ScopeBrightness
 <	__UNIFORM_SLIDER_INT1
-	ui_category = "Waveform";
+	ui_category = "Waveform settings";
 	ui_units = "x";
-	ui_label = "Waveform brightness";
-	ui_tooltip = "Adjust waveform sensitivity";
+	ui_label = "brightness of waveform";
+	ui_tooltip = "Adjust waveform sensitivity.";
 	ui_min = 1u; ui_max = 1024u;
 > = 32u;
 
@@ -97,16 +97,16 @@ uniform float ScopeUITransparency
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category_closed = true;
 	ui_category = "UI settings";
-	ui_label = "UI visibility";
-	ui_tooltip = "Set marker-lines transparency-level";
+	ui_label = "visibility of UI";
+	ui_tooltip = "Set marker-lines transparency-level.";
 	ui_min = 0f; ui_max = 1f; ui_step = 0.01;
-> = 0.38;
+> = 0.10;
 
 uniform float ScopeBackgroundTransparency
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "UI settings";
-	ui_label = "Background opacity";
-	ui_tooltip = "Set waveform transparency-level";
+	ui_label = "opacity of background";
+	ui_tooltip = "Set waveform transparency-level.";
 	ui_min = 0.5; ui_max = 1f; ui_step = 0.01;
 > = 0.92;
 
@@ -114,7 +114,7 @@ uniform uint ScopeRoundness
 <	__UNIFORM_SLIDER_INT1
 	ui_category = "UI settings";
 	ui_units = "G";
-	ui_label = "Border roundness";
+	ui_label = "roundness of border";
 	ui_tooltip =
 		"Set G-continuity corner roundness\n"
 		"\nG0 ... Sharp corners"
@@ -128,25 +128,25 @@ uniform uint ScopeBorder
 <	__UNIFORM_SLIDER_INT1
 	ui_category = "UI settings";
 	ui_units = " pixels";
-	ui_label = "Border size";
-	ui_tooltip = "Set rounded border size in pixels";
+	ui_label = "size of border";
+	ui_tooltip = "Set rounded border size in pixels.";
 	ui_min = 0u; ui_max = 64u;
 > = 10u;
 
 uniform float3 ScopeColor
 <	__UNIFORM_COLOR_FLOAT3
 	ui_category = "UI settings";
-	ui_label = "Waveform color";
+	ui_label = "color of waveform";
 	ui_spacing = 1u;
-	ui_tooltip = "Set custom waveform display color";
+	ui_tooltip = "Set custom waveform display color.";
 > = float3(1f, 1f, 1f);
 
 uniform float3 ScopeUIColor
 <	__UNIFORM_COLOR_FLOAT3
 	ui_category = "UI settings";
-	ui_label = "UI color";
-	ui_tooltip = "Set custom UI color";
-> = float3(1f, 0.5, 0f);
+	ui_label = "color of UI";
+	ui_tooltip = "Set custom UI color.";
+> = float3(1f, 1f, 0f);
 
 #if SCOPES_FAST_CHECKERBOARD
 // System variable
@@ -303,11 +303,13 @@ void GatherStatsVS(uint pixelID : SV_VertexID, out float4 position : SV_Position
 	// Get current-pixel color data in RGB, convert to luma Y and store as Y position
 	float3 color = tex2Dfetch(ReShade::BackBuffer, texelCoord).rgb;
 #if SCOPES_VERTICAL_WAVEFORM
-	position.x = ColorConvert::RGB_to_Luma(color);
+	// Linear gamma workflow
+	position.x = ColorConvert::RGB_to_Luma(GammaConvert::to_linear(color));
 	position.y = 0.5-(texelCoord.y+0.5)*BUFFER_RCP_HEIGHT;
 #else
 	position.x = (texelCoord.x+0.5)*BUFFER_RCP_WIDTH;
-	position.y = ColorConvert::RGB_to_Luma(color);
+	// Linear gamma workflow
+	position.y = ColorConvert::RGB_to_Luma(GammaConvert::to_linear(color));
 #endif
 	position.xy = position.xy*(1f-BUFFER_PIXEL_SIZE)-0.5;
 }
@@ -445,7 +447,7 @@ void DisplayWaveformPS(
 '-------------*/
 
 technique Waveform <
-	ui_label = "Scopes FX: waveform analysis";
+	ui_label = "scopes FX: waveform analysis";
 	ui_tooltip =
 		"Analyze colors using waveform.\n"
 		"\n"

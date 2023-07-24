@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Scopes FX - Vectorscope PS/VS (version 1.6.0)
+Scopes FX - Vectorscope PS/VS (version 1.6.1)
 
 Copyright:
 This code © 2021-2023 Jakub Maksymilian Fober
@@ -67,25 +67,25 @@ as a vectorscope color-wheel.
 uniform float2 ScopePosition
 <	__UNIFORM_DRAG_FLOAT2
 	ui_category = "Location and scale";
-	ui_label = "Position";
-	ui_tooltip = "Move vectorscope on the screen";
+	ui_label = "position on screen";
+	ui_tooltip = "Move vectorscope on the screen.";
 	ui_min = 0f; ui_max = 1f;
 > = float2(0.988, 0.028);
 
 uniform float ScopeSize
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "Location and scale";
-	ui_label = "Enlarge";
-	ui_tooltip = "Scale vectorscope on the screen";
+	ui_label = "size scale";
+	ui_tooltip = "Scale vectorscope on the screen.";
 	ui_min = 0f; ui_max = 1f;
 > = 0f;
 
 uniform uint ScopeBrightness
 <	__UNIFORM_SLIDER_INT1
-	ui_category = "Vectorscope";
+	ui_category = "Vectorscope settings";
 	ui_units = "x";
-	ui_label = "Vectorscope brightness";
-	ui_tooltip = "Adjust vectorscope sensitivity";
+	ui_label = "brightness of vectorscope";
+	ui_tooltip = "Adjust vectorscope sensitivity.";
 	ui_min = 1u; ui_max = 1024u;
 > = 64u;
 
@@ -93,25 +93,25 @@ uniform float ScopeUiTransparency
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "UI settings";
 	ui_category_closed = true;
-	ui_label = "UI visibility";
-	ui_tooltip = "Set marker-lines transparency-level";
+	ui_label = "visibility of UI";
+	ui_tooltip = "Set marker-lines transparency-level.";
 	ui_min = 0f; ui_max = 1f; ui_step = 0.01;
-> = 0.38;
+> = 0.5;
 
 uniform float ScopeUiThickness
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "UI settings";
 	ui_units = " pixel";
-	ui_label = "UI thickness";
-	ui_tooltip = "Make UI lines more thick";
+	ui_label = "thickness of UI";
+	ui_tooltip = "Make UI lines more thick.";
 	ui_min = 1f; ui_max = 2f; ui_step = 0.1;
 > = 1f;
 
 uniform float ScopeBackgroundTransparency
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "UI settings";
-	ui_label = "Background opacity";
-	ui_tooltip = "Set vectorscope transparency-level";
+	ui_label = "opacity of background";
+	ui_tooltip = "Set vectorscope transparency-level.";
 	ui_min = 0.5; ui_max = 1f; ui_step = 0.01;
 > = 0.92;
 
@@ -233,7 +233,10 @@ void GatherStatsVS(
 #endif
 
 	// Get current-pixel color data in RGB, convert to chroma CbCr and store as 2D position
-	position.xy = ColorConvert::RGB_to_Chroma(tex2Dfetch(ReShade::BackBuffer, texelCoord).rgb);
+	position.xy = ColorConvert::RGB_to_Chroma(
+		GammaConvert::to_linear( // linear gamma workflow
+			tex2Dfetch(ReShade::BackBuffer, texelCoord).rgb
+		));
 }
 
 // Add pixel data to vectorscope image
@@ -467,7 +470,7 @@ void DisplayVectorscopePS(
 '-------------*/
 
 technique Vectorscope <
-	ui_label = "Scopes FX: vectorscope analysis";
+	ui_label = "scopes FX: vectorscope analysis";
 	ui_tooltip =
 		"Analyze colors using vectorscope color-wheel.\n"
 		"\n"

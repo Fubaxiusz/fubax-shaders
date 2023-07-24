@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Scopes FX - Zebra Lines PS (version 1.2.0)
+Scopes FX - Zebra Lines PS (version 1.2.1)
 
 Copyright:
 This code © 2021-2023 Jakub Maksymilian Fober
@@ -55,8 +55,8 @@ uniform float ScopeThresholdWhite
 	ui_category_closed = true;
 	ui_category = "Clipping threshold";
 	ui_units = "%%";
-	ui_label = "Whites threshold";
-	ui_tooltip = "Inclusive percent value threshold for whites clipping";
+	ui_label = "threshold for whites";
+	ui_tooltip = "Inclusive percent value threshold for whites clipping.";
 	ui_min = 50f;
 	ui_max = 100f;
 	ui_step = 0.1;
@@ -65,17 +65,17 @@ uniform float ScopeThresholdWhite
 uniform bool ScopeClipWhite
 <	__UNIFORM_INPUT_BOOL1
 	ui_category = "Clipping threshold";
-	ui_label = "Clip whites";
-	ui_tooltip = "Enable whites-clipping zebra lines";
+	ui_label = "whites clipping";
+	ui_tooltip = "Enable whites-clipping zebra lines.";
 > = true;
 
 uniform float ScopeThresholdBlack
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "Clipping threshold";
 	ui_units = "%%";
-	ui_label = "Blacks threshold";
+	ui_label = "threshold for blacks";
 	ui_spacing = 2u;
-	ui_tooltip = "Inclusive percent value threshold for blacks clipping";
+	ui_tooltip = "Inclusive percent value threshold for blacks clipping.";
 	ui_min = 0f;
 	ui_max = 49.9f;
 	ui_step = 0.1;
@@ -84,25 +84,24 @@ uniform float ScopeThresholdBlack
 uniform bool ScopeClipBlack
 <	__UNIFORM_INPUT_BOOL1
 	ui_category = "Clipping threshold";
-	ui_label = "Clip blacks";
-	ui_tooltip = "Enable blacks-clipping zebra lines";
+	ui_label = "blacks clipping";
+	ui_tooltip = "Enable blacks-clipping zebra lines.";
 > = true;
 
 uniform bool ScopeRGBClipping
 <	__UNIFORM_INPUT_BOOL1
-	ui_category_closed = true;
-	ui_category = "UI settings";
-	ui_label = "Clipping with RGB";
-	ui_tooltip = "Enable zebra-lines for red, green, blue components";
+	ui_category = "Clipping threshold";
+	ui_label = "RGB clipping";
+	ui_tooltip = "Enable zebra-lines for red, green, blue components.";
 > = false;
-
 
 uniform uint ScopeLineWidth
 <	__UNIFORM_SLIDER_INT1
+	ui_category_closed = true;
 	ui_category = "UI settings";
 	ui_units = " pixels";
-	ui_label = "Line width";
-	ui_tooltip = "Zebra-lines width in pixels";
+	ui_label = "width of lines";
+	ui_tooltip = "Zebra-lines width in pixels.";
 	ui_min = 3u;
 	ui_max = 10u;
 > = 4u;
@@ -111,8 +110,8 @@ uniform uint ScopeLineAngle
 <	__UNIFORM_SLIDER_INT1
 	ui_category = "UI settings";
 	ui_units = "°";
-	ui_label = "Angle (degrees)";
-	ui_tooltip = "Zebra-lines angle in degrees";
+	ui_label = "angle of lines";
+	ui_tooltip = "Zebra-lines angle in degrees.";
 	ui_min = 0u;
 	ui_max = 90u;
 > = 22u;
@@ -216,7 +215,7 @@ void ZebraLinesPS(
 '-------------*/
 
 technique ZebraLines <
-	ui_label = "Scopes FX: zebra-lines clipping";
+	ui_label = "scopes FX: zebra-lines clipping";
 	ui_tooltip =
 		"Check for RGB clipping in blacks and whites.\n"
 		"\n"

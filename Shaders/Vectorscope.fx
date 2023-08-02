@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Scopes FX - Vectorscope PS/VS (version 1.6.2)
+Scopes FX - Vectorscope PS/VS (version 1.7.0)
 
 Copyright:
 This code © 2021-2023 Jakub Maksymilian Fober
@@ -286,8 +286,9 @@ float4 DrawUI(float2 texCoord)
 		ColorConvert::RGB_to_Chroma(float3(0f, 0f, 1f)), // B
 		ColorConvert::RGB_to_Chroma(float3(1f, 0f, 1f))  // Mg
 	};
-	// Get skin-tone CbCr position from skin-tone sRGB color
-	static const float2 skintonePos = ColorConvert::RGB_to_Chroma(float3(1f, 1f-GOLDEN_RATIO, 0f)*(1f-GOLDEN_RATIO)); // formula for skin-tone color engineered by JMF
+	// Get skin-tone CbCr position from skin-tone RGB color
+	float2 skintonePos = ColorConvert::RGB_to_Chroma((float3(1f, 0.15+sqrt(0.0125), 0f))); // formula for skin-tone color engineered by JMF
+	skintonePos = lerp(length(skintonePos), GOLDEN_RATIO, GOLDEN_RATIO)*normalize(skintonePos); // set line length beyond full saturation hexagon
 	// Normalize skin-tone line length-gradient
 	static const float2 skintoneLine = skintonePos/dot(skintonePos, skintonePos);
 

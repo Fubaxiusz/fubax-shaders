@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Scopes FX - Waveform PS/VS (version 1.4.2)
+Scopes FX - Waveform PS/VS (version 1.4.3)
 
 Copyright:
 This code © 2021-2023 Jakub Maksymilian Fober
@@ -446,7 +446,8 @@ void DisplayWaveformPS(
 | :: Output :: |
 '-------------*/
 
-technique Waveform <
+technique Waveform
+<
 	ui_label = "scopes FX: waveform analysis";
 	ui_tooltip =
 		"Analyze colors using waveform.\n"

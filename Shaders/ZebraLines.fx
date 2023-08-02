@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Scopes FX - Zebra Lines PS (version 1.2.2)
+Scopes FX - Zebra Lines PS (version 1.2.3)
 
 Copyright:
 This code © 2021-2023 Jakub Maksymilian Fober
@@ -206,7 +206,8 @@ void ZebraLinesPS(
 | :: Output :: |
 '-------------*/
 
-technique ZebraLines <
+technique ZebraLines
+<
 	ui_label = "scopes FX: zebra-lines clipping";
 	ui_tooltip =
 		"Check for RGB clipping in blacks and whites.\n"

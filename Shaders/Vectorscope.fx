@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Scopes FX - Vectorscope PS/VS (version 1.7.0)
+Scopes FX - Vectorscope PS/VS (version 1.7.1)
 
 Copyright:
 This code © 2021-2023 Jakub Maksymilian Fober
@@ -470,7 +470,8 @@ void DisplayVectorscopePS(
 | :: Output :: |
 '-------------*/
 
-technique Vectorscope <
+technique Vectorscope
+<
 	ui_label = "scopes FX: vectorscope analysis";
 	ui_tooltip =
 		"Analyze colors using vectorscope color-wheel.\n"

@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Display Image PS (version 1.2.5)
+Display Image PS (version 1.2.6)
 
 Copyright:
 This code © 2019-2023 Jakub Maksymilian Fober
@@ -20,15 +20,15 @@ http://creativecommons.org/licenses/by-sa/4.0/
 
 // Image file name
 #ifndef TEST_IMAGE_PATH
-	#define TEST_IMAGE_PATH "image.png"
+	#define TEST_IMAGE_PATH "TestPattern.png"
 #endif
 // Image horizontal resolution
 #ifndef TEST_IMAGE_SIZE_X
-	#define TEST_IMAGE_SIZE_X 800
+	#define TEST_IMAGE_SIZE_X 1920
 #endif
 // Image vertical resolution
 #ifndef TEST_IMAGE_SIZE_Y
-	#define TEST_IMAGE_SIZE_Y 600
+	#define TEST_IMAGE_SIZE_Y 1080
 #endif
 
 /*--------------.

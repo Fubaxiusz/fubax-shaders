@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Scopes FX - Waveform PS/VS (version 1.4.3)
+Scopes FX - Waveform PS/VS (version 1.4.4)
 
 Copyright:
 This code © 2021-2023 Jakub Maksymilian Fober
@@ -146,7 +146,7 @@ uniform float3 ScopeUIColor
 	ui_category = "UI settings";
 	ui_label = "color of UI";
 	ui_tooltip = "Set custom UI color.";
-> = float3(1f, 1f, 0f);
+> = float3(1f, 0.96, 0.5);
 
 #if SCOPES_FAST_CHECKERBOARD
 // System variable
@@ -222,9 +222,6 @@ float getUI(float2 texCoord, float2 pos, float2 pixelSize)
 {
 	// Create UI lines
 	float lines = clamp(1f-abs(frac(texCoord.y*4f-0.5)-0.5)*0.25*pixelSize.y, 0f, 1f); // 25% lines
-	// Broadcast safe lines
-	lines += clamp(1f-abs(1f-texCoord.y -16f/255f)*pixelSize.y, 0f, 1f); // broadcast safe lower line
-	lines += clamp(1f-abs(1f-texCoord.y-235f/255f)*pixelSize.y, 0f, 1f); // broadcast safe upper line
 	// Masks
 	lines *= clamp((0.5-abs(texCoord.x-0.5))*pixelSize.x, 0f, 1f); // mask sides
 	lines *= 1u-min(1u, uint(pos.x)%SCOPES_UI_SPACING); // create dotted line

@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Chromakey PS (version 1.6.0)
+Chromakey PS (version 1.6.1)
 
 Copyright:
 This code © 2018-2023 Jakub Maksymilian Fober
@@ -197,8 +197,9 @@ float3 ChromakeyPS(
 
 technique Chromakey
 <
-	ui_tooltip = "Generate green-screen wall based of depth";
 	ui_tooltip =
+		"Generate green-screen wall based on depth\n"
+		"\n"
 		"This effect © 2018-2023 Jakub Maksymilian Fober\n"
 		"Licensed under CC BY-SA 4.0";
 >

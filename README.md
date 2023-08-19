@@ -3,6 +3,11 @@ This repository contains a collection of post-processing ReShade shaders, which 
 
 -----
 
+# ANNOUNCEMENT
+I you want to use special version of *Perfect Perspective* in your product, e-mail me at [*jakub.m.fober@pm.me*](mailto:jakub.m.fober@protonmail.com) we can talk details.
+
+-----
+
 ### [Perfect Perspective](/Shaders/PerfectPerspective.fx) FX [*wiki*](https://github.com/Fubaxiusz/fubax-shaders/wiki/PerfectPerspective)
 ![Wreckfest with Perfect Perspective shader](https://github.com/Fubaxiusz/fubax-shaders/assets/34406163/c1c9d992-7fc8-4a32-a3ca-e7c201dd8105)
 

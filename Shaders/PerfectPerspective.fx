@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Perfect Perspective PS (version 5.8.5)
+/* Perfect Perspective PS (version 5.8.6)
 
 Copyright:
 This code © 2018-2023 Jakub Maksymilian Fober
@@ -127,7 +127,7 @@ uniform float Ky
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "Distortion";
 	ui_category_closed = true;
-	ui_text = "(Adjust distortion strength)";
+	ui_text = "(brightness[-1], distances[-0.5], speed[0], shapes[0.5], straight-lines[1])";
 	ui_label = "Projection type 'k' top (asymmetrical)";
 	ui_tooltip =
 		"Projection coefficient 'k' top, represents\n"
@@ -153,13 +153,14 @@ uniform float K
 	ui_category = "Distortion";
 #if AXIOMORPHIC_MODE==1
 	ui_category_closed = true;
+	ui_text = "(brightness[-1], distances[-0.5], speed[0], shapes[0.5], straight-lines[1])";
 #endif
 #if AXIOMORPHIC_MODE // k indicates horizontal axis projection type
 	ui_label = "Projection type 'k' horizontal";
 	ui_tooltip = "Projection coefficient 'k' horizontal, represents\n"
 #else // k represents whole picture projection type
 	ui_category_closed = true;
-	ui_text = "(Adjust distortion strength)";
+	ui_text = "(brightness[-1], distances[-0.5], speed[0], shapes[0.5], straight-lines[1])";
 	ui_label = "Projection type 'k'";
 	ui_tooltip = "Projection coefficient 'k', represents\n"
 #endif
@@ -257,7 +258,7 @@ uniform bool UseVignette
 
 uniform float CroppingFactor
 <	__UNIFORM_SLIDER_FLOAT1
-	ui_text = "Zoom   [ circular | cropped circle | full frame ]:";
+	ui_text = "(circular[0], cropped-circle[0.5], full-frame[1])";
 	ui_category = "Border appearance";
 	ui_category_closed = true;
 	ui_label = "Cropping";
@@ -267,14 +268,14 @@ uniform float CroppingFactor
 		"	Value | Cropping      	\n"
 		"	------+---------------	\n"
 		"	    0 | circular      	\n"
-		"	    1 | cropped-circle	\n"
-		"	    2 | full-frame    	\n"
+		"	  0.5 | cropped-circle	\n"
+		"	    1 | full-frame    	\n"
 		"\n"
 		"\n"
 		"For horizontal display, circular will snap to vertical bounds,\n"
 		"cropped-circle to horizontal bounds, and full-frame to corners.";
-	ui_min = 0f; ui_max = 2f;
-> = 1f;
+	ui_min = 0f; ui_max = 1f;
+> = 0.5;
 
 uniform bool MirrorBorder
 <	__UNIFORM_INPUT_BOOL1
@@ -873,16 +874,17 @@ void PerfectPerspectiveVS(
 	const static float fullFrame = croppingDigonal;
 #endif
 	// Get radius scaling for bounds alignment
-	const static float croppingScalar = CroppingFactor<1f
+	const static float croppingScalar =
+		CroppingFactor<0.5
 		? lerp(
 			circularFishEye, // circular fish-eye
 			croppedCircle,   // cropped circle
-			max(CroppingFactor, 0f) // ↤ [0,1] range
+			max(CroppingFactor*2f, 0f) // ↤ [0,1] range
 		)
 		: lerp(
 			croppedCircle, // cropped circle
 			fullFrame, // full-frame
-			min(CroppingFactor-1f, 1f) // ↤ [1,2] range
+			min(CroppingFactor*2f-1f, 1f) // ↤ [1,2] range
 		);
 
 	// Scale view coordinates to cropping bounds
@@ -1060,7 +1062,7 @@ float3 PerfectPerspectivePS(
 #else // consider only global k
 		K!=1f
 #endif
-		&& CroppingFactor<2f) // visible borders
+		&& CroppingFactor<1f) // visible borders
 	{
 		// Get border image
 		float3 border = lerp(

@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Perfect Perspective PS (version 5.8.4)
+/* Perfect Perspective PS (version 5.8.6)
 
 Copyright:
 This code © 2018-2023 Jakub Maksymilian Fober
@@ -63,8 +63,8 @@ by Fober, J. M.
 /* Alternative to anamorphic.
    1 gives separate distortion option for vertical axis.
    2 gives separate option for top and bottom half. */
-#ifndef PANTOMORPHIC_MODE
-	#define PANTOMORPHIC_MODE 1
+#ifndef AXIOMORPHIC_MODE
+	#define AXIOMORPHIC_MODE 1
 #endif
 
 /* >> Commons << */
@@ -107,7 +107,7 @@ uniform uint FovType
 		"	choose 'vertical' or '4:3'. For ultra-wide display\n"
 		"	you may want '16:9' instead.\n"
 		"\n"
-#if PANTOMORPHIC_MODE
+#if AXIOMORPHIC_MODE
 		"	This method only works with all k = 0.5.";
 #else
 		"	This method only works with k = 0.5 and s = 1.0.";
@@ -122,12 +122,12 @@ uniform uint FovType
 
 // Perspective
 
-#if PANTOMORPHIC_MODE>=2 // vertical axis projection is driven by separate ky top and ky bottom parameter
+#if AXIOMORPHIC_MODE>=2 // vertical axis projection is driven by separate ky top and ky bottom parameter
 uniform float Ky
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "Distortion";
 	ui_category_closed = true;
-	ui_text = "(Adjust distortion strength)";
+	ui_text = "(brightness[-1], distances[-0.5], speed[0], shapes[0.5], straight-lines[1])";
 	ui_label = "Projection type 'k' top (asymmetrical)";
 	ui_tooltip =
 		"Projection coefficient 'k' top, represents\n"
@@ -151,15 +151,16 @@ uniform float Ky
 uniform float K
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "Distortion";
-#if PANTOMORPHIC_MODE==1
+#if AXIOMORPHIC_MODE==1
 	ui_category_closed = true;
+	ui_text = "(brightness[-1], distances[-0.5], speed[0], shapes[0.5], straight-lines[1])";
 #endif
-#if PANTOMORPHIC_MODE // k indicates horizontal axis projection type
+#if AXIOMORPHIC_MODE // k indicates horizontal axis projection type
 	ui_label = "Projection type 'k' horizontal";
 	ui_tooltip = "Projection coefficient 'k' horizontal, represents\n"
 #else // k represents whole picture projection type
 	ui_category_closed = true;
-	ui_text = "(Adjust distortion strength)";
+	ui_text = "(brightness[-1], distances[-0.5], speed[0], shapes[0.5], straight-lines[1])";
 	ui_label = "Projection type 'k'";
 	ui_tooltip = "Projection coefficient 'k', represents\n"
 #endif
@@ -178,7 +179,7 @@ uniform float K
 	ui_min = -1f; ui_max = 1f; ui_step = 0.01;
 > = 0.5;
 
-#if PANTOMORPHIC_MODE==1 // vertical axis projection is driven by separate k parameter
+#if AXIOMORPHIC_MODE==1 // vertical axis projection is driven by separate k parameter
 uniform float Ky
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "Distortion";
@@ -200,7 +201,7 @@ uniform float Ky
 	ui_min = -1f; ui_max = 1f; ui_step = 0.01;
 > = 0.5;
 
-#elif PANTOMORPHIC_MODE>=2 // vertical axis projection is driven by separate ky top and ky bottom parameter
+#elif AXIOMORPHIC_MODE>=2 // vertical axis projection is driven by separate ky top and ky bottom parameter
 uniform float KyA
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "Distortion";
@@ -257,7 +258,7 @@ uniform bool UseVignette
 
 uniform float CroppingFactor
 <	__UNIFORM_SLIDER_FLOAT1
-	ui_text = "Zoom   [ circular | cropped circle | full frame ]:";
+	ui_text = "(circular[0], cropped-circle[0.5], full-frame[1])";
 	ui_category = "Border appearance";
 	ui_category_closed = true;
 	ui_label = "Cropping";
@@ -267,14 +268,14 @@ uniform float CroppingFactor
 		"	Value | Cropping      	\n"
 		"	------+---------------	\n"
 		"	    0 | circular      	\n"
-		"	    1 | cropped-circle	\n"
-		"	    2 | full-frame    	\n"
+		"	  0.5 | cropped-circle	\n"
+		"	    1 | full-frame    	\n"
 		"\n"
 		"\n"
 		"For horizontal display, circular will snap to vertical bounds,\n"
 		"cropped-circle to horizontal bounds, and full-frame to corners.";
-	ui_min = 0f; ui_max = 2f;
-> = 1f;
+	ui_min = 0f; ui_max = 1f;
+> = 0.5;
 
 uniform bool MirrorBorder
 <	__UNIFORM_INPUT_BOOL1
@@ -545,7 +546,7 @@ float getRadiusOfOmega(float2 viewProportions)
 	}
 }
 
-#if PANTOMORPHIC_MODE==1
+#if AXIOMORPHIC_MODE==1
 // Search for corner point radius at diagonal Ω in Pantomorphic perspective
 float binarySearchCorner(float halfOmega, float radiusOfOmega, float rcp_focal)
 {
@@ -572,7 +573,7 @@ float binarySearchCorner(float halfOmega, float radiusOfOmega, float rcp_focal)
 
 	return croppingDigonal;
 }
-#elif PANTOMORPHIC_MODE>=2
+#elif AXIOMORPHIC_MODE>=2
 // Search for corner point radius at diagonal Ω in Pantomorphic asymmetrical perspective
 float2 binarySearchCorner(float halfOmega, float radiusOfOmega, float rcp_focal)
 {
@@ -818,7 +819,7 @@ void PerfectPerspectiveVS(
 	const static float croppingHorizontal = get_radius(
 			atan(tan(halfOmega)/radiusOfOmega*viewProportions.x),
 		rcp_focal, K)/viewProportions.x;
-#if PANTOMORPHIC_MODE==1
+#if AXIOMORPHIC_MODE==1
 	// Vertical point radius
 	const static float croppingVertical = get_radius(
 			atan(tan(halfOmega)/radiusOfOmega*viewProportions.y),
@@ -832,7 +833,7 @@ void PerfectPerspectiveVS(
 	const static float croppedCircle = min(croppingHorizontal, croppingVertical);
 	// Full-frame
 	const static float fullFrame = croppingDigonal;
-#elif PANTOMORPHIC_MODE>=2
+#elif AXIOMORPHIC_MODE>=2
 	// Vertical point radius
 	const static float2 croppingVertical = float2(
 		get_radius(
@@ -873,16 +874,17 @@ void PerfectPerspectiveVS(
 	const static float fullFrame = croppingDigonal;
 #endif
 	// Get radius scaling for bounds alignment
-	const static float croppingScalar = CroppingFactor<1f
+	const static float croppingScalar =
+		CroppingFactor<0.5
 		? lerp(
 			circularFishEye, // circular fish-eye
 			croppedCircle,   // cropped circle
-			max(CroppingFactor, 0f) // ↤ [0,1] range
+			max(CroppingFactor*2f, 0f) // ↤ [0,1] range
 		)
 		: lerp(
 			croppedCircle, // cropped circle
 			fullFrame, // full-frame
-			min(CroppingFactor-1f, 1f) // ↤ [1,2] range
+			min(CroppingFactor*2f-1f, 1f) // ↤ [1,2] range
 		);
 
 	// Scale view coordinates to cropping bounds
@@ -900,9 +902,9 @@ float3 PerfectPerspectivePS(
 //----------------------------------------------
 // begin distortion mapping bypass
 
-#if PANTOMORPHIC_MODE==1 // take vertical k factor into account
+#if AXIOMORPHIC_MODE==1 // take vertical k factor into account
 	if (FovAngle==0u || (K==1f && Ky==1f && !UseVignette))
-#elif PANTOMORPHIC_MODE>=2 // take both vertical k factors into account
+#elif AXIOMORPHIC_MODE>=2 // take both vertical k factors into account
 	if (FovAngle==0u || (K==1f && Ky==1f && KyA==1f && !UseVignette))
 #else // consider only global k
 	if (FovAngle==0u || (K==1f && !UseVignette))
@@ -962,7 +964,7 @@ float3 PerfectPerspectivePS(
 	const static float rcp_focal = get_rcp_focal(halfOmega, radiusOfOmega, K);
 
 	// Image radius
-#if PANTOMORPHIC_MODE // simple length function for radius
+#if AXIOMORPHIC_MODE // simple length function for radius
 	float radius = length(viewCoord);
 #else // derive radius from anamorphic coordinates
 	float radius = S==1f
@@ -971,15 +973,15 @@ float3 PerfectPerspectivePS(
 	float rcp_radius = rsqrt(radius); radius = sqrt(radius);
 #endif
 
-#if PANTOMORPHIC_MODE // derive θ angle from two distinct projections
+#if AXIOMORPHIC_MODE // derive θ angle from two distinct projections
 	// Pantomorphic interpolation weights
 	float2 phiMtx = get_phi_weights(viewCoord);
 	// Horizontal and vertical incident angle
 	float2 theta2 = float2(
 		get_theta(radius, rcp_focal, K),
-	#if PANTOMORPHIC_MODE==1
+	#if AXIOMORPHIC_MODE==1
 		get_theta(radius, rcp_focal, Ky)
-	#elif PANTOMORPHIC_MODE>=2
+	#elif AXIOMORPHIC_MODE>=2
 		get_theta(radius, rcp_focal, viewCoord.y>=0f ? KyA : Ky)
 	#endif
 	);
@@ -1009,7 +1011,7 @@ float3 PerfectPerspectivePS(
 #endif
 
 	// Rectilinear perspective transformation
-#if PANTOMORPHIC_MODE // simple rectilinear transformation
+#if AXIOMORPHIC_MODE // simple rectilinear transformation
 	viewCoord = tan(theta)*normalize(viewCoord);
 #else // normalize by anamorphic radius
 	viewCoord *= tan(theta)*rcp_radius;
@@ -1028,9 +1030,9 @@ float3 PerfectPerspectivePS(
 	// Sample display image
 	float3 display =
 		K!=1f
-#if PANTOMORPHIC_MODE==1 // take vertical k factor into account
+#if AXIOMORPHIC_MODE==1 // take vertical k factor into account
 		|| Ky!=1f
-#elif PANTOMORPHIC_MODE>=2 // take both vertical k factors into account
+#elif AXIOMORPHIC_MODE>=2 // take both vertical k factors into account
 		|| Ky!=1f || KyA!=1f
 #endif // consider only global k
 		? tex2D(BackBuffer, texCoord).rgb // perspective projection lookup
@@ -1053,14 +1055,14 @@ float3 PerfectPerspectivePS(
 
 	// Display border
 	if (
-#if PANTOMORPHIC_MODE==1 // take vertical k factor into account
+#if AXIOMORPHIC_MODE==1 // take vertical k factor into account
 		(K!=1f || Ky!=1f)
-#elif PANTOMORPHIC_MODE>=2 // take both vertical k factors into account
+#elif AXIOMORPHIC_MODE>=2 // take both vertical k factors into account
 		(K!=1f || Ky!=1f || KyA!=1f)
 #else // consider only global k
 		K!=1f
 #endif
-		&& CroppingFactor<2f) // visible borders
+		&& CroppingFactor<1f) // visible borders
 	{
 		// Get border image
 		float3 border = lerp(
@@ -1092,7 +1094,7 @@ float3 PerfectPerspectivePS(
 
 technique PerfectPerspective
 <
-	ui_label = "Perfect Perspective (fish-eye)";
+	ui_label = "Perfect Perspective (fisheye, anamorphic, axiomorphic)";
 	ui_tooltip =
 		"Adjust perspective for distortion-free picture:\n"
 		"\n"
@@ -1108,7 +1110,7 @@ technique PerfectPerspective
 		"	1# select proper FoV angle and type. If FoV type is unknown,\n"
 		"	   find a round object within the game and look at it upfront,\n"
 		"	   then rotate the camera so that the object is in the corner.\n"
-#if PANTOMORPHIC_MODE
+#if AXIOMORPHIC_MODE
 		"	   Make sure all 'k' parameters are equal 0.5 and adjust FoV type such that\n"
 #else
 		"	   Set 'k' to 0.5, change squeeze factor to 1x and adjust FoV type such that\n"
@@ -1116,7 +1118,7 @@ technique PerfectPerspective
 		"	   the object does not have an egg shape, but a perfect round shape.\n"
 		"\n"
 		"	2# adjust perspective type according to game-play style.\n"
-#if PANTOMORPHIC_MODE
+#if AXIOMORPHIC_MODE
 		"	   If you look mostly at the horizon, 'k.y' can be increased.\n"
 #else
 		"	   If you look mostly at the horizon, anamorphic squeeze can be increased.\n"
@@ -1132,7 +1134,7 @@ technique PerfectPerspective
 		"	5# additionally for sharp image, use sharpening FX or run game at a\n"
 		"	   Super-Resolution. Debug options can help you find the proper value.\n"
 		"\n"
-		"	(*) for more available settings set PANTOMORPHIC_MODE value to 1 or 2.\n"
+		"	(*) for more available settings set AXIOMORPHIC_MODE value to 1 or 2.\n"
 		"\n"
 		"\n"
 		"The algorithm is part of a scientific article:\n"

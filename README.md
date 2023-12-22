@@ -3,21 +3,26 @@ This repository contains a collection of post-processing ReShade shaders, which 
 
 -----
 
-# ANNOUNCEMENT
-I you want to use special version of *Perfect Perspective* in your product, e-mail me at [*jakub.m.fober@pm.me*](mailto:jakub.m.fober@protonmail.com) we can talk details.
+## Donations
+If you want to support me, visit [*PayPal link*](https://paypal.me/fubax).
 
 -----
 
-### [Perfect Perspective](/Shaders/PerfectPerspective.fx) FX [*wiki*](https://github.com/Fubaxiusz/fubax-shaders/wiki/PerfectPerspective)
+# ANNOUNCEMENT
+*Perfect Perspective* is now free under the CC+ BY-SA 3.0 license. It can be used in engine and made custom for video game. If you want CC-BY 3.0 licensing for your work, contact me at [*jakub.m.fober@pm.me*](mailto:jakub.m.fober@protonmail.com).
+
+-----
+
+### [Perfect Perspective](/Shaders/PerfectPerspective.fx) FX (CC+ BY-SA 3.0) [*wiki*](https://github.com/Fubaxiusz/fubax-shaders/wiki/PerfectPerspective)
 ![Wreckfest with Perfect Perspective shader](https://github.com/Fubaxiusz/fubax-shaders/assets/34406163/c1c9d992-7fc8-4a32-a3ca-e7c201dd8105)
 
-### [Chromakey](/Shaders/Chromakey.fx) FX
+### [Chromakey](/Shaders/Chromakey.fx) FX (CC BY-SA 4.0)
 ![Alien Isolation with Chromakey shader](https://github.com/Fubaxiusz/fubax-shaders/assets/34406163/d7f716af-a24a-474a-91a2-7eeb449aba50)
 
-### [Filmic Anamorphic Sharpen](/Shaders/FilmicAnamorphSharpen.fx) FX
+### [Filmic Anamorphic Sharpen](/Shaders/FilmicAnamorphSharpen.fx) FX (CC BY-SA 4.0)
 ![Inside Depth 6 with Filmic Anamorphic Sharpen shader](https://github.com/Fubaxiusz/fubax-shaders/assets/34406163/0ac08113-0f7a-4ad7-a78f-c02c48cf21da)
 
-### [Vectorscope](/Shaders/Vectorscope.fx) FX
+### [Vectorscope](/Shaders/Vectorscope.fx) FX (CC+ BY-NC-ND 3.0)
 ![MirrorsEdge with Vectorscope shader](https://github.com/Fubaxiusz/fubax-shaders/assets/34406163/c3d9c5c4-8203-4505-b3e6-bba63863a629)
 
 ### About ReShade

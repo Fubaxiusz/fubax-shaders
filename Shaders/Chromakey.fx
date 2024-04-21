@@ -2,10 +2,10 @@
 | :: Description :: |
 '-------------------/
 
-Chromakey PS (version 1.6.1)
+Chromakey PS (version 1.6.2)
 
 Copyright:
-This code © 2018-2023 Jakub Maksymilian Fober
+This code © 2018-2024 Jakub Maksymilian Fober
 
 License:
 This work is licensed under the Creative Commons
@@ -90,11 +90,11 @@ uniform int Color
 	ui_category_closed = true;
 > = 1;
 
-uniform float3 CustomColor
-<	__UNIFORM_COLOR_FLOAT3
+uniform float4 CustomColor
+<	__UNIFORM_COLOR_FLOAT4
 	ui_label = "Custom color";
 	ui_category = "Color settings";
-> = float3(1f, 0f, 0f);
+> = float4(1f, 0f, 0f, 0.5);
 
 uniform bool AntiAliased <
 	ui_label = "Anti-aliased mask";
@@ -159,18 +159,18 @@ float3 GetNormal(float2 texcoord)
 | :: Shaders :: |
 '--------------*/
 
-float3 ChromakeyPS(
+float4 ChromakeyPS(
 	float4 pos      : SV_Position,
 	float2 texcoord : TEXCOORD
 ) : SV_Target
 {
 	// Define chromakey color, Ultimatte™ Super Blue, Ultimatte™ Green, or user color
-	float3 Screen;
+	float4 Screen;
 	switch(Color)
 	{
-		case 0: Screen = float3(0.07, 0.18, 0.72); break; // Ultimatte™ Super Blue
-		case 1: Screen = float3(0.29, 0.84, 0.36); break; // Ultimatte™ Green
-		case 2: Screen = CustomColor;              break; // user defined color
+		case 0: Screen = float4(0.07, 0.18, 0.72, 1f); break; // Ultimatte™ Super Blue
+		case 1: Screen = float4(0.29, 0.84, 0.36, 1f); break; // Ultimatte™ Green
+		case 2: Screen = CustomColor;                  break; // user defined color
 	}
 
 	// Generate depth mask
@@ -188,7 +188,10 @@ float3 ChromakeyPS(
 
 	if(bool(Pass)) DepthMask = 1f-DepthMask;
 
-	return lerp(tex2D(ReShade::BackBuffer, texcoord).rgb, Screen, DepthMask);
+	return float4(
+		lerp(tex2D(ReShade::BackBuffer, texcoord).rgb, Screen.rgb, DepthMask*Screen.a), // color channel
+		1f-DepthMask // alpha channel
+	);
 }
 
 /*-------------.

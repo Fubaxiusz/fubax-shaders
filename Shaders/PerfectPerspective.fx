@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Perfect Perspective PS (version 5.10.0)
+/* Perfect Perspective PS (version 5.10.1)
 
 Copyright:
 This code © 2018-2024 Jakub Maksymilian Fober
@@ -296,9 +296,12 @@ uniform float4 BorderColor
 	ui_tooltip = "Use alpha to change border transparency.";
 > = float4(0.027, 0.027, 0.027, 0.96);
 
+// Cosmetics
+
 uniform float VignetteOffset
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "Cosmetics";
+	ui_category_closed = true;
 	hidden = !ADVANCED_MENU;
 	ui_units = "+";
 	ui_label = "Vignette exposure";
@@ -340,7 +343,6 @@ uniform uint BorderGContinuity
 uniform bool MirrorBorder
 <	__UNIFORM_INPUT_BOOL1
 	ui_category = "Cosmetics";
-	ui_category_closed = true;
 	ui_label = "Mirror on border";
 	ui_tooltip = "Choose mirrored or original image on the border.";
 > = false;

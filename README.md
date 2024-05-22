@@ -4,12 +4,24 @@ This repository contains a collection of post-processing ReShade shaders, which 
 -----
 
 ## Donations
-If you want to support me, visit [*PayPal link*](https://paypal.me/fubax).
+If you want to support this, visit [*PayPal link*](https://paypal.me/fubax).
 
 -----
 
-# ANNOUNCEMENT
-*Perfect Perspective* is now free under the CC+ BY-SA 3.0 license. It can be used in engine and made custom for video game. If you want CC-BY 3.0 licensing for your work, contact me at [*jakub.m.fober@pm.me*](mailto:jakub.m.fober@protonmail.com).
+# FAQ for gamedevs
+*How to legally integrate Fisheye shader into an upcoming game?*
+* Add credit and indicate if changes were made, preferably in the end credits.
+* Share the altered shader code on GitHub, if changed, under the same license.
+
+Example:
+
+```
+Implements modified Aximorphic virtual lens (CC+ BY-SA 3.0)
+by Jakub Max Fober
+See the source on [our website link]
+```
+
+Additionally, you can [send me a notice](mailto:jakub.m.fober@protonmail.com) and I will happily promote your work.
 
 -----
 

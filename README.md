@@ -27,6 +27,7 @@ Additionally, you can [send me a notice](mailto:jakub.m.fober@protonmail.com) an
 
 ### [Perfect Perspective](/Shaders/PerfectPerspective.fx) FX (CC+ BY-SA 3.0) [*wiki*](https://github.com/Fubaxiusz/fubax-shaders/wiki/PerfectPerspective)
 ![Wreckfest with Perfect Perspective shader](https://github.com/Fubaxiusz/fubax-shaders/assets/34406163/c1c9d992-7fc8-4a32-a3ca-e7c201dd8105)
+I recommend use of [REST addon](https://github.com/4lex4nder/ReshadeEffectShaderToggler/releases) to ignore the game UI.
 
 ### [Chromakey](/Shaders/Chromakey.fx) FX (CC BY-SA 4.0)
 ![Alien Isolation with Chromakey shader](https://github.com/Fubaxiusz/fubax-shaders/assets/34406163/d7f716af-a24a-474a-91a2-7eeb449aba50)

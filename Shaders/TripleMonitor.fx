@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Triple Monitor PS (version 1.0.0)
+/* Triple Monitor PS (version 1.0.1)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -416,7 +416,7 @@ void CurvedMonitor_PS(
 
 technique TripleMonitor
 <
-	ui_label = "Triple Monitor";
+	ui_label = "Triple Monitor (Ultrawide)";
 	ui_tooltip =
 		"Adjust picture for distortion-free experience on a triple\n"
 		"display setup.\n"

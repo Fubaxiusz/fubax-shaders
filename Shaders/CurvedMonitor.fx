@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Curved Monitor PS (version 1.0.0)
+/* Curved Monitor PS (version 1.0.1)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -401,7 +401,7 @@ void CurvedMonitor_PS(
 
 technique CurvedMonitor
 <
-	ui_label = "Curved Monitor";
+	ui_label = "Curved Monitor (Ultrawide)";
 	ui_tooltip =
 		"Adjust picture for distortion-free experience on a curved\n"
 		"ultra-wide display.\n"

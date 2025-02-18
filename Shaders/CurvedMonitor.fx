@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Curved Monitor PS (version 1.0.1)
+/* Curved Monitor PS (version 1.1.0)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -81,6 +81,13 @@ uniform uint MonitorCurvature
 	ui_tooltip = "Check manufacturer information for correct number.";
 	ui_min = 800u; ui_max = 4000u; ui_step = 100u;
 > = 1500u;
+
+uniform bool TripleMonitor
+<	__UNIFORM_INPUT_BOOL1
+	ui_category = "Monitor Parameters";
+	ui_label = "Triple curved monitors";
+	ui_tooltip = "Enable for triple curved monitors setup.";
+> = false;
 
 uniform uint ViewDistance
 <	__UNIFORM_SLIDER_INT1
@@ -327,8 +334,11 @@ void CurvedMonitor_VS(
 	// Map to corner and normalize texture coordinates
 	texCoord = texCoord*0.5+0.5;
 	// Get aspect ratio transformation vector
-	static const float2 viewProportions = normalize(BUFFER_SCREEN_SIZE);
+	static const float2 viewProportions = TripleMonitor ?
+		normalize(float2(BUFFER_WIDTH/3f, BUFFER_HEIGHT)) :
+		normalize(BUFFER_SCREEN_SIZE);
 	// Correct aspect ratio, normalized to the corner
+	if (TripleMonitor) viewCoord.x *= 3f;
 	viewCoord *= viewProportions;
 }
 
@@ -344,10 +354,18 @@ void CurvedMonitor_PS(
 	viewCoord = projectCylinderIncidence(viewCoord);
 	// Get the normalization points
 	static const float topNormalization = projectCylinderIncidence(
-			float2(0f, normalize(BUFFER_SCREEN_SIZE).y)
+			float2(
+				0f,
+				TripleMonitor ?
+					normalize(float2(BUFFER_WIDTH/3f, BUFFER_HEIGHT)).y :
+					normalize(BUFFER_SCREEN_SIZE).y)
 		).y*BUFFER_ASPECT_RATIO;
 	static const float sideNormalization = projectCylinderIncidence(
-			float2(normalize(BUFFER_SCREEN_SIZE).x, 0f)
+			float2(
+				TripleMonitor ?
+					normalize(float2(BUFFER_WIDTH/3f, BUFFER_HEIGHT)).x*3f :
+					normalize(BUFFER_SCREEN_SIZE).x,
+				0f)
 		).x;
 	// Normalize to the edge
 	viewCoord /= lerp(topNormalization, sideNormalization, clamp(BorderZoom, 0f, 1f));

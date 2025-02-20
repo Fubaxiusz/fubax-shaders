@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Triple Monitor PS (version 1.0.1)
+/* Triple Monitor PS (version 1.0.2)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -50,7 +50,7 @@ For further licensing inquiries, contact: jakub.m.fober@protonmail.com
    ...
    4 maximum mipmapping lvl, equivalent of x16 filtering. */
 #ifndef MIPMAPPING_LEVEL
-	#define MIPMAPPING_LEVEL 1
+	#define MIPMAPPING_LEVEL 0
 #endif
 
 /* >> Commons << */
@@ -434,7 +434,7 @@ technique TripleMonitor
 		"\n"
 		"	 + use sharpening, or run the game at Super-Resolution.\n"
 		"\n"
-		"	 + for best performance disable MIPMAPPING_LEVEL.\n"
+		"	 + for best quality set MIPMAPPING_LEVEL to 1 or 2.\n"
 		"\n"
 		"\n"
 		"Some elements of the effect are a part of a scientific article:\n"

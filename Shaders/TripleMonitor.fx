@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Triple Monitor PS (version 1.1.0)
+/* Triple Monitor PS (version 1.2.0)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -81,6 +81,16 @@ uniform float MonitorAngle
 	ui_tooltip = "You can try measuring the correct angle.";
 	ui_min = 120f; ui_max = 180f; ui_step = 0.5;
 > = 150f;
+
+uniform uint EdgeBezel
+<	__UNIFORM_SLIDER_INT1
+	ui_text = " ";
+	ui_category = "Monitor Parameters";
+	ui_units = " mm";
+	ui_label = "Bezel Width";
+	ui_tooltip = "Compensate for monitor side bezel width.";
+	ui_min = 0u; ui_max = 10u; ui_step = 1u;
+> = 0u;
 
 uniform uint ViewDistance
 <	__UNIFORM_SLIDER_INT1
@@ -367,12 +377,27 @@ void CurvedMonitor_PS(
 	out float3 display   : SV_Target // output color
 )
 {
+	// Transfer bezel millimeters width to texture coordinates space
+	static const float bezel = EdgeBezel/(
+			normalize(float2(BUFFER_WIDTH/3f, BUFFER_HEIGHT)).x*MonitorSize*25.4
+		);
+	if (EdgeBezel!=0u) // compensate with zoom for bezel width
+	{
+		// Scale with bezel
+		if (abs(viewCoord.x)>1f) // wings
+		{
+			viewCoord.x = (3f-(3f-abs(viewCoord.x))*(1f-bezel))*sign(viewCoord.x);
+			viewCoord.y *= 1f-bezel;
+		}
+		else // center
+			viewCoord *= 1f-2f*bezel;
+	}
 	// Project cylinder to perspective
 	viewCoord = projectWingIncidence(viewCoord);
 	// Get the normalization points
 	static const float aspect = BUFFER_HEIGHT*3*BUFFER_RCP_WIDTH;
 	static const float topNormalization = projectWingIncidence(
-		float2(0f, aspect)).y/aspect;
+		float2(0f, (1f-2f*bezel)*aspect)).y/aspect;
 	static const float sideNormalization = projectWingIncidence(
 		float2(3f, 0f)).x/3f;
 	// Normalize to the edge
@@ -380,6 +405,7 @@ void CurvedMonitor_PS(
 	// Convert to square aspect ratio
 	texCoord.x = viewCoord.x/3f;
 	texCoord.y = viewCoord.y*(BUFFER_WIDTH/3f*BUFFER_RCP_HEIGHT);
+
 	// Generate outside border mask
 	float mask =
 		aastep(1f-abs(texCoord.x))* // left-right edge

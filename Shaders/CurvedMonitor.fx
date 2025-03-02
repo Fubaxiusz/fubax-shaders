@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Curved Monitor PS (version 1.2.1)
+/* Curved Monitor PS (version 1.2.2)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -89,7 +89,7 @@ uniform uint ViewDistance
 	ui_label = "Viewing distance";
 	ui_tooltip = "Distance from the eye to the center of the monitor.";
 	ui_min = 12u; ui_max = 150u; ui_step = 1u;
-> = 80u;
+> = 70u;
 
 // Border
 

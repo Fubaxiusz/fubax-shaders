@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Curved Monitor PS (version 1.1.1)
+/* Curved Monitor PS (version 1.2.0)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -61,17 +61,16 @@ For further licensing inquiries, contact: jakub.m.fober@protonmail.com
 
 /* >> Menu << */
 
-uniform uint MonitorSize
-<	__UNIFORM_SLIDER_INT1
+uniform float MonitorHeight
+<	__UNIFORM_SLIDER_FLOAT1
 	ui_text = "> Match your monitor specs <";
 	ui_category = "Monitor Parameters";
 	ui_category_closed = true;
-	ui_label = "Monitor Size";
-	ui_units = " inch";
-	ui_label = "Monitor Size";
-	ui_tooltip = "Check manufacturer information for correct diameter.";
-	ui_min = 24u; ui_max = 49u; ui_step = 1u;
-> = 32u;
+	ui_label = "Monitor Height";
+	ui_units = " cm";
+	ui_tooltip = "Measure the height of the display image using tape measure or a ruler.";
+	ui_min = 10f; ui_max = 100f; ui_step = 0.1;
+> = 34f;
 
 uniform uint MonitorCurvature
 <	__UNIFORM_SLIDER_INT1
@@ -81,13 +80,6 @@ uniform uint MonitorCurvature
 	ui_tooltip = "Check manufacturer information for correct number.";
 	ui_min = 800u; ui_max = 4000u; ui_step = 100u;
 > = 1500u;
-
-uniform bool TripleMonitor
-<	__UNIFORM_INPUT_BOOL1
-	ui_category = "Monitor Parameters";
-	ui_label = "Triple curved monitors";
-	ui_tooltip = "Enable for triple curved monitors setup.";
-> = false;
 
 uniform uint ViewDistance
 <	__UNIFORM_SLIDER_INT1
@@ -163,6 +155,14 @@ uniform float4 GridColor
 	ui_tooltip = "Adjust calibration grid bar color.";
 > = float4(1f, 1f, 0f, 1f);
 
+uniform float BackgroundDim
+<	__UNIFORM_SLIDER_FLOAT1
+	ui_category = "Calibration mode";
+	ui_label = "Background dimming";
+	ui_tooltip = "Choose the calibration background dimming.";
+	ui_min = 0f; ui_max = 1f; ui_step = 0.01;
+> = 0.5;
+
 /* >> Textures << */
 
 #if MIPMAPPING_LEVEL
@@ -234,6 +234,9 @@ float3 GridModeViewPass(
 	float3 display = GammaConvert::to_linear(tex2Dfetch(BackBuffer, pixelCoord).rgb);
 #endif
 
+	// Dim calibration background
+	display *= clamp(1f-BackgroundDim, 0f, 1f);
+
 	// Get view coordinates, normalized at the corner
 	texCoord = (texCoord*2f-1f)*normalize(BUFFER_SCREEN_SIZE);
 
@@ -264,15 +267,16 @@ float3 GridModeViewPass(
 // Generate flat projection from cylindrical view coordinates
 float2 projectCylinderIncidence(float2 viewCoord)
 {
-	// Convert monitor coordinates from inches diameter to millimeters
-	const static float halfDiameter = MonitorSize*0.5f*25.4f;
-	float cylinderAngle = viewCoord.x*halfDiameter/MonitorCurvature;
+	// Convert monitor height in centimeters to half in millimeters
+	static const float halfHeight = MonitorHeight*5f;
+	// Convert monitor X coordinates to arc angle in radians
+	float cylinderAngle = viewCoord.x*halfHeight/MonitorCurvature;
 	// Get incidence vector
 	float3 incidence;
 	incidence.x = sin(cylinderAngle)*MonitorCurvature;
-	incidence.y = viewCoord.y*halfDiameter;
+	incidence.y = viewCoord.y*halfHeight;
 	incidence.z = cos(cylinderAngle)*MonitorCurvature;
-	// Offset by view position
+	// Offset by view position converted to millimeters
 	incidence.z = incidence.z+(ViewDistance*10u)-MonitorCurvature;
 	// Perform perspective projection
 	viewCoord = incidence.xy/incidence.z;
@@ -333,13 +337,8 @@ void CurvedMonitor_VS(
 	texCoord.y = viewCoord.y = -position.y;
 	// Map to corner and normalize texture coordinates
 	texCoord = texCoord*0.5+0.5;
-	// Get aspect ratio transformation vector
-	static const float2 viewProportions = TripleMonitor ?
-		normalize(float2(BUFFER_WIDTH/3f, BUFFER_HEIGHT)) :
-		normalize(BUFFER_SCREEN_SIZE);
-	// Correct aspect ratio, normalized to the corner
-	if (TripleMonitor) viewCoord.x *= 3f;
-	viewCoord *= viewProportions;
+	// Correct aspect ratio, normalized to the height in [-1, 1] range
+	viewCoord.x *= BUFFER_ASPECT_RATIO;
 }
 
 // Main perspective shader pass
@@ -354,18 +353,10 @@ void CurvedMonitor_PS(
 	viewCoord = projectCylinderIncidence(viewCoord);
 	// Get the normalization points
 	static const float topNormalization = projectCylinderIncidence(
-			float2(
-				0f,
-				TripleMonitor ?
-					normalize(float2(BUFFER_WIDTH/3f, BUFFER_HEIGHT)).y :
-					normalize(BUFFER_SCREEN_SIZE).y)
+			float2(0f, 1f)
 		).y*BUFFER_ASPECT_RATIO;
 	static const float sideNormalization = projectCylinderIncidence(
-			float2(
-				TripleMonitor ?
-					normalize(float2(BUFFER_WIDTH/3f, BUFFER_HEIGHT)).x*3f :
-					normalize(BUFFER_SCREEN_SIZE).x,
-				0f)
+			float2(BUFFER_ASPECT_RATIO, 0f)
 		).x;
 	// Normalize to the edge
 	viewCoord /= lerp(topNormalization, sideNormalization, clamp(BorderZoom, 0f, 1f));
@@ -427,7 +418,7 @@ technique CurvedMonitor
 		"\n"
 		"Instruction:\n"
 		"\n"
-		"	1. Select proper curvature R and diameter, matching\n"
+		"	1. Select proper curvature R and height, matching\n"
 		"	   your display specs.\n"
 		"\n"
 		"	2. Adjust viewing distance according to your position.\n"

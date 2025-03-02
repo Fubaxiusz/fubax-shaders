@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Triple Monitor PS (version 1.0.2)
+/* Triple Monitor PS (version 1.1.0)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -156,6 +156,14 @@ uniform float4 GridColor
 	ui_tooltip = "Adjust calibration grid bar color.";
 > = float4(1f, 1f, 0f, 1f);
 
+uniform float BackgroundDim
+<	__UNIFORM_SLIDER_FLOAT1
+	ui_category = "Calibration mode";
+	ui_label = "Background dimming";
+	ui_tooltip = "Choose the calibration background dimming.";
+	ui_min = 0f; ui_max = 1f; ui_step = 0.01;
+> = 0.5;
+
 /* >> Textures << */
 
 #if MIPMAPPING_LEVEL
@@ -226,6 +234,9 @@ float3 GridModeViewPass(
 #else // manual gamma linearization
 	float3 display = GammaConvert::to_linear(tex2Dfetch(BackBuffer, pixelCoord).rgb);
 #endif
+
+	// Dim calibration background
+	display *= clamp(1f-BackgroundDim, 0f, 1f);
 
 	// Get view coordinates, normalized at the corner
 	texCoord = (texCoord*2f-1f)*normalize(BUFFER_SCREEN_SIZE);

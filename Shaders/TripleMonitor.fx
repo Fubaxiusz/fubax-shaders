@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Triple Monitor PS (version 1.2.1)
+/* Triple Monitor PS (version 1.2.2)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -84,7 +84,7 @@ uniform float MonitorAngle
 
 uniform uint EdgeBezel
 <	__UNIFORM_SLIDER_INT1
-	ui_text = " ";
+	ui_text = "\n";
 	ui_category = "Monitor Parameters";
 	ui_units = " mm";
 	ui_label = "Bezel width";

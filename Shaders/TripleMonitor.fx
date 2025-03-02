@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Triple Monitor PS (version 1.2.0)
+/* Triple Monitor PS (version 1.2.1)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -66,7 +66,7 @@ uniform uint MonitorSize
 	ui_text = "> Match your monitor specs <";
 	ui_category = "Monitor Parameters";
 	ui_category_closed = true;
-	ui_label = "Monitor Size";
+	ui_label = "Monitor size";
 	ui_units = " inch";
 	ui_label = "Monitor Size";
 	ui_tooltip = "Check manufacturer information for correct diameter.";
@@ -77,7 +77,7 @@ uniform float MonitorAngle
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "Monitor Parameters";
 	ui_units = "°";
-	ui_label = "Side Monitor Angle";
+	ui_label = "Side monitor angle";
 	ui_tooltip = "You can try measuring the correct angle.";
 	ui_min = 120f; ui_max = 180f; ui_step = 0.5;
 > = 150f;
@@ -87,7 +87,7 @@ uniform uint EdgeBezel
 	ui_text = " ";
 	ui_category = "Monitor Parameters";
 	ui_units = " mm";
-	ui_label = "Bezel Width";
+	ui_label = "Bezel width";
 	ui_tooltip = "Compensate for monitor side bezel width.";
 	ui_min = 0u; ui_max = 10u; ui_step = 1u;
 > = 0u;
@@ -97,7 +97,7 @@ uniform uint ViewDistance
 	ui_text = "\n> Gaming style <";
 	ui_category = "Monitor Parameters";
 	ui_units = " cm";
-	ui_label = "Viewing Distance";
+	ui_label = "Viewing distance";
 	ui_tooltip = "Distance from the eye to the center monitor.";
 	ui_min = 12u; ui_max = 150u; ui_step = 1u;
 > = 80u;
@@ -145,7 +145,7 @@ uniform float GridSize
 	ui_text = "\n> Grid cosmetics <";
 	ui_category = "Calibration mode";
 	ui_units = " grid";
-	ui_label = "Size of Grid";
+	ui_label = "Grid size";
 	ui_tooltip = "Adjust calibration grid size.";
 	ui_min = 2f; ui_max = 32f; ui_step = 0.01;
 > = 16f;
@@ -154,7 +154,7 @@ uniform float GridWidth
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "Calibration mode";
 	ui_units = " pixels";
-	ui_label = "Width of Grid";
+	ui_label = "Grid width";
 	ui_tooltip = "Adjust calibration grid bar width in pixels.";
 	ui_min = 2f; ui_max = 16f; ui_step = 0.01;
 > = 4f;

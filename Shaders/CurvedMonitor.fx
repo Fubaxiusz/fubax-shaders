@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Curved Monitor PS (version 1.2.0)
+/* Curved Monitor PS (version 1.2.1)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -66,7 +66,7 @@ uniform float MonitorHeight
 	ui_text = "> Match your monitor specs <";
 	ui_category = "Monitor Parameters";
 	ui_category_closed = true;
-	ui_label = "Monitor Height";
+	ui_label = "Monitor height";
 	ui_units = " cm";
 	ui_tooltip = "Measure the height of the display image using tape measure or a ruler.";
 	ui_min = 10f; ui_max = 100f; ui_step = 0.1;
@@ -76,7 +76,7 @@ uniform uint MonitorCurvature
 <	__UNIFORM_SLIDER_INT1
 	ui_category = "Monitor Parameters";
 	ui_units = "R";
-	ui_label = "Monitor Curvature";
+	ui_label = "Monitor curvature";
 	ui_tooltip = "Check manufacturer information for correct number.";
 	ui_min = 800u; ui_max = 4000u; ui_step = 100u;
 > = 1500u;
@@ -86,7 +86,7 @@ uniform uint ViewDistance
 	ui_text = "\n> Gaming style <";
 	ui_category = "Monitor Parameters";
 	ui_units = " cm";
-	ui_label = "Viewing Distance";
+	ui_label = "Viewing distance";
 	ui_tooltip = "Distance from the eye to the center of the monitor.";
 	ui_min = 12u; ui_max = 150u; ui_step = 1u;
 > = 80u;
@@ -134,7 +134,7 @@ uniform float GridSize
 	ui_text = "\n> Grid cosmetics <";
 	ui_category = "Calibration mode";
 	ui_units = " grid";
-	ui_label = "Size of Grid";
+	ui_label = "Grid size";
 	ui_tooltip = "Adjust calibration grid size.";
 	ui_min = 2f; ui_max = 32f; ui_step = 0.01;
 > = 16f;
@@ -143,7 +143,7 @@ uniform float GridWidth
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "Calibration mode";
 	ui_units = " pixels";
-	ui_label = "Width of Grid";
+	ui_label = "Grid width";
 	ui_tooltip = "Adjust calibration grid bar width in pixels.";
 	ui_min = 2f; ui_max = 16f; ui_step = 0.01;
 > = 4f;

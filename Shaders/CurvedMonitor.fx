@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Curved Monitor PS (version 1.2.2)
+/* Curved Monitor PS (version 1.3.0)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -163,6 +163,13 @@ uniform float BackgroundDim
 	ui_min = 0f; ui_max = 1f; ui_step = 0.01;
 > = 0.5;
 
+uniform bool DistortBackground
+<	__UNIFORM_INPUT_BOOL1
+	ui_category = "Calibration mode";
+	ui_label = "Background distortion";
+	ui_tooltip = "Toggle background distortion in calibration grid view mode.";
+> = true;
+
 /* >> Textures << */
 
 #if MIPMAPPING_LEVEL
@@ -227,11 +234,16 @@ float3 GridModeViewPass(
 	float2 texCoord
 )
 {
-	// Sample background without distortion
-#if MIPMAPPING_LEVEL
-	float3 display = tex2Dfetch(BackBuffer, pixelCoord).rgb;
-#else // manual gamma linearization
-	float3 display = GammaConvert::to_linear(tex2Dfetch(BackBuffer, pixelCoord).rgb);
+	// Initialize background color
+	float3 display;
+	if (DistortBackground) // sample background with distortion
+		display = tex2Dgrad(BackBuffer, texCoord, ddx(texCoord), ddy(texCoord)).rgb;
+	else // sample background without distortion
+		display = tex2Dfetch(BackBuffer, pixelCoord).rgb;
+
+#if !MIPMAPPING_LEVEL
+	// Manually linearize gamma
+	display = GammaConvert::to_linear(display);
 #endif
 
 	// Dim calibration background

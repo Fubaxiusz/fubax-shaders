@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Curved Monitor PS (version 1.3.0)
+/* Curved Monitor PS (version 1.3.1)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -68,7 +68,9 @@ uniform float MonitorHeight
 	ui_category_closed = true;
 	ui_label = "Monitor height";
 	ui_units = " cm";
-	ui_tooltip = "Measure the height of the display image using tape measure or a ruler.";
+	ui_tooltip =
+		"Measure the height of the display (image) using tape measure or a ruler.\n"
+		"You can also use MonitorInfoView.exe from NirSoft to get the number.";
 	ui_min = 10f; ui_max = 100f; ui_step = 0.1;
 > = 34f;
 
@@ -77,7 +79,8 @@ uniform uint MonitorCurvature
 	ui_category = "Monitor Parameters";
 	ui_units = "R";
 	ui_label = "Monitor curvature";
-	ui_tooltip = "Check manufacturer information for correct number.";
+	ui_tooltip =
+		"Check manufacturer information for correct number.";
 	ui_min = 800u; ui_max = 4000u; ui_step = 100u;
 > = 1500u;
 
@@ -87,7 +90,10 @@ uniform uint ViewDistance
 	ui_category = "Monitor Parameters";
 	ui_units = " cm";
 	ui_label = "Viewing distance";
-	ui_tooltip = "Distance from the eye to the center of the monitor.";
+	ui_tooltip =
+		"Distance from the eye to the center of the monitor.\n"
+		"Measure it using tailor's tape measure or eyeball\n"
+		"the number using calibration grid view mode.";
 	ui_min = 12u; ui_max = 150u; ui_step = 1u;
 > = 70u;
 
@@ -99,7 +105,10 @@ uniform float BorderZoom
 	ui_category_closed = true;
 	ui_label = "Border cropping";
 	ui_units = "x";
-	ui_tooltip = "This controls the cropping of the image.";
+	ui_tooltip =
+		"This controls the cropping of the image.\n"
+		"Value of 0.0x crops to top edges,\n"
+		"value of 1.0x crops to sides (default).";
 	ui_min = 0f; ui_max = 1f; ui_step = 0.01;
 > = 1f;
 
@@ -126,7 +135,7 @@ uniform bool CalibrationModeView
 	ui_category_closed = true;
 	nosave = true;
 	ui_label = "Enable display calibration";
-	ui_tooltip = "Display calibration grid for lens-matching.";
+	ui_tooltip = "Display calibration grid for distortion-matching.";
 > = false;
 
 uniform float GridSize
@@ -152,14 +161,14 @@ uniform float4 GridColor
 <	__UNIFORM_COLOR_FLOAT4
 	ui_category = "Calibration mode";
 	ui_label = "Grid color";
-	ui_tooltip = "Adjust calibration grid bar color.";
+	ui_tooltip = "Adjust calibration grid color.";
 > = float4(1f, 1f, 0f, 1f);
 
 uniform float BackgroundDim
 <	__UNIFORM_SLIDER_FLOAT1
 	ui_category = "Calibration mode";
 	ui_label = "Background dimming";
-	ui_tooltip = "Choose the calibration background dimming.";
+	ui_tooltip = "Choose the amount of calibration background dimming.";
 	ui_min = 0f; ui_max = 1f; ui_step = 0.01;
 > = 0.5;
 
@@ -167,7 +176,7 @@ uniform bool DistortBackground
 <	__UNIFORM_INPUT_BOOL1
 	ui_category = "Calibration mode";
 	ui_label = "Background distortion";
-	ui_tooltip = "Toggle background distortion in calibration grid view mode.";
+	ui_tooltip = "Toggle background distortion ON/OFF in calibration grid view mode.";
 > = true;
 
 /* >> Textures << */

@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Triple Monitor PS (version 1.2.2)
+/* Triple Monitor PS (version 1.2.3)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -70,7 +70,7 @@ uniform uint MonitorSize
 	ui_units = " inch";
 	ui_label = "Monitor Size";
 	ui_tooltip = "Check manufacturer information for correct diameter.";
-	ui_min = 27u; ui_max = 49u; ui_step = 1u;
+	ui_min = 12u; ui_max = 49u; ui_step = 1u;
 > = 32u;
 
 uniform float MonitorAngle

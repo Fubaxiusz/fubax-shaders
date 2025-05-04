@@ -2,10 +2,10 @@
 | :: Description :: |
 '-------------------/
 
-Display Image PS (version 1.2.6)
+Display Image PS (version 1.2.7)
 
 Copyright:
-This code © 2019-2023 Jakub Maksymilian Fober
+This code © 2019-2025 Jakub Maksymilian Fober
 
 License:
 This work is licensed under the Creative Commons
@@ -82,9 +82,7 @@ texture TestImageTex
 sampler TestImageSampler
 {
 	Texture = TestImageTex;
-#if BUFFER_COLOR_SPACE==1 || BUFFER_COLOR_SPACE==2
 	SRGBTexture = true;
-#endif
 };
 
 // Linear pixel step function for anti-aliasing by Jakub Max Fober
@@ -165,7 +163,7 @@ technique Image
 		"  TEST_IMAGE_SIZE_X 1440\n"
 		"  TEST_IMAGE_SIZE_Y 1080\n"
 		"\n"
-		"This effect © 2019-2023 Jakub Maksymilian Fober\n"
+		"This effect © 2019-2025 Jakub Maksymilian Fober\n"
 		"Licensed under CC BY-SA 4.0";
 >
 {

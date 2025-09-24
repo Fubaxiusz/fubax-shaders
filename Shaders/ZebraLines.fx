@@ -2,10 +2,10 @@
 | :: Description :: |
 '-------------------/
 
-Scopes FX - Zebra Lines PS (version 1.2.3)
+Scopes FX - Zebra Lines PS (version 1.2.4)
 
 Copyright:
-This code © 2021-2023 Jakub Maksymilian Fober
+This code © 2021-2025 Jakub Maksymilian Fober
 
 License:
 This work is licensed under the Creative Commons Attribution-NonCommercial-
@@ -166,20 +166,23 @@ void ZebraLinesPS(
 	// UI settings
 	if (ScopeRGBClipping)
 	{
-		float4 mask;
 		// Apply threshold
-		mask.rgb = color-ScopeThresholdWhite*0.01;
-		mask.a = ScopeThresholdBlack*0.01-max(max(color.r, color.g), color.b);
+		float3 maskWhite = color-ScopeThresholdWhite*0.01;
+		float3 maskBlack = ScopeThresholdBlack*0.01-color;
 		// Apply edge sharpness
-		mask = clamp(mask*(255u*2u)+1f, 0f, 1f);
+		maskWhite = clamp(maskWhite*(255u*2u)+1f, 0f, 1f);
+		maskBlack = clamp(maskBlack*(255u*2u)+1f, 0f, 1f);
 		// Blend background with zebra-lines using threshold
 		if (ScopeClipWhite) color = lerp(
 				color,
-				zebraLines.x*mask.rgb,
-				max(max(mask.r, mask.g), mask.b)
+				zebraLines.x*maskWhite,
+				max(max(maskWhite.r, maskWhite.g), maskWhite.b)
 			);
-		if (ScopeClipBlack)
-			color = lerp(color, zebraLines.y, mask.a);
+		if (ScopeClipBlack) color = lerp(
+				color,
+				zebraLines.y*maskBlack,
+				max(max(maskBlack.r, maskBlack.g), maskBlack.b)
+			);
 	}
 	else
 	{
@@ -212,7 +215,7 @@ technique ZebraLines
 	ui_tooltip =
 		"Check for RGB clipping in blacks and whites.\n"
 		"\n"
-		"This effect © 2021-2023 Jakub Maksymilian Fober\n"
+		"This effect © 2021-2025 Jakub Maksymilian Fober\n"
 		"Licensed under CC BY-NC-ND 3.0 +\n"
 		"for additional permissions see the source code.";
 >

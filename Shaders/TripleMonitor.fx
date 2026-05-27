@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Triple Monitor PS (version 1.3.1)
+/* Triple Monitor PS (version 1.3.2)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -84,7 +84,7 @@ uniform float MonitorAngle
 	ui_min = 120f; ui_max = 180f; ui_step = 0.5;
 > = 150f;
 
-uniform uint EdgeBezel
+uniform int EdgeBezel
 <	__UNIFORM_SLIDER_INT1
 	ui_text = "\n";
 	ui_category = "Monitor Parameters";
@@ -94,8 +94,8 @@ uniform uint EdgeBezel
 		"Compensate for monitor side bezel width,\n"
 		"You can measure it with a ruler. If you measure\n"
 		"the total bezel between monitors, divide it by two.";
-	ui_min = 0u; ui_max = 10u; ui_step = 1u;
-> = 0u;
+	ui_min = -10; ui_max = 10; ui_step = 1;
+> = 0;
 
 uniform uint ViewDistance
 <	__UNIFORM_SLIDER_INT1
@@ -404,7 +404,7 @@ void CurvedMonitor_PS(
 	static const float bezel = EdgeBezel/(
 			normalize(float2(BUFFER_WIDTH/3f, BUFFER_HEIGHT)).x*MonitorSize*25.4
 		);
-	if (EdgeBezel!=0u) // compensate with zoom for bezel width
+	if (EdgeBezel!=0) // compensate with zoom for bezel width
 	{
 		// Scale with bezel
 		if (abs(viewCoord.x)>1f) // wings

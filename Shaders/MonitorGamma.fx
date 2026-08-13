@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Monitor Gamma Correction PS (version 1.1.3)
+Monitor Gamma Correction PS (version 1.1.4)
 
 Author:
 Jakub Maksymilian Fober
@@ -32,7 +32,7 @@ https://creativecommons.org/publicdomain/mark/1.0/
 
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
-#include "LinearGammaWorkflow.fxh"
+#include "LinearWorkflow.fxh"
 #include "BlueNoiseDither.fxh"
 
 /*-----------.
@@ -149,7 +149,7 @@ void MonitorGamma_PS(
 		color = tex2Dfetch(ReShade::BackBuffer, texelPos).rgb;
 
 		// Convert to linear gamma
-		color = GammaConvert::to_linear(color);
+		color = LinearWorkflow::toLinearGamma(color);
 	}
 
 	// Apply correction gamma

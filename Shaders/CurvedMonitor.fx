@@ -1,6 +1,6 @@
 /* >> Description << */
 
-/* Curved Monitor PS (version 1.3.1)
+/* Curved Monitor PS (version 1.3.2)
 
 Copyright:
 This code © 2025 Jakub Maksymilian Fober
@@ -57,7 +57,7 @@ For further licensing inquiries, contact: jakub.m.fober@protonmail.com
 
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
-#include "LinearGammaWorkflow.fxh"
+#include "LinearWorkflow.fxh"
 
 /* >> Menu << */
 
@@ -252,7 +252,7 @@ float3 GridModeViewPass(
 
 #if !MIPMAPPING_LEVEL
 	// Manually linearize gamma
-	display = GammaConvert::to_linear(display);
+	display = LinearWorkflow::toLinearGamma(display);
 #endif
 
 	// Dim calibration background
@@ -328,7 +328,7 @@ void BackBufferMipTarget_PS(
 )
 {
 	// Generating MIP maps in linear gamma color space
-	display.rgb = GammaConvert::to_linear(
+	display.rgb = LinearWorkflow::toLinearGamma(
 		tex2Dfetch(
 			ReShade::BackBuffer, // standard back-buffer
 			uint2(pos.xy)        // pixel position without resampling
@@ -399,11 +399,11 @@ void CurvedMonitor_PS(
 		display = tex2Dgrad(BackBuffer, texCoord, ddx(texCoord), ddy(texCoord)).rgb;
 #if !MIPMAPPING_LEVEL
 		// Manually linearize gamma
-		display = GammaConvert::to_linear(display);
+		display = LinearWorkflow::toLinearGamma(display);
 #endif
 	}
 	// Convert border color to linear RGB
-	static const float4 BorderLinearColor = GammaConvert::to_linear(BorderColor);
+	static const float4 BorderLinearColor = LinearWorkflow::toLinearGamma(BorderColor);
 	// Apply border mask
 	if (MirrorBorder) // blend border color with texture mirror sampling
 		display = lerp(
@@ -415,7 +415,7 @@ void CurvedMonitor_PS(
 	{
 		display = lerp(
 			lerp(
-				GammaConvert::to_linear(tex2Dfetch(ReShade::BackBuffer, uint2(pixelPos.xy)).rgb),
+				LinearWorkflow::toLinearGamma(tex2Dfetch(ReShade::BackBuffer, uint2(pixelPos.xy)).rgb),
 				BorderLinearColor.rgb,
 				BorderLinearColor.a
 			),
@@ -424,7 +424,7 @@ void CurvedMonitor_PS(
 		);
 	}
 	// Manually correct gamma for the final output
-	display = GammaConvert::to_display(display);
+	display = LinearWorkflow::toDisplayGamma(display);
 }
 
 /* >> Output << */

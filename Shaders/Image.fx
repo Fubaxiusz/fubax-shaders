@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Display Image PS (version 1.2.7)
+Display Image PS (version 1.2.8)
 
 Copyright:
 This code © 2019-2025 Jakub Maksymilian Fober
@@ -37,7 +37,7 @@ http://creativecommons.org/licenses/by-sa/4.0/
 
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
-#include "LinearGammaWorkflow.fxh"
+#include "LinearWorkflow.fxh"
 #include "BlueNoiseDither.fxh"
 
 /*-----------.
@@ -110,7 +110,7 @@ void ImagePS(
 )
 {
 	color = tex2Dfetch(ReShade::BackBuffer, uint2(pixelPos.xy)).rgb;
-	color = GammaConvert::to_linear(color); // linear workflow
+	color = LinearWorkflow::toLinearGamma(color); // linear workflow
 	color *= DimBackground;
 
 	if (!AspectCorrect) // bypass aspect ratio correction
@@ -145,7 +145,7 @@ void ImagePS(
 		}
 	}
 
-	color = GammaConvert::to_display(color);
+	color = LinearWorkflow::toDisplayGamma(color);
 	color = BlueNoise::dither(color, uint2(pixelPos.xy)); // Dither
 }
 

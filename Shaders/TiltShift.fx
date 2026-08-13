@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Tilt-Shift PS (version 2.1.0)
+Tilt-Shift PS (version 2.1.1)
 
 Copyright:
 This code © 2018-2023 Jakub Maksymilian Fober
@@ -30,7 +30,7 @@ http://creativecommons.org/licenses/by/3.0/
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
 #include "ColorConversion.fxh"
-#include "LinearGammaWorkflow.fxh"
+#include "LinearWorkflow.fxh"
 #include "BlueNoiseDither.fxh"
 
 /*-----------.
@@ -205,7 +205,7 @@ void TiltShiftPassHorizontalPS(
 			float weight = bellWeight(mad(i, rcpWeightStep, -1f));
 			// Get step offset
 			float offset = (i-1u)*rcpOffsetStep-0.5;
-			color += GammaConvert::to_linear(tex2Dlod(
+			color += LinearWorkflow::toLinearGamma(tex2Dlod(
 					BackBuffer,
 					float4(blurRadius*offset+texCoord.x, texCoord.y, 0f, 0f) // Offset coordinates
 				).rgb)*weight;
@@ -215,10 +215,10 @@ void TiltShiftPassHorizontalPS(
 		color /= cumulativeWeight;
 	}
 	// Bypass blur
-	else color = GammaConvert::to_linear(tex2Dfetch(BackBuffer, uint2(pixCoord.xy)).rgb);
+	else color = LinearWorkflow::toLinearGamma(tex2Dfetch(BackBuffer, uint2(pixCoord.xy)).rgb);
 	color = saturate(color); // Clamp values
 
-	color = GammaConvert::to_display(color); // manual gamma
+	color = LinearWorkflow::toDisplayGamma(color); // manual gamma
 	// Dither output to increase perceivable picture bit-depth
 	color = BlueNoise::dither(color, uint2(pixCoord.xy));
 }
@@ -251,7 +251,7 @@ void TiltShiftPassVerticalPS(
 			float weight = bellWeight(mad(i, rcpWeightStep, -1f));
 			// Get step offset
 			float offset = (i-1u)*rcpOffsetStep-0.5;
-			color += GammaConvert::to_linear(
+			color += LinearWorkflow::toLinearGamma(
 				tex2Dlod(
 					BackBuffer,
 					float4(texCoord.x, blurRadius*offset+texCoord.y, 0f, 0f) // Offset coordinates
@@ -262,7 +262,7 @@ void TiltShiftPassVerticalPS(
 		color /= cumulativeWeight;
 	}
 	else // Bypass blur
-		color = GammaConvert::to_linear(tex2Dfetch(BackBuffer, uint2(pixCoord.xy)).rgb);
+		color = LinearWorkflow::toLinearGamma(tex2Dfetch(BackBuffer, uint2(pixCoord.xy)).rgb);
 
 	// Clamp values
 	color = saturate(color);
@@ -291,13 +291,13 @@ void TiltShiftPassVerticalPS(
 		float lineColor = abs(ColorConvert::RGB_to_Luma(color)*2f-1f);
 		color = lerp(
 			color,
-			GammaConvert::to_linear(lineColor), // manual gamma
+			LinearWorkflow::toLinearGamma(lineColor), // manual gamma
 			lineHorizontal
 		);
 	}
 
 	// Manual gamma
-	color = GammaConvert::to_display(color);
+	color = LinearWorkflow::toDisplayGamma(color);
 	// Dither output to increase perceivable picture bit-depth
 	color = BlueNoise::dither(color, uint2(pixCoord.xy));
 }

@@ -57,7 +57,7 @@ For further licensing inquiries, contact: jakub.m.fober@protonmail.com
 
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
-#include "LinearGammaWorkflow.fxh"
+#include "LinearWorkflow.fxh"
 
 /* >> Menu << */
 
@@ -84,7 +84,7 @@ uniform float MonitorAngle
 	ui_min = 120f; ui_max = 180f; ui_step = 0.5;
 > = 150f;
 
-uniform int EdgeBezel
+uniform uint EdgeBezel
 <	__UNIFORM_SLIDER_INT1
 	ui_text = "\n";
 	ui_category = "Monitor Parameters";
@@ -94,8 +94,8 @@ uniform int EdgeBezel
 		"Compensate for monitor side bezel width,\n"
 		"You can measure it with a ruler. If you measure\n"
 		"the total bezel between monitors, divide it by two.";
-	ui_min = -10; ui_max = 10; ui_step = 1;
-> = 0;
+	ui_min = 0u; ui_max = 10u; ui_step = 1u;
+> = 0u;
 
 uniform uint ViewDistance
 <	__UNIFORM_SLIDER_INT1
@@ -265,7 +265,7 @@ float3 GridModeViewPass(
 
 #if !MIPMAPPING_LEVEL
 	// Manually linearize gamma
-	display = GammaConvert::to_linear(display);
+	display = LinearWorkflow::toLinearGamma(display);
 #endif
 
 	// Dim calibration background
@@ -358,7 +358,7 @@ void BackBufferMipTarget_PS(
 )
 {
 	// Generating MIP maps in linear gamma color space
-	display.rgb = GammaConvert::to_linear(
+	display.rgb = LinearWorkflow::toLinearGamma(
 		tex2Dfetch(
 			ReShade::BackBuffer, // standard back-buffer
 			uint2(pos.xy)        // pixel position without resampling
@@ -404,7 +404,7 @@ void CurvedMonitor_PS(
 	static const float bezel = EdgeBezel/(
 			normalize(float2(BUFFER_WIDTH/3f, BUFFER_HEIGHT)).x*MonitorSize*25.4
 		);
-	if (EdgeBezel!=0) // compensate with zoom for bezel width
+	if (EdgeBezel!=0u) // compensate with zoom for bezel width
 	{
 		// Scale with bezel
 		if (abs(viewCoord.x)>1f) // wings
@@ -444,11 +444,11 @@ void CurvedMonitor_PS(
 		display = tex2Dgrad(BackBuffer, texCoord, ddx(texCoord), ddy(texCoord)).rgb;
 #if !MIPMAPPING_LEVEL
 		// Manually linearize gamma
-		display = GammaConvert::to_linear(display);
+		display = LinearWorkflow::toLinearGamma(display);
 #endif
 	}
 	// Convert border color to linear RGB
-	static const float4 BorderLinearColor = GammaConvert::to_linear(BorderColor);
+	static const float4 BorderLinearColor = LinearWorkflow::toLinearGamma(BorderColor);
 	// Apply border mask
 	if (MirrorBorder) // blend border color with texture mirror sampling
 		display = lerp(
@@ -460,7 +460,7 @@ void CurvedMonitor_PS(
 	{
 		display = lerp(
 			lerp(
-				GammaConvert::to_linear(tex2Dfetch(ReShade::BackBuffer, uint2(pixelPos.xy)).rgb),
+				LinearWorkflow::toLinearGamma(tex2Dfetch(ReShade::BackBuffer, uint2(pixelPos.xy)).rgb),
 				BorderLinearColor.rgb,
 				BorderLinearColor.a
 			),
@@ -469,7 +469,7 @@ void CurvedMonitor_PS(
 		);
 	}
 	// Manually correct gamma for the final output
-	display = GammaConvert::to_display(display);
+	display = LinearWorkflow::toDisplayGamma(display);
 }
 
 /* >> Output << */

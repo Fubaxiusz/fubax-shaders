@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Before-After PS (version 2.0.0)
+Before-After PS (version 2.0.1)
 
 Copyright:
 This code © 2018-2023 Jakub Maksymilian Fober
@@ -20,7 +20,7 @@ http://creativecommons.org/licenses/by-sa/4.0/
 
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
-#include "LinearGammaWorkflow.fxh"
+#include "LinearWorkflow.fxh"
 
 /*-----------.
 | :: Menu :: |
@@ -149,8 +149,8 @@ void AfterPS(
 
 	// Linear gamma workflow
 	Image = lerp(
-		GammaConvert::to_linear(tex2Dfetch(BeforeSampler, uint2(pixelPos.xy)).rgb),
-		GammaConvert::to_linear(tex2Dfetch(ReShade::BackBuffer, uint2(pixelPos.xy)).rgb),
+		LinearWorkflow::toLinearGamma(tex2Dfetch(BeforeSampler, uint2(pixelPos.xy)).rgb),
+		LinearWorkflow::toLinearGamma(tex2Dfetch(ReShade::BackBuffer, uint2(pixelPos.xy)).rgb),
 		EdgeBlur==0u
 			? saturate(lineCoord+0.5) // make jaggies-free transition
 			: Overlay(saturate(lineCoord)) // make smooth transition
@@ -160,12 +160,12 @@ void AfterPS(
 	if (LineWidth!=0u && EdgeBlur==0u)
 		Image = lerp(
 			Image,
-			GammaConvert::to_linear(LineColor), // linear workflow
+			LinearWorkflow::toLinearGamma(LineColor), // linear workflow
 			saturate(mad(LineWidth, 0.5, 0.5-abs(lineCoord))) // Generate line mask
 		);
 
 	// Linear gamma workflow
-	Image = GammaConvert::to_display(Image);
+	Image = LinearWorkflow::toDisplayGamma(Image);
 }
 
 /*-------------.

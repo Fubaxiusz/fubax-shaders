@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Scopes FX - Vectorscope PS/VS (version 1.7.1)
+Scopes FX - Vectorscope PS/VS (version 1.7.2)
 
 Copyright:
 This code © 2021-2023 Jakub Maksymilian Fober
@@ -57,7 +57,7 @@ as a vectorscope color-wheel.
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
 #include "ColorConversion.fxh"
-#include "LinearGammaWorkflow.fxh"
+#include "LinearWorkflow.fxh"
 #include "BlueNoiseDither.fxh"
 
 /*-----------.
@@ -234,7 +234,7 @@ void GatherStatsVS(
 
 	// Get current-pixel color data in RGB, convert to chroma CbCr and store as 2D position
 	position.xy = ColorConvert::RGB_to_Chroma(
-		GammaConvert::to_linear( // linear gamma workflow
+		LinearWorkflow::toLinearGamma( // linear gamma workflow
 			tex2Dfetch(ReShade::BackBuffer, texelCoord).rgb
 		));
 }
@@ -345,8 +345,8 @@ float4 DrawUI(float2 texCoord)
 	uiColor.a = max(uiColor.a, skintoneLineMask);
 
 	// Output UI color
-	uiColor.rgb = float3(lerp(1f, 1f-GOLDEN_RATIO, GammaConvert::to_display(ScopeUiTransparency)), texCoord); // get UI color in YCbCr
-	uiColor.rgb = GammaConvert::to_linear(saturate(ColorConvert::YCbCr_to_RGB(uiColor.xyz))); // convert to RGB
+	uiColor.rgb = float3(lerp(1f, 1f-GOLDEN_RATIO, LinearWorkflow::toDisplayGamma(ScopeUiTransparency)), texCoord); // get UI color in YCbCr
+	uiColor.rgb = LinearWorkflow::toLinearGamma(saturate(ColorConvert::YCbCr_to_RGB(uiColor.xyz))); // convert to RGB
 
 	return uiColor;
 }
@@ -433,7 +433,7 @@ void DisplayVectorscopePS(
 	color.rgb = float3(GOLDEN_RATIO, texCoord.x-0.5, 0.5-texCoord.y); // base color in YCbCr
 	color.rgb = ColorConvert::YCbCr_to_RGB(color.rgb); // convert to sRGB
 	// Manual gamma correction
-	color.rgb = GammaConvert::to_linear(color.rgb); // convert to linear RGB
+	color.rgb = LinearWorkflow::toLinearGamma(color.rgb); // convert to linear RGB
 	// Blend with background
 	{
 	// Mask vectorscope image
@@ -444,7 +444,7 @@ void DisplayVectorscopePS(
 #endif
 		float3 background = tex2Dfetch(ReShade::BackBuffer, uint2(pos.xy)).rgb;
 		// Linear workflow
-		background = GammaConvert::to_linear(background); // manual gamma correction
+		background = LinearWorkflow::toLinearGamma(background); // manual gamma correction
 		background = lerp(background, 0f, color.a); // blend with circular background
 		color.rgb = lerp(background, color.rgb, vectorscopeMask); // blend with vectorscope read
 	}
@@ -455,13 +455,13 @@ void DisplayVectorscopePS(
 		float4 UI = DrawUI(texCoord);
 		// Apply the UI to background picture
 		// Linear workflow
-		color.rgb = lerp(color.rgb, UI.rgb, UI.a*GammaConvert::to_linear(ScopeUiTransparency));
+		color.rgb = lerp(color.rgb, UI.rgb, UI.a*LinearWorkflow::toLinearGamma(ScopeUiTransparency));
 		color.a = max(UI.a, color.a);
 	}
 	color.a = ceil(color.a);
 
 	// Linear workflow
-	color.rgb = GammaConvert::to_display(color.rgb); // manual gamma correction
+	color.rgb = LinearWorkflow::toDisplayGamma(color.rgb); // manual gamma correction
 	// Dither final output
 	color.rgb = BlueNoise::dither(color.rgb, uint2(pos.xy));
 }

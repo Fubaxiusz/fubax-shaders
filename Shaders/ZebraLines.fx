@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Scopes FX - Zebra Lines PS (version 1.2.4)
+Scopes FX - Zebra Lines PS (version 1.2.5)
 
 Copyright:
 This code © 2021-2025 Jakub Maksymilian Fober
@@ -43,7 +43,7 @@ This effect will show over/under exposed image areas as a zebra lines.
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
 #include "ColorConversion.fxh"
-#include "LinearGammaWorkflow.fxh"
+#include "LinearWorkflow.fxh"
 #include "BlueNoiseDither.fxh"
 
 /*-----------.
@@ -161,7 +161,7 @@ void ZebraLinesPS(
 	zebraLines = clamp(zebraLines, 0f, 1f);
 
 	// Sample background image in sRGB and convert to linear RGB
-	color = GammaConvert::to_linear(tex2Dfetch(ReShade::BackBuffer, uint2(pos.xy)).rgb);
+	color = LinearWorkflow::toLinearGamma(tex2Dfetch(ReShade::BackBuffer, uint2(pos.xy)).rgb);
 
 	// UI settings
 	if (ScopeRGBClipping)
@@ -200,7 +200,7 @@ void ZebraLinesPS(
 	}
 
 	// Linear workflow
-	color = GammaConvert::to_display(color); // manual gamma correction
+	color = LinearWorkflow::toDisplayGamma(color); // manual gamma correction
 	// Dither final output
 	color = BlueNoise::dither(color, uint2(pos.xy));
 }

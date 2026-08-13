@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Scopes FX - Waveform PS/VS (version 1.4.4)
+Scopes FX - Waveform PS/VS (version 1.4.5)
 
 Copyright:
 This code © 2021-2023 Jakub Maksymilian Fober
@@ -60,7 +60,7 @@ and display them as a waveform pattern.
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
 #include "ColorConversion.fxh"
-#include "LinearGammaWorkflow.fxh"
+#include "LinearWorkflow.fxh"
 #include "BlueNoiseDither.fxh"
 
 /*-----------.
@@ -301,12 +301,12 @@ void GatherStatsVS(uint pixelID : SV_VertexID, out float4 position : SV_Position
 	float3 color = tex2Dfetch(ReShade::BackBuffer, texelCoord).rgb;
 #if SCOPES_VERTICAL_WAVEFORM
 	// Linear gamma workflow
-	position.x = ColorConvert::RGB_to_Luma(GammaConvert::to_linear(color));
+	position.x = ColorConvert::RGB_to_Luma(LinearWorkflow::toLinearGamma(color));
 	position.y = 0.5-(texelCoord.y+0.5)*BUFFER_RCP_HEIGHT;
 #else
 	position.x = (texelCoord.x+0.5)*BUFFER_RCP_WIDTH;
 	// Linear gamma workflow
-	position.y = ColorConvert::RGB_to_Luma(GammaConvert::to_linear(color));
+	position.y = ColorConvert::RGB_to_Luma(LinearWorkflow::toLinearGamma(color));
 #endif
 	position.xy = position.xy*(1f-BUFFER_PIXEL_SIZE)-0.5;
 }
@@ -403,7 +403,7 @@ void DisplayWaveformPS(
 	if (ScopeBackgroundTransparency!=1f || ScopeBorder!=0u)
 	{
 		// Sample background in linear-gamma
-		color = GammaConvert::to_linear(tex2Dfetch(ReShade::BackBuffer, uint2(pos.xy)).rgb);
+		color = LinearWorkflow::toLinearGamma(tex2Dfetch(ReShade::BackBuffer, uint2(pos.xy)).rgb);
 		// Get rounded border mask
 		if (ScopeBorder!=0u)
 		{
@@ -434,7 +434,7 @@ void DisplayWaveformPS(
 	}
 
 	// Linear workflow
-	color = GammaConvert::to_display(color); // manual gamma correction
+	color = LinearWorkflow::toDisplayGamma(color); // manual gamma correction
 	// Dither final output
 	color = BlueNoise::dither(color, uint2(pos.xy));
 }

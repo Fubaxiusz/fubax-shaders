@@ -2,7 +2,7 @@
 | :: Description :: |
 '-------------------/
 
-Lens Distortion PS (version 1.4.1)
+Lens Distortion PS (version 1.4.2)
 
 Copyright:
 This code © 2022-2023 Jakub Maksymilian Fober
@@ -85,7 +85,7 @@ by Fober, J. M.
 #include "ReShade.fxh"
 #include "ReShadeUI.fxh"
 #include "ColorConversion.fxh"
-#include "LinearGammaWorkflow.fxh"
+#include "LinearWorkflow.fxh"
 #include "BlueNoiseDither.fxh"
 
 /*-----------.
@@ -593,7 +593,7 @@ void LensDistortPS(
 		color = 0f; // initialize color
 		for (uint i=0u; i<evenSampleCount; i++)
 			// Manual gamma correction
-			color += GammaConvert::to_linear(tex2Dlod(
+			color += LinearWorkflow::toLinearGamma(tex2Dlod(
 				BackBuffer, // Image source
 				float4(
 					(T*(i/float(evenSampleCount-1u)-0.5)+1f) // Aberration offset
@@ -608,7 +608,7 @@ void LensDistortPS(
 	else if (ShowGrid) // generate lens-match grid
 	{
 		// Sample background without distortion
-		color = GammaConvert::to_linear(tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb); // manual gamma correction
+		color = LinearWorkflow::toLinearGamma(tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb); // manual gamma correction
 
 		// Tilt view coordinates
 		{
@@ -647,7 +647,7 @@ void LensDistortPS(
 		// Adjust grid look
 		color = lerp(
 			// Linear workflow
-			GammaConvert::to_linear(16f/255f),
+			LinearWorkflow::toLinearGamma(16f/255f),
 			color,
 			DimGridBackground
 		);
@@ -674,7 +674,7 @@ void LensDistortPS(
 		}
 	}
 	else // sample background with distortion
-		color = GammaConvert::to_linear(tex2D(BackBuffer, texCoord).rgb); // manual gamma correction
+		color = LinearWorkflow::toLinearGamma(tex2D(BackBuffer, texCoord).rgb); // manual gamma correction
 
 	if (!ShowGrid) // draw border and vignette
 	{
@@ -687,11 +687,11 @@ void LensDistortPS(
 		// Get border
 		float3 border = lerp(
 			// Border background
-			MirrorBorder? color : GammaConvert::to_linear(tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb), // manual gamma correction
+			MirrorBorder? color : LinearWorkflow::toLinearGamma(tex2Dfetch(BackBuffer, uint2(pixelPos.xy)).rgb), // manual gamma correction
 
 			// Linear workflow
-			GammaConvert::to_linear(BorderColor.rgb), // Border color
-			GammaConvert::to_linear(BorderColor.a)    // Border alpha
+			LinearWorkflow::toLinearGamma(BorderColor.rgb), // Border color
+			LinearWorkflow::toLinearGamma(BorderColor.a)    // Border alpha
 		);
 
 		// Apply vignette with border
@@ -702,7 +702,7 @@ void LensDistortPS(
 	}
 
 	// Linear workflow
-	color = GammaConvert::to_display(color); // Correct gamma
+	color = LinearWorkflow::toDisplayGamma(color); // Correct gamma
 	color = BlueNoise::dither(color, uint2(pixelPos.xy)); // Dither
 }
 
